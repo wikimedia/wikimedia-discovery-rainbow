@@ -9,7 +9,7 @@ body <- dashboardBody(
               valueBoxOutput("desktop_event_clickthroughs")
             ),
             dygraphOutput("desktop_event_plot"),
-            includeMarkdown("markdown.md")),
+            includeMarkdown("./assets/content/desktop_events.md")),
     tabItem(tabName = "desktop_load"),
     tabItem(tabName = "mobile_load"),
     tabItem(tabName = "app_load")

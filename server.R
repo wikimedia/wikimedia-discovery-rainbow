@@ -8,11 +8,11 @@ desktop_dygraph_set <- dcast(data, formula = timestamp ~ action)
 desktop_dygraph_means <- round(colMeans(desktop_dygraph_set[,2:4]))
 shinyServer(function(input, output) {
   
-  output$desktop_event_clickthroughs <- renderValueBox(
+  output$desktop_event_searches <- renderValueBox(
     valueBox(
-      value = desktop_dygraph_means[1],
-      subtitle = "Clickthroughs per day",
-      icon = icon("hand-up", lib = "glyphicon"),
+      value = desktop_dygraph_means[3],
+      subtitle = "Search sessions per day",
+      icon = icon("search"),
       color = "green"
     )
   )
@@ -26,17 +26,17 @@ shinyServer(function(input, output) {
     )
   )
   
-  output$desktop_event_searches <- renderValueBox(
+  output$desktop_event_clickthroughs <- renderValueBox(
     valueBox(
-      value = desktop_dygraph_means[3],
-      subtitle = "Search sessions per day",
-      icon = icon("bolt"),
+      value = desktop_dygraph_means[1],
+      subtitle = "Clickthroughs per day",
+      icon = icon("hand-up", lib = "glyphicon"),
       color = "green"
     )
   )
-
+  
+  #The dynamic graphs of events on desktop
   output$desktop_event_plot <- renderDygraph({
-    
     dyCSS(
       dyOptions(
         dyLegend(
@@ -45,6 +45,6 @@ shinyServer(function(input, output) {
           width = 400, show = "onmouseover"
         ), strokeWidth = 3, colors = brewer.pal(3, "Set2")
       )
-    ,css = "custom.css")
+    ,css = "./assets/css/custom.css")
   })
 })
