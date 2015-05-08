@@ -19,6 +19,6 @@ Also: all of the text you're seeing here? Like, everything below the graph? It's
 
 Outages and inaccuracies
 ------
-We can display outage information and notes here. Poetic justice being what it is, there was an eventlogging outage *as I was writing this*. So we'd have an entry like:
+There are occasionally going to be outages that will affect the accuracy of data. To make it easier to rely on the data (or not!) they are listed here, from most- to least-recent.
 
-* Between 5 May and 6 May 2015, approximately 40% of incoming EventLogging data was lost due to a wider EventLogging outage. You can read more about the outage [here](https://wikitech.wikimedia.org/wiki/Incident_documentation/20150506-EventLogging)
+* Between 5 May and 6 May 2015, approximately 40% of incoming EventLogging data was lost due to a wider EventLogging outage. You can read more about the outage [here](https://wikitech.wikimedia.org/wiki/Incident_documentation/20150506-EventLogging).
