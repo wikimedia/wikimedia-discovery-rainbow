@@ -4,8 +4,17 @@ library(reshape2)
 library(shinySignals)
 library(RColorBrewer)
 
-desktop_dygraph_set <- dcast(data, formula = timestamp ~ action)
-desktop_dygraph_means <- round(colMeans(desktop_dygraph_set[,2:4]))
+desktop_dygraph_set <- NULL
+desktop_dygraph_means <- NULL
+
+read_desktop <- function(){
+  download.file()
+  data <- readr::read_delim("./data/desktop_eventlogging_aggregates.tsv", delim = "\t")
+  desktop_dygraph_set <<- reshape2::dcast(data, formula = timestamp ~ action)
+  desktop_dygraph_means <<- round(colMeans(desktop_dygraph_set[,2:4]))
+  return(invisible())
+}
+
 shinyServer(function(input, output) {
   
   output$desktop_event_searches <- renderValueBox(
