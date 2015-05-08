@@ -1,25 +1,32 @@
 library(readr)
 library(xts)
 library(reshape2)
-library(shinySignals)
 library(RColorBrewer)
 
-desktop_dygraph_set <- NULL
-desktop_dygraph_means <- NULL
+data_env <- new.env()
+assign("existing_date", Sys.Date(), envir = data_env)
 
 read_desktop <- function(){
-  download.file()
+  #download.file()
   data <- readr::read_delim("./data/desktop_eventlogging_aggregates.tsv", delim = "\t")
-  desktop_dygraph_set <<- reshape2::dcast(data, formula = timestamp ~ action)
-  desktop_dygraph_means <<- round(colMeans(desktop_dygraph_set[,2:4]))
+  assign("desktop_dygraph_set", reshape2::dcast(data, formula = timestamp ~ action), envir = data_env)
+  assign("desktop_dygraph_means", round(colMeans( get("desktop_dygraph_set", envir = data_env)[,2:4])),
+         envir = data_env)
   return(invisible())
 }
 
 shinyServer(function(input, output) {
   
+  if(Sys.Date() != get("existing_date", envir = data_env)){
+    read_desktop()
+    #read_apps()
+    #read_web()
+    assign("existing_date", Sys.Date(), envir = data_env)
+  }
+  
   output$desktop_event_searches <- renderValueBox(
     valueBox(
-      value = desktop_dygraph_means[3],
+      value = get("desktop_dygraph_means", envir= data_env)[3],
       subtitle = "Search sessions per day",
       icon = icon("search"),
       color = "green"
@@ -28,7 +35,7 @@ shinyServer(function(input, output) {
   
   output$desktop_event_resultsets <- renderValueBox(
     valueBox(
-      value = desktop_dygraph_means[2],
+      value = get("desktop_dygraph_means", envir= data_env)[2],
       subtitle = "Result sets per day",
       icon = icon("list", lib = "glyphicon"),
       color = "green"
@@ -37,7 +44,7 @@ shinyServer(function(input, output) {
   
   output$desktop_event_clickthroughs <- renderValueBox(
     valueBox(
-      value = desktop_dygraph_means[1],
+      value = get("desktop_dygraph_means", envir= data_env)[1],
       subtitle = "Clickthroughs per day",
       icon = icon("hand-up", lib = "glyphicon"),
       color = "green"
@@ -49,10 +56,13 @@ shinyServer(function(input, output) {
     dyCSS(
       dyOptions(
         dyLegend(
-          dygraph(xts(desktop_dygraph_set[,-1], desktop_dygraph_set[,1]), main = "Desktop search events, by day",
+          dygraph(xts(get("desktop_dygraph_set", envir= data_env)[,-1],
+                      get("desktop_dygraph_set", envir= data_env)[,1]),
+                  main = "Desktop search events, by day",
                 xlab = "Date", ylab = "Events"),
           width = 400, show = "onmouseover"
-        ), strokeWidth = 3, colors = brewer.pal(3, "Set2")
+        ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
+        drawPoints = TRUE, pointSize = 3
       )
     ,css = "./assets/css/custom.css")
   })
