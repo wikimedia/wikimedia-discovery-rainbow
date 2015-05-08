@@ -3,10 +3,12 @@
 sidebar <- dashboardSidebar(
   sidebarMenu(
     menuItem(text = "Desktop",
-             menuSubItem("Load times")),
+             menuSubItem(text = "Events", tabName = "desktop_events"),
+             menuSubItem(text = "Load times", tabName = "desktop_load")),
     menuItem(text = "Mobile Web",
-             menuSubItem("Load times")),
+             menuSubItem(text = "Load times", tabName = "mobile_load")),
     menuItem(text = "Mobile Apps",
-             menuSubItem("Load times"))
+             menuSubItem(text = "Load times", tabName = "app_load")
+             )
   )
 )
