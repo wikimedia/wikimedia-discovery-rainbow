@@ -1,36 +1,27 @@
-#Retrieves data for the stuff we care about, drops it in the public-datasets directory.
+#Retrieves data for the desktop stuff we care about, drops it in the public-datasets directory.
 #Should be run on stat1002, /not/ on the datavis machine.
 
-#Config variables and setup
-options(scipen = 500,
-        q = "no")
-base_path <- "/a/public-datasets/search/"
-archive_path <- "/a/public-datasets/search/archive"
-
-#Dependencies
-library(WMUtils)
-library(data.table)
-
-if(!dir.exists(base_path)){
-  dir.create(path = base_path)
-}
-
-if(!dir.exists(archive_path)){
-  dir.create(path = archive_path)
-}
-
-
-#Wrapper functions
-write_table <- function(x, file){
-  write.table(x, file, sep = "\t", row.names = FALSE, append = TRUE)
-}
-
 #Grab desktop data
-desktop_data <- WMUtils::mysql_query(paste0(readLines("desktop.sql"), collapse=" "),"log")
-desktop_data$timestamp <- as.Date(mw_strptime(desktop_data$timestamp))
+desktop_data <- WMUtils::mysql_query(paste0(readLines("desktop_events.sql"), collapse=" "),"log")
+desktop_data$timestamp <- as.Date(WMUtils::mw_strptime(desktop_data$timestamp))
 
-desktop_results <- desktop_data[,j = {
-  output <- data.table(events = .N)
-}, by = c("timestamp","action")]
+#Produce event aggregates
+desktop_results <- desktop_data[,j = list(events = .N), by = c("timestamp","action")]
+write_table(desktop_results, file.path(base_path, "desktop_event_counts.tsv"))
 
-write_table(desktop_results, file.path(base_path, "desktop_eventlogging_aggregates.tsv"))
+#Load times
+result_data <- desktop_data[desktop_data$action == "Result pages opened",]
+load_times <- result_data[,{
+  output <- numeric(4)
+  quantiles <- quantile(load_time,probs=seq(0,1,0.01))
+  
+  output[1] <- round(mean(load_time))
+  output[2] <- round(median(load_time))
+  output[3] <- quantiles[95]
+  output[4] <- quantiles[99]
+  
+  output <- data.frame(t(output))
+  names(output) <- c("Mean","Median","95th percentile","99th Percentile")
+  output
+}, by = "timestamp"]
+write_table(load_times, file.path(base_path, "desktop_load_times.tsv"))
