@@ -11,7 +11,8 @@ body <- dashboardBody(
             dygraphOutput("desktop_event_plot"),
             includeMarkdown("./assets/content/desktop_events.md")),
     tabItem(tabName = "desktop_load",
-            dygraphOutput("desktop_load_plot")),
+            dygraphOutput("desktop_load_plot"),
+            includeMarkdown("./assets/content/desktop_load.md")),
     tabItem(tabName = "mobile_load"),
     tabItem(tabName = "app_load")
   )
