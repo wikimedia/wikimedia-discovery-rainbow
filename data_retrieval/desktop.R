@@ -1,5 +1,6 @@
 #Retrieves data for the desktop stuff we care about, drops it in the public-datasets directory.
 #Should be run on stat1002, /not/ on the datavis machine.
+source("config.R")
 
 #Grab desktop data
 desktop_data <- WMUtils::mysql_query(paste0(readLines("desktop_events.sql"), collapse=" "),"log")
