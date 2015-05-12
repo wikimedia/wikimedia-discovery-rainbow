@@ -23,7 +23,9 @@ body <- dashboardBody(
             includeMarkdown("./assets/content/mobile_events.md")
     ),
     tabItem(tabName = "mobile_load",
-            dygraphOutput("mobile_load_plot")),
+            dygraphOutput("mobile_load_plot"),
+            includeMarkdown("./assets/content/mobile_load.md")
+            ),
     tabItem(tabName = "app_load")
   )
 )
