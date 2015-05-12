@@ -1,7 +1,7 @@
 library(shiny)
 library(shinydashboard)
 library(dygraphs)
-
+options(scipen = 500)
 files <- list.files("./ui", pattern = "\\.R$", full.names = TRUE)
 trap <- lapply(files, source)
 dashboardPage(header, sidebar, body, skin = "black")

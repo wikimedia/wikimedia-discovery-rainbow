@@ -13,7 +13,17 @@ body <- dashboardBody(
     tabItem(tabName = "desktop_load",
             dygraphOutput("desktop_load_plot"),
             includeMarkdown("./assets/content/desktop_load.md")),
-    tabItem(tabName = "mobile_load"),
+    tabItem(tabName = "mobile_events",
+            fluidRow(
+              valueBoxOutput("mobile_event_searches"),
+              valueBoxOutput("mobile_event_resultsets"),
+              valueBoxOutput("mobile_event_clickthroughs")
+            ),
+            dygraphOutput("mobile_event_plot"),
+            includeMarkdown("./assets/content/mobile_events.md")
+    ),
+    tabItem(tabName = "mobile_load",
+            dygraphOutput("mobile_load_plot")),
     tabItem(tabName = "app_load")
   )
 )
