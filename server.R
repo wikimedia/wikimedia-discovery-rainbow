@@ -9,7 +9,9 @@ assign("existing_date", Sys.Date()-1, envir = data_env)
 read_desktop <- function(){
   #download.file()
   data <- readr::read_delim("./data/desktop_event_counts.tsv", delim = "\t")
-  assign("desktop_dygraph_set", reshape2::dcast(data, formula = timestamp ~ action), envir = data_env)
+  interim <- reshape2::dcast(data, formula = timestamp ~ action)
+  interim[is.na(interim)] <- 0
+  assign("desktop_dygraph_set", interim, envir = data_env)
   assign("desktop_dygraph_means", round(colMeans(get("desktop_dygraph_set", envir = data_env)[,2:4])),
          envir = data_env)
   assign("desktop_load_data", readr::read_delim("./data/desktop_load_times.tsv", delim = "\t"),
@@ -20,6 +22,9 @@ read_desktop <- function(){
 read_web <- function(){
   #download.file()
   data <- readr::read_delim("./data/mobile_event_counts.tsv", delim = "\t")
+  interim <- reshape2::dcast(data, formula = timestamp ~ action)
+  interim[is.na(interim)] <- 0
+  assign("mobile_dygraph_set", interim, envir = data_env)
   assign("mobile_dygraph_set", reshape2::dcast(data, formula = timestamp ~ action), envir = data_env)
   assign("mobile_dygraph_means", round(colMeans(get("mobile_dygraph_set", envir = data_env)[,2:4])),
          envir = data_env)
@@ -31,7 +36,9 @@ read_web <- function(){
 read_apps <- function(){
   #download.file()
   data <- readr::read_delim("./data/app_event_counts.tsv", delim = "\t")
-  assign("app_dygraph_set", reshape2::dcast(data, formula = timestamp ~ action), envir = data_env)
+  interim <- reshape2::dcast(data, formula = timestamp ~ action)
+  interim[is.na(interim)] <- 0
+  assign("app_dygraph_set", interim, envir = data_env)
   assign("app_dygraph_means", round(colMeans(get("app_dygraph_set", envir = data_env)[,2:4])),
          envir = data_env)
   assign("app_load_data", readr::read_delim("./data/app_load_times.tsv", delim = "\t"),
