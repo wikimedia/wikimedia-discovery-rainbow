@@ -3,12 +3,12 @@
 source("config.R")
 
 #Grab desktop data
-desktop_data <- WMUtils::mysql_query(paste0(readLines("desktop_events.sql"), collapse=" "),"log")
-desktop_data$timestamp <- as.Date(WMUtils::mw_strptime(desktop_data$timestamp))
+desktop_data <- olivr::mysql_read(paste0(readLines("desktop_events.sql"), collapse=" "),"log")
+desktop_data$timestamp <- as.Date(olivr::from_mediawiki(desktop_data$timestamp))
 
 #Produce event aggregates
 desktop_results <- desktop_data[,j = list(events = .N), by = c("timestamp","action")]
-write_table(desktop_results, file.path(base_path, "desktop_event_counts.tsv"))
+write_tsv(desktop_results, file.path(base_path, "desktop_event_counts.tsv"))
 
 #Load times
 result_data <- desktop_data[desktop_data$action == "Result pages opened",]
@@ -25,4 +25,4 @@ load_times <- result_data[,{
   names(output) <- c("Mean","Median","95th percentile","99th Percentile")
   output
 }, by = "timestamp"]
-write_table(load_times, file.path(base_path, "desktop_load_times.tsv"))
+write_tsv(load_times, file.path(base_path, "desktop_load_times.tsv"))
