@@ -2,6 +2,55 @@ library(shiny)
 library(shinydashboard)
 library(dygraphs)
 options(scipen = 500)
-files <- list.files("./ui", pattern = "\\.R$", full.names = TRUE)
-trap <- lapply(files, source)
+
+#Header elements for the visualisation
+header <- dashboardHeader(title = "Search & Discovery", disable = FALSE)
+
+#Sidebar elements for the search visualisations.
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    menuItem(text = "Desktop",
+             menuSubItem(text = "Events", tabName = "desktop_events"),
+             menuSubItem(text = "Load times", tabName = "desktop_load")),
+    menuItem(text = "Mobile Web",
+             menuSubItem(text = "Events", tabName = "mobile_events"),
+             menuSubItem(text = "Load times", tabName = "mobile_load")),
+    menuItem(text = "Mobile Apps",
+             menuSubItem(text = "Events", tabName = "app_events")
+             menuSubItem(text = "Load times", tabName = "app_load")
+    )
+  )
+)
+
+#Body elements for the search visualisations.
+body <- dashboardBody(
+  tabItems(
+    tabItem(tabName = "desktop_events",
+            fluidRow(
+              valueBoxOutput("desktop_event_searches"),
+              valueBoxOutput("desktop_event_resultsets"),
+              valueBoxOutput("desktop_event_clickthroughs")
+            ),
+            dygraphOutput("desktop_event_plot"),
+            includeMarkdown("./assets/content/desktop_events.md")),
+    tabItem(tabName = "desktop_load",
+            dygraphOutput("desktop_load_plot"),
+            includeMarkdown("./assets/content/desktop_load.md")),
+    tabItem(tabName = "mobile_events",
+            fluidRow(
+              valueBoxOutput("mobile_event_searches"),
+              valueBoxOutput("mobile_event_resultsets"),
+              valueBoxOutput("mobile_event_clickthroughs")
+            ),
+            dygraphOutput("mobile_event_plot"),
+            includeMarkdown("./assets/content/mobile_events.md")
+    ),
+    tabItem(tabName = "mobile_load",
+            dygraphOutput("mobile_load_plot"),
+            includeMarkdown("./assets/content/mobile_load.md")
+    ),
+    tabItem(tabName = "app_load")
+  )
+)
+
 dashboardPage(header, sidebar, body, skin = "black")

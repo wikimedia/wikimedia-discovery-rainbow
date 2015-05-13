@@ -28,11 +28,22 @@ read_web <- function(){
   return(invisible())
 }
 
+read_apps <- function(){
+  #download.file()
+  data <- readr::read_delim("./data/app_event_counts.tsv", delim = "\t")
+  assign("app_dygraph_set", reshape2::dcast(data, formula = timestamp ~ action), envir = data_env)
+  assign("app_dygraph_means", round(colMeans(get("app_dygraph_set", envir = data_env)[,2:4])),
+         envir = data_env)
+  assign("app_load_data", readr::read_delim("./data/app_load_times.tsv", delim = "\t"),
+         envir = data_env)
+  return(invisible())
+}
+
 shinyServer(function(input, output) {
   
   if(Sys.Date() != get("existing_date", envir = data_env)){
     read_desktop()
-    #read_apps()
+    read_apps()
     read_web()
     assign("existing_date", Sys.Date(), envir = data_env)
   }
