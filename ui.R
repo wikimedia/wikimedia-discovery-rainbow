@@ -16,7 +16,7 @@ sidebar <- dashboardSidebar(
              menuSubItem(text = "Events", tabName = "mobile_events"),
              menuSubItem(text = "Load times", tabName = "mobile_load")),
     menuItem(text = "Mobile Apps",
-             menuSubItem(text = "Events", tabName = "app_events")
+             menuSubItem(text = "Events", tabName = "app_events"),
              menuSubItem(text = "Load times", tabName = "app_load")
     )
   )
@@ -49,7 +49,16 @@ body <- dashboardBody(
             dygraphOutput("mobile_load_plot"),
             includeMarkdown("./assets/content/mobile_load.md")
     ),
-    tabItem(tabName = "app_load")
+    tabItem(tabName = "app_events",
+            fluidRow(
+              valueBoxOutput("app_event_searches"),
+              valueBoxOutput("app_event_resultsets"),
+              valueBoxOutput("app_event_clickthroughs")
+            ),
+            dygraphOutput("app_event_plot")
+    ),
+    tabItem(tabName = "app_load",
+            dygraphOutput("app_load_plot"))
   )
 )
 

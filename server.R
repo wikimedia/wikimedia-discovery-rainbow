@@ -162,4 +162,61 @@ shinyServer(function(input, output) {
       )
       ,css = "./assets/css/custom.css")
   })
+  
+  output$app_event_plot <- renderDygraph({
+    dyCSS(
+      dyOptions(
+        dyLegend(
+          dygraph(xts(get("app_dygraph_set", envir= data_env)[,-1],
+                      get("app_dygraph_set", envir= data_env)[,1]),
+                  main = "Mobile App search events, by day",
+                  xlab = "Date", ylab = "Events"),
+          width = 400, show = "onmouseover"
+        ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
+        drawPoints = TRUE, pointSize = 3
+      )
+      ,css = "./assets/css/custom.css")
+  })
+  
+  output$app_event_searches <- renderValueBox(
+    valueBox(
+      value = get("app_dygraph_means", envir= data_env)[3],
+      subtitle = "Search sessions per day",
+      icon = icon("search"),
+      color = "green"
+    )
+  )
+  
+  output$app_event_resultsets <- renderValueBox(
+    valueBox(
+      value = get("app_dygraph_means", envir= data_env)[2],
+      subtitle = "Result sets per day",
+      icon = icon("list", lib = "glyphicon"),
+      color = "green"
+    )
+  )
+  
+  output$app_event_clickthroughs <- renderValueBox(
+    valueBox(
+      value = get("app_dygraph_means", envir= data_env)[1],
+      subtitle = "Clickthroughs per day",
+      icon = icon("hand-up", lib = "glyphicon"),
+      color = "green"
+    )
+  )
+  
+  output$app_load_plot <- renderDygraph({
+    dyCSS(
+      dyOptions(
+        dyLegend(
+          dygraph(xts(get("app_load_data", envir= data_env)[,-1],
+                      get("app_load_data", envir= data_env)[,1]),
+                  main = "Mobile App result load times, by day",
+                  xlab = "Date", ylab = "Events"),
+          width = 400, show = "onmouseover"
+        ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
+        drawPoints = TRUE, pointSize = 3
+      )
+      ,css = "./assets/css/custom.css")
+  })
 })
