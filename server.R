@@ -91,7 +91,7 @@ shinyServer(function(input, output) {
                       get("desktop_dygraph_set", envir= data_env)[,1]),
                   main = "Desktop search events, by day",
                 xlab = "Date", ylab = "Events"),
-          width = 400, show = "onmouseover"
+          width = 400, show = "always"
         ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
         drawPoints = TRUE, pointSize = 3
       )
@@ -106,7 +106,7 @@ shinyServer(function(input, output) {
                       get("desktop_load_data", envir= data_env)[,1]),
                   main = "Desktop result load times, by day",
                   xlab = "Date", ylab = "Events"),
-          width = 400, show = "onmouseover"
+          width = 400, show = "always"
         ), strokeWidth = 3, colors = brewer.pal(4, "Set2"),
         drawPoints = TRUE, pointSize = 3
       )
@@ -121,7 +121,7 @@ shinyServer(function(input, output) {
                       get("mobile_dygraph_set", envir= data_env)[,1]),
                   main = "Mobile search events, by day",
                   xlab = "Date", ylab = "Events"),
-          width = 400, show = "onmouseover"
+          width = 400, show = "always"
         ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
         drawPoints = TRUE, pointSize = 3
       )
@@ -163,7 +163,7 @@ shinyServer(function(input, output) {
                       get("mobile_load_data", envir= data_env)[,1]),
                   main = "Mobile result load times, by day",
                   xlab = "Date", ylab = "Events"),
-          width = 400, show = "onmouseover"
+          width = 400, show = "always"
         ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
         drawPoints = TRUE, pointSize = 3
       )
@@ -178,7 +178,7 @@ shinyServer(function(input, output) {
                       get("app_dygraph_set", envir= data_env)[,1]),
                   main = "Mobile App search events, by day",
                   xlab = "Date", ylab = "Events"),
-          width = 400, show = "onmouseover"
+          width = 400, show = "always"
         ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
         drawPoints = TRUE, pointSize = 3
       )
@@ -220,7 +220,7 @@ shinyServer(function(input, output) {
                       get("app_load_data", envir= data_env)[,1]),
                   main = "Mobile App result load times, by day",
                   xlab = "Date", ylab = "Events"),
-          width = 400, show = "onmouseover"
+          width = 400, show = "always"
         ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
         drawPoints = TRUE, pointSize = 3
       )
