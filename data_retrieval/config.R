@@ -1,7 +1,7 @@
 #Config variables and setup
 options(scipen = 500,
         q = "no")
-base_path <- "/a/public-datasets/search/"
+base_path <- "/a/aggregate-datasets/search/"
 
 #Dependencies
 library(olivr)
