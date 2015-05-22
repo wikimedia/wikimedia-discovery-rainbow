@@ -7,20 +7,24 @@ data_env <- new.env()
 assign("existing_date", Sys.Date()-1, envir = data_env)
 
 read_desktop <- function(){
-  #download.file()
+  download.file("http://datasets.wikimedia.org/aggregate-datasets/search/desktop_event_counts.tsv",
+                destfile = "./data/desktop_event_counts.tsv")
   data <- readr::read_delim("./data/desktop_event_counts.tsv", delim = "\t")
   interim <- reshape2::dcast(data, formula = timestamp ~ action)
   interim[is.na(interim)] <- 0
   assign("desktop_dygraph_set", interim, envir = data_env)
   assign("desktop_dygraph_means", round(colMeans(get("desktop_dygraph_set", envir = data_env)[,2:4])),
          envir = data_env)
+  download.file("http://datasets.wikimedia.org/aggregate-datasets/search/desktop_load_times.tsv",
+                destfile = "./data/desktop_load_times.tsv")
   assign("desktop_load_data", readr::read_delim("./data/desktop_load_times.tsv", delim = "\t"),
          envir = data_env)
   return(invisible())
 }
 
 read_web <- function(){
-  #download.file()
+  download.file("http://datasets.wikimedia.org/aggregate-datasets/search/mobile_event_counts.tsv",
+                destfile = "./data/mobile_event_counts.tsv")
   data <- readr::read_delim("./data/mobile_event_counts.tsv", delim = "\t")
   interim <- reshape2::dcast(data, formula = timestamp ~ action)
   interim[is.na(interim)] <- 0
@@ -28,19 +32,24 @@ read_web <- function(){
   assign("mobile_dygraph_set", reshape2::dcast(data, formula = timestamp ~ action), envir = data_env)
   assign("mobile_dygraph_means", round(colMeans(get("mobile_dygraph_set", envir = data_env)[,2:4])),
          envir = data_env)
+  download.file("http://datasets.wikimedia.org/aggregate-datasets/search/mobile_load_times.tsv",
+                destfile = "./data/mobile_load_times.tsv")
   assign("mobile_load_data", readr::read_delim("./data/mobile_load_times.tsv", delim = "\t"),
          envir = data_env)
   return(invisible())
 }
 
 read_apps <- function(){
-  #download.file()
+  download.file("http://datasets.wikimedia.org/aggregate-datasets/search/app_event_counts.tsv",
+                destfile = "./data/app_event_counts.tsv")
   data <- readr::read_delim("./data/app_event_counts.tsv", delim = "\t")
   interim <- reshape2::dcast(data, formula = timestamp ~ action)
   interim[is.na(interim)] <- 0
   assign("app_dygraph_set", interim, envir = data_env)
   assign("app_dygraph_means", round(colMeans(get("app_dygraph_set", envir = data_env)[,2:4])),
          envir = data_env)
+  download.file("http://datasets.wikimedia.org/aggregate-datasets/search/app_load_times.tsv",
+                destfile = "./data/app_load_times.tsv")
   assign("app_load_data", readr::read_delim("./data/app_load_times.tsv", delim = "\t"),
          envir = data_env)
   return(invisible())
