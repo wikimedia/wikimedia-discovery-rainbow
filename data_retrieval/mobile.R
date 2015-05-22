@@ -3,7 +3,7 @@
 source("config.R")
 
 #Grab desktop data
-mobile_data <- olivr::mysql_read(paste0(readLines("mobile_events.sql"), collapse=" "),"log")
+mobile_data <- as.data.table(olivr::mysql_read(paste0(readLines("mobile_events.sql"), collapse=" "),"log"))
 mobile_data$timestamp <- as.Date(olivr::from_mediawiki(mobile_data$timestamp))
 
 #Produce event aggregates

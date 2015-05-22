@@ -3,7 +3,7 @@
 source("config.R")
 
 #Grab desktop data
-desktop_data <- olivr::mysql_read(paste0(readLines("desktop_events.sql"), collapse=" "),"log")
+desktop_data <- as.data.table(olivr::mysql_read(paste0(readLines("desktop_events.sql"), collapse=" "),"log"))
 desktop_data$timestamp <- as.Date(olivr::from_mediawiki(desktop_data$timestamp))
 
 #Produce event aggregates
