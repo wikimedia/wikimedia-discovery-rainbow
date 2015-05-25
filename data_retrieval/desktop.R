@@ -25,4 +25,4 @@ load_times <- result_data[,{
   names(output) <- c("Mean","Median","95th percentile","99th Percentile")
   output
 }, by = "timestamp"]
-write_tsv(load_times, file.path(base_path, "desktop_load_times.tsv"))
+write.table(load_times, file.path(base_path, "mobile_load_times.tsv"), row.names = FALSE, quote = TRUE, sep = "\t")
