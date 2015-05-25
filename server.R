@@ -26,7 +26,7 @@ read_web <- function(){
   interim <- reshape2::dcast(data, formula = timestamp ~ action, fun.aggregate = sum)
   interim[is.na(interim)] <- 0
   assign("mobile_dygraph_set", interim, envir = data_env)
-  assign("mobile_dygraph_set", reshape2::dcast(data, formula = timestamp ~ action), envir = data_env)
+  assign("mobile_dygraph_set", reshape2::dcast(data, formula = timestamp ~ action, fun.aggregate = sum), envir = data_env)
   assign("mobile_dygraph_means", round(colMeans(get("mobile_dygraph_set", envir = data_env)[,2:4])),
          envir = data_env)
   con <- url("http://datasets.wikimedia.org/aggregate-datasets/search/mobile_load_times.tsv")
@@ -96,7 +96,7 @@ shinyServer(function(input, output) {
                 xlab = "Date", ylab = "Events"),
           width = 400, show = "always"
         ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = TRUE, pointSize = 3
+        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
       )
     ,css = "./assets/css/custom.css")
   })
@@ -111,7 +111,7 @@ shinyServer(function(input, output) {
                   xlab = "Date", ylab = "Events"),
           width = 400, show = "always"
         ), strokeWidth = 3, colors = brewer.pal(4, "Set2"),
-        drawPoints = TRUE, pointSize = 3
+        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
       )
       ,css = "./assets/css/custom.css")
   })
@@ -126,7 +126,7 @@ shinyServer(function(input, output) {
                   xlab = "Date", ylab = "Events"),
           width = 400, show = "always"
         ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = TRUE, pointSize = 3
+        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
       )
       ,css = "./assets/css/custom.css")
   })
@@ -168,7 +168,7 @@ shinyServer(function(input, output) {
                   xlab = "Date", ylab = "Events"),
           width = 400, show = "always"
         ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = TRUE, pointSize = 3
+        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
       )
       ,css = "./assets/css/custom.css")
   })
@@ -183,7 +183,7 @@ shinyServer(function(input, output) {
                   xlab = "Date", ylab = "Events"),
           width = 400, show = "always"
         ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = TRUE, pointSize = 3
+        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
       )
       ,css = "./assets/css/custom.css")
   })
@@ -225,7 +225,7 @@ shinyServer(function(input, output) {
                   xlab = "Date", ylab = "Events"),
           width = 400, show = "always"
         ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = TRUE, pointSize = 3
+        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
       )
       ,css = "./assets/css/custom.css")
   })
