@@ -8,7 +8,7 @@ app_data$timestamp <- as.Date(olivr::from_mediawiki(app_data$timestamp))
 
 #Produce event aggregates
 app_results <- app_data[,j = list(events = .N), by = c("timestamp","action")]
-write_tsv(app_results, file.path(base_path, "app_event_counts.tsv"))
+write.table(app_results, file.path(base_path, "app_event_counts.tsv"), row.names = FALSE, quote = TRUE, sep = "\t")
 
 #Load times
 result_data <- app_data[app_data$action == "Result pages opened",]
@@ -25,4 +25,4 @@ load_times <- result_data[,{
   names(output) <- c("Mean","Median","95th percentile","99th Percentile")
   output
 }, by = "timestamp"]
-write.table(load_times, file.path(base_path, "mobile_load_times.tsv"), row.names = FALSE, quote = TRUE, sep = "\t")
+write.table(load_times, file.path(base_path, "app_load_times.tsv"), row.names = FALSE, quote = TRUE, sep = "\t")

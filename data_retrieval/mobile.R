@@ -8,7 +8,7 @@ mobile_data$timestamp <- as.Date(olivr::from_mediawiki(mobile_data$timestamp))
 
 #Produce event aggregates
 mobile_results <- mobile_data[,j = list(events = .N), by = c("timestamp","action")]
-write_tsv(mobile_results, file.path(base_path, "mobile_event_counts.tsv"))
+write.table(mobile_results, file.path(base_path, "mobile_event_counts.tsv"), row.names = FALSE, quote = TRUE, sep = "\t")
 
 #Load times
 result_data <- mobile_data[mobile_data$action == "Result pages opened",]
