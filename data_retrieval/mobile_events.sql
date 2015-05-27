@@ -9,4 +9,5 @@ event_timeOffsetSinceStart AS time_offset,
 event_timeToDisplayResults AS load_time,
 event_platformVersion AS version
 FROM MobileWebSearch_12054448
-WHERE event_action IN ('click-result','session-start','impression-results');
+WHERE event_action IN ('click-result','session-start','impression-results')
+AND timestamp >= '20150508000000';
