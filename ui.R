@@ -55,10 +55,12 @@ body <- dashboardBody(
               valueBoxOutput("app_event_resultsets"),
               valueBoxOutput("app_event_clickthroughs")
             ),
-            dygraphOutput("app_event_plot")
+            dygraphOutput("app_event_plot"),
+            includeMarkdown("./assets/content/app_events.md")
     ),
     tabItem(tabName = "app_load",
-            dygraphOutput("app_load_plot"))
+            dygraphOutput("app_load_plot"),
+            includeMarkdown("./assets/content/app_load.md"))
   )
 )
 
