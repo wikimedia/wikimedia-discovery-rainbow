@@ -6,6 +6,6 @@ event_clickIndex AS click_index,
 event_numberOfResults AS result_count,
 event_resultSetType as result_type,
 event_timeOffsetSinceStart AS time_offset,
-event_timeToDisplayResults AS
-load_time FROM Search_11670541
+event_timeToDisplayResults AS load_time
+FROM Search_11670541
 WHERE event_action IN ('click-result','session-start','impression-results');

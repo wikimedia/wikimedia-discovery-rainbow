@@ -7,7 +7,7 @@ User actions that we track around search on the mobile apps generally fall into 
 2. The presentation of the user with a results page, and;
 3. A user clicking through to an article in the results page.
 
-These three things are tracked via the [EventLogging 'MobileWikiAppSearch' schema](https://meta.wikimedia.org/wiki/Schema:MobileWikiAppSearch), and stored to a database. The results are then aggregated and anonymised, and presented on this page. For performance/privacy reasons we randomly sample what we store, so the actual numbers are a vast understatement of how many user actions our servers receive - what's more interesting is how they change over time.
+These three things are tracked via the [EventLogging 'MobileWikiAppSearch' schema](https://meta.wikimedia.org/wiki/Schema:MobileWikiAppSearch), and stored to a database. The results are then aggregated and anonymised, and presented on this page. For performance/privacy reasons we randomly sample what we store, so the actual numbers are a vast understatement of how many user actions our servers receive - what's more interesting is how they change over time. In the case of app search, this sampling rate is **1%**.
 
 General trends
 ------

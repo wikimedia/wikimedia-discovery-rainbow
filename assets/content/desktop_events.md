@@ -8,7 +8,7 @@ User actions that we track around search on the desktop website generally fall i
 3. A user clicking through to an article in the results page.
 
 These three things are tracked via the [EventLogging 'search' schema](https://meta.wikimedia.org/wiki/Schema:Search), and stored to
-a database. The results are then aggregated and anonymised, and presented on this page. For performance/privacy reasons we randomly sample what we store, so the actual numbers are a vast understatement of how many user actions our servers receive - what's more interesting is how they change over time.
+a database. The results are then aggregated and anonymised, and presented on this page. For performance/privacy reasons we randomly sample what we store, so the actual numbers are a vast understatement of how many user actions our servers receive - what's more interesting is how they change over time. In the case of desktop search, this sampling rate is **0.1%**.
 
 General trends
 ------
