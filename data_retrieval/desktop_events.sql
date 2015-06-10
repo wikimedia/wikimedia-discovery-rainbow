@@ -1,7 +1,7 @@
 SELECT timestamp,
 CASE event_action WHEN 'click-result' THEN 'clickthroughs'
 WHEN 'session-start' THEN 'search sessions'
-WHEN 'impression-results' THEN 'Result pages opened',
+WHEN 'impression-results' THEN 'Result pages opened'
 WHEN 'submit-form' THEN 'Form submissions' END AS action,
 event_clickIndex AS click_index,
 event_numberOfResults AS result_count,
