@@ -18,6 +18,9 @@ sidebar <- dashboardSidebar(
     menuItem(text = "Mobile Apps",
              menuSubItem(text = "Events", tabName = "app_events"),
              menuSubItem(text = "Load times", tabName = "app_load")
+    ),
+    menuItem(text = "Search Failures",
+             menuSubItem(text = "Failure Rate", tabName = "failure_rate")
     )
   )
 )
@@ -60,7 +63,12 @@ body <- dashboardBody(
     ),
     tabItem(tabName = "app_load",
             dygraphOutput("app_load_plot"),
-            includeMarkdown("./assets/content/app_load.md"))
+            includeMarkdown("./assets/content/app_load.md")
+    ),
+    tabItem(tabName = "failure_rate",
+            dygraphOutput("failure_rate_plot"),
+            includeMarkdown("./assets/content/failure_rate.md")
+    )
   )
 )
 

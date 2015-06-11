@@ -49,18 +49,32 @@ read_apps <- function(){
   return(invisible())
 }
 
+read_failures <- function(date){
+  con <- url("http://datasets.wikimedia.org/aggregate-datasets/search/cirrus_query_aggregates.tsv")
+  data <- readr::read_delim(con, delim = "\t")
+  interim_data <- reshape2::dcast(data, formula = date ~ variable, fun.aggregate = sum)
+  assign("failure_dygraph_set", interim_data, envir = data_env)
+  
+#   date <- gsub(x = date, pattern = "-", replacement="")
+#   con <- url(paste0("http://datasets.wikimedia.org/aggregate-datasets/search/daily_pages/zero_resulting_queries",
+#                     date, ".tsv"))
+#   data <- readr::read_delim(con, delim = "\t")
+#   assign("failure_table_set", data, envir = data_env)
+}
+
 shinyServer(function(input, output) {
   
   if(Sys.Date() != get("existing_date", envir = data_env)){
     read_desktop()
     read_apps()
     read_web()
+    read_failures(get("existing_date", envir = data_env))
     assign("existing_date", Sys.Date(), envir = data_env)
   }
   
   output$desktop_event_searches <- renderValueBox(
     valueBox(
-      value = get("desktop_dygraph_means", envir= data_env)[3],
+      value = get("desktop_dygraph_means", envir = data_env)[3],
       subtitle = "Search sessions per day",
       icon = icon("search"),
       color = "green"
@@ -69,7 +83,7 @@ shinyServer(function(input, output) {
   
   output$desktop_event_resultsets <- renderValueBox(
     valueBox(
-      value = get("desktop_dygraph_means", envir= data_env)[2],
+      value = get("desktop_dygraph_means", envir = data_env)[2],
       subtitle = "Result sets per day",
       icon = icon("list", lib = "glyphicon"),
       color = "green"
@@ -78,7 +92,7 @@ shinyServer(function(input, output) {
   
   output$desktop_event_clickthroughs <- renderValueBox(
     valueBox(
-      value = get("desktop_dygraph_means", envir= data_env)[1],
+      value = get("desktop_dygraph_means", envir = data_env)[1],
       subtitle = "Clickthroughs per day",
       icon = icon("hand-up", lib = "glyphicon"),
       color = "green"
@@ -90,8 +104,8 @@ shinyServer(function(input, output) {
     dyCSS(
       dyOptions(
         dyLegend(
-          dygraph(xts(get("desktop_dygraph_set", envir= data_env)[,-1],
-                      get("desktop_dygraph_set", envir= data_env)[,1]),
+          dygraph(xts(get("desktop_dygraph_set", envir = data_env)[,-1],
+                      get("desktop_dygraph_set", envir = data_env)[,1]),
                   main = "Desktop search events, by day",
                 xlab = "Date", ylab = "Events"),
           width = 400, show = "always"
@@ -105,8 +119,8 @@ shinyServer(function(input, output) {
     dyCSS(
       dyOptions(
         dyLegend(
-          dygraph(xts(get("desktop_load_data", envir= data_env)[,-1],
-                      get("desktop_load_data", envir= data_env)[,1]),
+          dygraph(xts(get("desktop_load_data", envir = data_env)[,-1],
+                      get("desktop_load_data", envir = data_env)[,1]),
                   main = "Desktop result load times, by day",
                   xlab = "Date", ylab = "Load time (ms)"),
           width = 400, show = "always"
@@ -120,8 +134,8 @@ shinyServer(function(input, output) {
     dyCSS(
       dyOptions(
         dyLegend(
-          dygraph(xts(get("mobile_dygraph_set", envir= data_env)[,-1],
-                      get("mobile_dygraph_set", envir= data_env)[,1]),
+          dygraph(xts(get("mobile_dygraph_set", envir = data_env)[,-1],
+                      get("mobile_dygraph_set", envir = data_env)[,1]),
                   main = "Mobile search events, by day",
                   xlab = "Date", ylab = "Events"),
           width = 400, show = "always"
@@ -133,7 +147,7 @@ shinyServer(function(input, output) {
   
   output$mobile_event_searches <- renderValueBox(
     valueBox(
-      value = get("mobile_dygraph_means", envir= data_env)[3],
+      value = get("mobile_dygraph_means", envir = data_env)[3],
       subtitle = "Search sessions per day",
       icon = icon("search"),
       color = "green"
@@ -142,7 +156,7 @@ shinyServer(function(input, output) {
   
   output$mobile_event_resultsets <- renderValueBox(
     valueBox(
-      value = get("mobile_dygraph_means", envir= data_env)[2],
+      value = get("mobile_dygraph_means", envir = data_env)[2],
       subtitle = "Result sets per day",
       icon = icon("list", lib = "glyphicon"),
       color = "green"
@@ -151,7 +165,7 @@ shinyServer(function(input, output) {
   
   output$mobile_event_clickthroughs <- renderValueBox(
     valueBox(
-      value = get("mobile_dygraph_means", envir= data_env)[1],
+      value = get("mobile_dygraph_means", envir = data_env)[1],
       subtitle = "Clickthroughs per day",
       icon = icon("hand-up", lib = "glyphicon"),
       color = "green"
@@ -162,8 +176,8 @@ shinyServer(function(input, output) {
     dyCSS(
       dyOptions(
         dyLegend(
-          dygraph(xts(get("mobile_load_data", envir= data_env)[,-1],
-                      get("mobile_load_data", envir= data_env)[,1]),
+          dygraph(xts(get("mobile_load_data", envir = data_env)[,-1],
+                      get("mobile_load_data", envir = data_env)[,1]),
                   main = "Mobile result load times, by day",
                   xlab = "Date", ylab = "Load time (ms)"),
           width = 400, show = "always"
@@ -177,8 +191,8 @@ shinyServer(function(input, output) {
     dyCSS(
       dyOptions(
         dyLegend(
-          dygraph(xts(get("app_dygraph_set", envir= data_env)[,-1],
-                      get("app_dygraph_set", envir= data_env)[,1]),
+          dygraph(xts(get("app_dygraph_set", envir = data_env)[,-1],
+                      get("app_dygraph_set", envir = data_env)[,1]),
                   main = "Mobile App search events, by day",
                   xlab = "Date", ylab = "Events"),
           width = 400, show = "always"
@@ -190,7 +204,7 @@ shinyServer(function(input, output) {
   
   output$app_event_searches <- renderValueBox(
     valueBox(
-      value = get("app_dygraph_means", envir= data_env)[3],
+      value = get("app_dygraph_means", envir = data_env)[3],
       subtitle = "Search sessions per day",
       icon = icon("search"),
       color = "green"
@@ -199,7 +213,7 @@ shinyServer(function(input, output) {
   
   output$app_event_resultsets <- renderValueBox(
     valueBox(
-      value = get("app_dygraph_means", envir= data_env)[2],
+      value = get("app_dygraph_means", envir = data_env)[2],
       subtitle = "Result sets per day",
       icon = icon("list", lib = "glyphicon"),
       color = "green"
@@ -208,7 +222,7 @@ shinyServer(function(input, output) {
   
   output$app_event_clickthroughs <- renderValueBox(
     valueBox(
-      value = get("app_dygraph_means", envir= data_env)[1],
+      value = get("app_dygraph_means", envir = data_env)[1],
       subtitle = "Clickthroughs per day",
       icon = icon("hand-up", lib = "glyphicon"),
       color = "green"
@@ -219,8 +233,8 @@ shinyServer(function(input, output) {
     dyCSS(
       dyOptions(
         dyLegend(
-          dygraph(xts(get("app_load_data", envir= data_env)[,-1],
-                      get("app_load_data", envir= data_env)[,1]),
+          dygraph(xts(get("app_load_data", envir = data_env)[,-1],
+                      get("app_load_data", envir = data_env)[,1]),
                   main = "Mobile App result load times, by day",
                   xlab = "Date", ylab = "Load time (ms)"),
           width = 400, show = "always"
@@ -228,5 +242,20 @@ shinyServer(function(input, output) {
         drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
       )
       ,css = "./assets/css/custom.css")
+  })
+  
+  output$failure_rate_plot <- renderDygraph({
+    dyCSS(
+      dyOptions(
+        dyLegend(
+          dygraph(xts(get("failure_dygraph_set", envir = data_env)[,-1],
+                      get("failure_dygraph_set", envir = data_env)[,1]),
+                  main = "Search Failure Rate, by day",
+                  xlab = "Date", ylab = "Queries"),
+          width = 400, show = "always"
+        ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
+        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
+      ),
+      css = "./assets/css/custom.css")
   })
 })
