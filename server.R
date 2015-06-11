@@ -254,7 +254,8 @@ shinyServer(function(input, output) {
                   xlab = "Date", ylab = "Queries"),
           width = 400, show = "always"
         ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
+        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE,
+        includeZero = TRUE
       ),
       css = "./assets/css/custom.css")
   })
