@@ -35,9 +35,9 @@ main <- function(date = NULL){
                                value = c(query_count, zero_count), stringsAsFactors = FALSE)
 
   if(file.exists(aggregate_location)){
-    write.table(aggregate_data, aggregate_location, append = FALSE, sep = "\t", row.names = FALSE)
+    write.table(aggregate_data, aggregate_location, append = TRUE, sep = "\t", row.names = FALSE, col.names = FALSE)
   } else {
-    write.table(aggregate_data, aggregate_location, append = TRUE, col.names = FALSE, sep = "\t", row.names = FALSE)
+    write.table(aggregate_data, aggregate_location, append = FALSE, sep = "\t", row.names = FALSE)
   }
 
   zero_results <- data.frame(matrix(unlist(zero_results), nrow = length(zero_results), byrow = TRUE),
