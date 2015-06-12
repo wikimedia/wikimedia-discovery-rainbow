@@ -42,5 +42,3 @@ def parse_file(filename):
   connection.close()
   zero_result_queries = Counter(zero_result_queries)
   return(queries, zero_result_count, zero_result_queries.most_common(100))
-
-query_count, zero_count, zero_results = parse_file(filename)
