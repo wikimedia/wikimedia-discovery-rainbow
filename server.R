@@ -2,20 +2,21 @@ library(readr)
 library(xts)
 library(reshape2)
 library(RColorBrewer)
+source("utils.R")
 
 data_env <- new.env()
 assign("existing_date", Sys.Date()-1, envir = data_env)
 
 read_desktop <- function(){
-  con <- url("http://datasets.wikimedia.org/aggregate-datasets/search/desktop_event_counts.tsv")
-  data <- readr::read_delim(con, delim = "\t")
+  data <- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/desktop_event_counts.tsv")
   interim <- reshape2::dcast(data, formula = timestamp ~ action, fun.aggregate = sum)
   interim[is.na(interim)] <- 0
   assign("desktop_dygraph_set", interim, envir = data_env)
   assign("desktop_dygraph_means", round(colMeans(get("desktop_dygraph_set", envir = data_env)[,2:4])),
          envir = data_env)
-  con <- url("http://datasets.wikimedia.org/aggregate-datasets/search/desktop_load_times.tsv")
-  assign("desktop_load_data", readr::read_delim(con, delim = "\t"),
+  
+  data <- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/desktop_load_times.tsv")
+  assign("desktop_load_data", data,
          envir = data_env)
   return(invisible())
 }
@@ -72,6 +73,7 @@ shinyServer(function(input, output) {
     assign("existing_date", Sys.Date(), envir = data_env)
   }
   
+  #Desktop value boxes
   output$desktop_event_searches <- renderValueBox(
     valueBox(
       value = get("desktop_dygraph_means", envir = data_env)[3],
@@ -100,51 +102,17 @@ shinyServer(function(input, output) {
   )
   
   #The dynamic graphs of events on desktop
-  output$desktop_event_plot <- renderDygraph({
-    dyCSS(
-      dyOptions(
-        dyLegend(
-          dygraph(xts(get("desktop_dygraph_set", envir = data_env)[,-1],
-                      get("desktop_dygraph_set", envir = data_env)[,1]),
-                  main = "Desktop search events, by day",
-                xlab = "Date", ylab = "Events"),
-          width = 400, show = "always"
-        ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
-      )
-    ,css = "./assets/css/custom.css")
-  })
+  output$desktop_event_plot <- make_dygraph(
+    get("desktop_dygraph_set", envir = data_env), "Date", "Events",
+    "Desktop search events, by day"
+  )
+  output$desktop_load_plot <- make_dygraph(
+    get("desktop_load_data", envir = data_env), "Date", "Load time (ms)",
+    "Desktop result load times, by day"
+  )
   
-  output$desktop_load_plot <- renderDygraph({
-    dyCSS(
-      dyOptions(
-        dyLegend(
-          dygraph(xts(get("desktop_load_data", envir = data_env)[,-1],
-                      get("desktop_load_data", envir = data_env)[,1]),
-                  main = "Desktop result load times, by day",
-                  xlab = "Date", ylab = "Load time (ms)"),
-          width = 400, show = "always"
-        ), strokeWidth = 3, colors = brewer.pal(4, "Set2"),
-        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
-      )
-      ,css = "./assets/css/custom.css")
-  })
   
-  output$mobile_event_plot <- renderDygraph({
-    dyCSS(
-      dyOptions(
-        dyLegend(
-          dygraph(xts(get("mobile_dygraph_set", envir = data_env)[,-1],
-                      get("mobile_dygraph_set", envir = data_env)[,1]),
-                  main = "Mobile search events, by day",
-                  xlab = "Date", ylab = "Events"),
-          width = 400, show = "always"
-        ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
-      )
-      ,css = "./assets/css/custom.css")
-  })
-  
+  #Mobile value boxes
   output$mobile_event_searches <- renderValueBox(
     valueBox(
       value = get("mobile_dygraph_means", envir = data_env)[3],
@@ -172,36 +140,17 @@ shinyServer(function(input, output) {
     )
   )
   
-  output$mobile_load_plot <- renderDygraph({
-    dyCSS(
-      dyOptions(
-        dyLegend(
-          dygraph(xts(get("mobile_load_data", envir = data_env)[,-1],
-                      get("mobile_load_data", envir = data_env)[,1]),
-                  main = "Mobile result load times, by day",
-                  xlab = "Date", ylab = "Load time (ms)"),
-          width = 400, show = "always"
-        ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
-      )
-      ,css = "./assets/css/custom.css")
-  })
+  #Mobile plots
+  output$mobile_event_plot <- make_dygraph(
+    get("mobile_dygraph_set", envir = data_env), "Date", "Events",
+    "Mobile search events, by day"
+  )
+  output$mobile_load_plot <- make_dygraph(
+    get("mobile_load_data", envir = data_env), "Date", "Load time (ms)",
+    "Mobile result load times, by day"
+  )
   
-  output$app_event_plot <- renderDygraph({
-    dyCSS(
-      dyOptions(
-        dyLegend(
-          dygraph(xts(get("app_dygraph_set", envir = data_env)[,-1],
-                      get("app_dygraph_set", envir = data_env)[,1]),
-                  main = "Mobile App search events, by day",
-                  xlab = "Date", ylab = "Events"),
-          width = 400, show = "always"
-        ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
-      )
-      ,css = "./assets/css/custom.css")
-  })
-  
+  #App value boxes
   output$app_event_searches <- renderValueBox(
     valueBox(
       value = get("app_dygraph_means", envir = data_env)[3],
@@ -229,34 +178,19 @@ shinyServer(function(input, output) {
     )
   )
   
-  output$app_load_plot <- renderDygraph({
-    dyCSS(
-      dyOptions(
-        dyLegend(
-          dygraph(xts(get("app_load_data", envir = data_env)[,-1],
-                      get("app_load_data", envir = data_env)[,1]),
-                  main = "Mobile App result load times, by day",
-                  xlab = "Date", ylab = "Load time (ms)"),
-          width = 400, show = "always"
-        ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE
-      )
-      ,css = "./assets/css/custom.css")
-  })
+  #App plots
+  output$app_event_plot <- make_dygraph(
+    get("app_dygraph_set", envir = data_env), "Date", "Events",
+    "Mobile App search events, by day"
+  )
+  output$app_load_plot <- make_dygraph(
+    get("app_load_data", envir = data_env), "Date", "Load time (ms)",
+    "Mobile App result load times, by day"
+  )
   
-  output$failure_rate_plot <- renderDygraph({
-    dyCSS(
-      dyOptions(
-        dyLegend(
-          dygraph(xts(get("failure_dygraph_set", envir = data_env)[,-1],
-                      get("failure_dygraph_set", envir = data_env)[,1]),
-                  main = "Search Failure Rate, by day",
-                  xlab = "Date", ylab = "Queries"),
-          width = 400, show = "always"
-        ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE,
-        includeZero = TRUE
-      ),
-      css = "./assets/css/custom.css")
-  })
+  #Failure plots
+  output$failure_rate_plot <- make_dygraph(
+    get("failure_dygraph_set", envir = data_env), "Date", "Queries",
+    "Search Failure Rate, by day"
+  )
 })
