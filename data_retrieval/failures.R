@@ -12,8 +12,12 @@ get_file <- function(date){
 
 #Extract a file's content
 extract_file <- function(file){
-  output_file <- tempfile()
-  system(paste("gunzip -c", file, ">", output_file))
+  output_file <- file.path(getwd(),"log_outfile")
+  result <- system(paste("gunzip -c", file, ">", output_file))
+  if(result){
+    file.remove(output_file)
+    stop()
+  }
   return(output_file)
 }
 
