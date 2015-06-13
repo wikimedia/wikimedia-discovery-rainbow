@@ -5,7 +5,7 @@ library(RColorBrewer)
 source("utils.R")
 
 data_env <- new.env()
-assign("existing_date", Sys.Date()-1, envir = data_env)
+assign("existing_date", (Sys.Date() -1), envir = data_env)
 
 read_desktop <- function(){
   data <- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/desktop_event_counts.tsv")
@@ -22,8 +22,7 @@ read_desktop <- function(){
 }
 
 read_web <- function(){
-  con <- url("http://datasets.wikimedia.org/aggregate-datasets/search/mobile_event_counts.tsv")
-  data <- readr::read_delim(con, delim = "\t")
+  data <- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/mobile_event_counts.tsv")
   interim <- reshape2::dcast(data, formula = timestamp ~ action, fun.aggregate = sum)
   interim[is.na(interim)] <- 0
   assign("mobile_dygraph_set", interim, envir = data_env)
@@ -37,8 +36,7 @@ read_web <- function(){
 }
 
 read_apps <- function(){
-  con <- url("http://datasets.wikimedia.org/aggregate-datasets/search/app_event_counts.tsv")
-  data <- readr::read_delim(con, delim = "\t")
+  data <- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/app_event_counts.tsv")
   interim <- reshape2::dcast(data, formula = timestamp ~ action, fun.aggregate = sum)
   interim[is.na(interim)] <- 0
   assign("app_dygraph_set", interim, envir = data_env)

@@ -10,23 +10,12 @@ get_file <- function(date){
   return(files[grepl(x = files, pattern = date, fixed = TRUE)])
 }
 
-#Extract a file's content
-extract_file <- function(file){
-  output_file <- file.path(getwd(),"log_outfile")
-  result <- system(paste("gunzip -c", file, ">", output_file))
-  if(result){
-    file.remove(output_file)
-    stop()
-  }
-  return(output_file)
-}
-
 #Get failure counts and such
 main <- function(date = NULL){
   if(is.null(date)){
     date <- Sys.Date() - 1
   }
-  filename <- extract_file(get_file(date))
+  filename <- get_file(date)
   python.assign("filename", filename)
   python.exec("import core; query_count, zero_count, zero_results = core.parse_file(filename)")
   file.remove(filename)

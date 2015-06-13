@@ -1,4 +1,5 @@
 import re
+import gzip
 from collections import Counter
 
 #Regexes for parsing
@@ -32,7 +33,7 @@ def parse_file(filename):
   zero_result_count = 0;
   zero_result_queries = list();
   queries = 0;
-  connection = open(filename, "r");
+  connection = gzip.open(filename)
   for line in connection:
     if(is_valid(line)):
       queries +=1
