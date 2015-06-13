@@ -191,6 +191,6 @@ shinyServer(function(input, output) {
   #Failure plots
   output$failure_rate_plot <- make_dygraph(
     get("failure_dygraph_set", envir = data_env), "Date", "Queries",
-    "Search Failure Rate, by day"
+    "Search Queries with Zero Results, by day"
   )
 })

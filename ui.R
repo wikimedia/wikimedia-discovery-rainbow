@@ -19,8 +19,8 @@ sidebar <- dashboardSidebar(
              menuSubItem(text = "Events", tabName = "app_events"),
              menuSubItem(text = "Load times", tabName = "app_load")
     ),
-    menuItem(text = "Search Failures",
-             menuSubItem(text = "Failure Rate", tabName = "failure_rate")
+    menuItem(text = "Zero Results",
+             menuSubItem(text = "Zero Rate", tabName = "failure_rate")
     )
   )
 )
