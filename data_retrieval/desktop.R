@@ -13,16 +13,14 @@ write.table(desktop_results, file.path(base_path, "desktop_event_counts.tsv"), r
 #Load times
 result_data <- desktop_data[desktop_data$action == "Result pages opened",]
 load_times <- result_data[,{
-  output <- numeric(4)
+  output <- numeric(3)
   quantiles <- quantile(load_time,probs=seq(0,1,0.01))
-  
-  output[1] <- round(mean(load_time))
-  output[2] <- round(median(load_time))
-  output[3] <- quantiles[95]
-  output[4] <- quantiles[99]
+  output[1] <- round(median(load_time))
+  output[2] <- quantiles[95]
+  output[3] <- quantiles[99]
   
   output <- data.frame(t(output))
-  names(output) <- c("Mean","Median","95th percentile","99th Percentile")
+  names(output) <- c("Median","95th percentile","99th Percentile")
   output
 }, by = "timestamp"]
 write.table(load_times, file.path(base_path, "desktop_load_times.tsv"), row.names = FALSE, quote = TRUE, sep = "\t")

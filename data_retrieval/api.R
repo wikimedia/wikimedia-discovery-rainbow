@@ -38,7 +38,7 @@ query <- hive_script_query_date(before = "add jar /home/ironholds/refinery-hive-
 results <- hive_run(query)
 results <- results[complete.cases(results),]
 results <- results[results$event_type %in% c("language","cirrus","prefix","geo","open"),]
-output <- data.frame(timestamp = paste(results$year, results$month, results$day, sep = "-"),
+output <- data.frame(timestamp = as.Date(paste(results$year, results$month, results$day, sep = "-")),
                      event_type = results$event_type,
                      events = results$search_events,
                      stringsAsFactors = FALSE)
