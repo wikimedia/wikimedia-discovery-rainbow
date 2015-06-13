@@ -24,3 +24,4 @@ load_times <- result_data[,{
   output
 }, by = "timestamp"]
 write.table(load_times, file.path(base_path, "desktop_load_times.tsv"), row.names = FALSE, quote = TRUE, sep = "\t")
+q(save = "no")
