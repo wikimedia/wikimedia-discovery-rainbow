@@ -6,7 +6,7 @@ raw_dir <- "/a/aggregate-datasets/search/daily_pages/"
 #Identify a cirrus log file
 get_file <- function(date){
   date <- gsub(x = date, pattern = "(-|:)", replacement = "")
-  files <- list.files("/a/mw-log/archive/", full.names = TRUE)
+  files <- list.files("/a/mw-log/archive", full.names = TRUE)
   return(files[grepl(x = files, pattern = date, fixed = TRUE)])
 }
 
@@ -18,7 +18,6 @@ main <- function(date = NULL){
   filename <- get_file(date)
   python.assign("filename", filename)
   python.exec("import core; query_count, zero_count, zero_results = core.parse_file(filename)")
-  file.remove(filename)
   query_count <- python.get("query_count")
   zero_count <- python.get("zero_count")
   zero_results <- python.get("zero_results")
