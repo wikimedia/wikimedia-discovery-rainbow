@@ -17,7 +17,8 @@ main <- function(date = NULL){
   }
   filename <- get_file(date)
   python.assign("filename", filename)
-  python.exec("import core; query_count, zero_count, zero_results = core.parse_file(filename)")
+  python.exec("execfile('/home/ironholds/data_retrieval/core.py')")
+  python.exec("query_count, zero_count, zero_results = parse_file(filename)")
   query_count <- python.get("query_count")
   zero_count <- python.get("zero_count")
   zero_results <- python.get("zero_results")
