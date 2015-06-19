@@ -4,6 +4,7 @@ import datetime
 import os.path
 import csv
 from collections import Counter
+from sys import exit
 
 #Regexes for parsing
 is_valid_regex = re.compile("^\d{4}-\d{2}-\d{2}")
@@ -50,8 +51,8 @@ def single_write(date, query_count, zero_count):
   with open(output_single, "ab") as tsv_file:
     write_obj = csv.writer(tsv_file, delimiter = "\t")
     write_obj.writerow([str(date), "Search Queries", str(query_count)])
-    write_obj.writerow([str(date), "Zero Result Queries", str(query_count)])
-    
+    write_obj.writerow([str(date), "Zero Result Queries", str(zero_count)])
+
 def daily_write(date, zero_results):
   with open((output_daily + date.strftime("%Y%m%d") + ".tsv"), "ab") as tsv_file:
     write_obj = csv.writer(tsv_file, delimiter = "\t")
@@ -76,8 +77,9 @@ def parse_file(filename):
   connection.close()
   zero_result_queries = Counter(zero_result_queries)
   return(queries, zero_result_count, zero_result_queries.most_common(100))
-  
+
 filepath, date = construct_filepath()
 query_count, zero_count, zero_results = parse_file(filepath)
 single_write(date, query_count, zero_count)
-
+daily_write(date, zero_results)
+exit()
