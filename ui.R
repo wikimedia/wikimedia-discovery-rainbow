@@ -19,9 +19,17 @@ sidebar <- dashboardSidebar(
              menuSubItem(text = "Events", tabName = "app_events"),
              menuSubItem(text = "Load times", tabName = "app_load")
     ),
+    menuItem(text = "API",
+             menuSubItem(text = "Cirrus Search", tabName = "cirrus_search"),
+             menuSubItem(text = "Open Search", tabName = "open_search"),
+             menuSubItem(text = "Geo Search", tabName = "geo_search"),
+             menuSubItem(text = "Prefix Search", tabName = "prefix_search"),
+             menuSubItem(text = "Language Search", tabName = "language_search")
+    ),
     menuItem(text = "Zero Results",
              menuSubItem(text = "Zero Rate", tabName = "failure_rate")
     )
+    
   )
 )
 
@@ -68,6 +76,26 @@ body <- dashboardBody(
     tabItem(tabName = "failure_rate",
             dygraphOutput("failure_rate_plot"),
             includeMarkdown("./assets/content/failure_rate.md")
+    ),
+    tabItem(tabName = "cirrus_search",
+            dygraphOutput("cirrus_aggregate"),
+            includeMarkdown("./assets/content/cirrus_basic.md")
+    ),
+    tabItem(tabName = "open_search",
+            dygraphOutput("open_aggregate"),
+            includeMarkdown("./assets/content/open_basic.md")
+    ),
+    tabItem(tabName = "geo_search",
+            dygraphOutput("geo_aggregate"),
+            includeMarkdown("./assets/content/geo_basic.md")
+    ),
+    tabItem(tabName = "prefix_search",
+            dygraphOutput("prefix_aggregate"),
+            includeMarkdown("./assets/content/prefix_basic.md")
+    ),
+    tabItem(tabName = "language_search",
+            dygraphOutput("language_aggregate"),
+            includeMarkdown("./assets/content/language_basic.md")
     )
   )
 )

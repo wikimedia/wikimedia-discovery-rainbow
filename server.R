@@ -42,6 +42,13 @@ read_apps <- function(){
   return(invisible())
 }
 
+read_api <- function(){
+  data <- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/search_api_aggregates.tsv")
+  data <- data[order(data$event_type),]
+  split_dataset <<- split(data, f = data$event_type)
+  return(invisible())
+}
+
 read_failures <- function(date){
   data <- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/cirrus_query_aggregates.tsv")
   interim_data <- reshape2::dcast(data, formula = date ~ variable, fun.aggregate = sum)
@@ -55,6 +62,7 @@ shinyServer(function(input, output) {
     read_desktop()
     read_apps()
     read_web()
+    read_api()
     read_failures(existing_date)
     existing_date <<- Sys.Date()
   }
@@ -171,6 +179,28 @@ shinyServer(function(input, output) {
   output$app_load_plot <- make_dygraph(
     app_dygraph_set, "Date", "Load time (ms)",
     "Mobile App result load times, by day"
+  )
+  
+  #API plots
+  output$cirrus_aggregate <- make_dygraph(
+    split_dataset[[1]], "Date", "Events",
+    "Cirrus Search API usage by day", TRUE
+  )
+  output$open_aggregate <- make_dygraph(
+    split_dataset[[4]], "Date", "Events",
+    "OpenSearch API usage by day", TRUE
+  )
+  output$geo_aggregate <- make_dygraph(
+    split_dataset[[2]], "Date", "Events",
+    "Geo Search API usage by day", TRUE
+  )
+  output$language_aggregate <- make_dygraph(
+    split_dataset[[3]], "Date", "Events",
+    "Language Search API usage by day", TRUE
+  )
+  output$prefix_aggregate <- make_dygraph(
+    split_dataset[[5]], "Date", "Events",
+    "Language Search API usage by day", TRUE
   )
   
   #Failure plots

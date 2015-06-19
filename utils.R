@@ -5,13 +5,19 @@ download_set <- function(location){
 }
 
 #Create a dygraph using our standard format.
-make_dygraph <- function(data, x, y, title){
+make_dygraph <- function(data, x, y, title, is_single = FALSE){
+  
+  if(is_single){
+    data <- xts(data[,3], data[,1])
+    names(data) <- "events"
+  } else {
+    data <- xts(data[,-1], data[,1])
+  }
   renderDygraph({
     dyCSS(
       dyOptions(
         dyLegend(
-          dygraph(xts(data[,-1],
-                      data[,1]),
+          dygraph(data,
                   main = title,
                   xlab = x, ylab = y),
           width = 400, show = "always"
