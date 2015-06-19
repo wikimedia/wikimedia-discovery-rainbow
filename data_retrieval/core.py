@@ -81,5 +81,5 @@ def parse_file(filename):
 filepath, date = construct_filepath()
 query_count, zero_count, zero_results = parse_file(filepath)
 single_write(date, query_count, zero_count)
-daily_write(date, zero_results)
+#daily_write(date, zero_results)
 exit()
