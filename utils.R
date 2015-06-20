@@ -1,5 +1,12 @@
+#Dependent libs
+library(readr)
+library(xts)
+library(reshape2)
+library(RColorBrewer)
+
 #Utility functions for handling particularly common tasks
 download_set <- function(location){
+  location <- paste0("http://datasets.wikimedia.org/aggregate-datasets/search/", location)
   con <- url(location)
   return(readr::read_delim(con, delim = "\t"))
 }

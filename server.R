@@ -1,7 +1,3 @@
-library(readr)
-library(xts)
-library(reshape2)
-library(RColorBrewer)
 source("utils.R")
 
 existing_date <- (Sys.Date()-1)
@@ -9,48 +5,48 @@ existing_date <- (Sys.Date()-1)
 #Read in desktop data and generate means for the value boxes, along with a time-series appropriate form for
 #dygraphs.
 read_desktop <- function(){
-  data <- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/desktop_event_counts.tsv")
+  data <- download_set("desktop_event_counts.tsv")
   interim <- reshape2::dcast(data, formula = timestamp ~ action, fun.aggregate = sum)
   interim[is.na(interim)] <- 0
   desktop_dygraph_set <<- interim
   desktop_dygraph_means <<- round(colMeans(desktop_dygraph_set[,2:5]))
   
-  data <- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/desktop_load_times.tsv")
+  data <- download_set("desktop_load_times.tsv")
   desktop_load_data <<- data
   return(invisible())
 }
 
 read_web <- function(){
-  data <- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/mobile_event_counts.tsv")
+  data <- download_set("mobile_event_counts.tsv")
   interim <- reshape2::dcast(data, formula = timestamp ~ action, fun.aggregate = sum)
   interim[is.na(interim)] <- 0
   mobile_dygraph_set <<- interim
   mobile_dygraph_means <<- round(colMeans(mobile_dygraph_set[,2:4]))
   
-  mobile_load_data <<- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/mobile_load_times.tsv")
+  mobile_load_data <<- download_set("mobile_load_times.tsv")
   return(invisible())
 }
 
 read_apps <- function(){
-  data <- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/app_event_counts.tsv")
+  data <- download_set("app_event_counts.tsv")
   interim <- reshape2::dcast(data, formula = timestamp ~ action, fun.aggregate = sum)
   interim[is.na(interim)] <- 0
   app_dygraph_set <<- interim
   app_dygraph_means <<- round(colMeans(app_dygraph_set[,2:4]))
   
-  app_load_data <<- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/app_load_times.tsv")
+  app_load_data <<- download_set("app_load_times.tsv")
   return(invisible())
 }
 
 read_api <- function(){
-  data <- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/search_api_aggregates.tsv")
+  data <- download_set("search_api_aggregates.tsv")
   data <- data[order(data$event_type),]
   split_dataset <<- split(data, f = data$event_type)
   return(invisible())
 }
 
 read_failures <- function(date){
-  data <- download_set("http://datasets.wikimedia.org/aggregate-datasets/search/cirrus_query_aggregates.tsv")
+  data <- download_set("cirrus_query_aggregates.tsv")
   interim_data <- reshape2::dcast(data, formula = date ~ variable, fun.aggregate = sum)
   failure_dygraph_set <<- interim_data
   return(invisible())
