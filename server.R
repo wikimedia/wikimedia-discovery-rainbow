@@ -10,7 +10,7 @@ read_desktop <- function(){
   interim[is.na(interim)] <- 0
   desktop_dygraph_set <<- interim
   desktop_dygraph_means <<- round(colMeans(desktop_dygraph_set[,2:5]))
-  
+
   data <- download_set("desktop_load_times.tsv")
   desktop_load_data <<- data
   return(invisible())
@@ -22,19 +22,26 @@ read_web <- function(){
   interim[is.na(interim)] <- 0
   mobile_dygraph_set <<- interim
   mobile_dygraph_means <<- round(colMeans(mobile_dygraph_set[,2:4]))
-  
+
   mobile_load_data <<- download_set("mobile_load_times.tsv")
   return(invisible())
 }
 
 read_apps <- function(){
-  data <- download_set("app_event_counts.tsv")
-  interim <- reshape2::dcast(data, formula = timestamp ~ action, fun.aggregate = sum)
-  interim[is.na(interim)] <- 0
-  app_dygraph_set <<- interim
-  app_dygraph_means <<- round(colMeans(app_dygraph_set[,2:4]))
-  
-  app_load_data <<- download_set("app_load_times.tsv")
+  data <- download_set("/test/app_event_counts.tsv")
+
+  ios <- reshape2::dcast(data[data$platform == "iOS",], formula = timestamp ~ action, fun.aggregate = sum)
+  android <- reshape2::dcast(data[data$platform == "Android",], formula = timestamp ~ action, fun.aggregate = sum)
+  ios_dygraph_set <<- ios
+  ios_dygraph_means <<- round(colMeans(ios[,2:4]))
+
+  android_dygraph_set <<- android
+  android_dygraph_means <<- round(colMeans(android[,2:4]))
+
+  app_load_data <- download_set("/test/app_load_times.tsv")
+  ios_load_data <<- app_load_data[app_load_data$platform == "iOS",]
+  android_load_data <<- app_load_data[app_load_data$platform == "Android",]
+
   return(invisible())
 }
 
@@ -53,7 +60,7 @@ read_failures <- function(date){
 }
 
 shinyServer(function(input, output) {
-  
+
   if(Sys.Date() != existing_date){
     read_desktop()
     read_apps()
@@ -62,7 +69,7 @@ shinyServer(function(input, output) {
     read_failures(existing_date)
     existing_date <<- Sys.Date()
   }
-  
+
   #Desktop value boxes
   output$desktop_event_searches <- renderValueBox(
     valueBox(
@@ -72,7 +79,7 @@ shinyServer(function(input, output) {
       color = "green"
     )
   )
-  
+
   output$desktop_event_resultsets <- renderValueBox(
     valueBox(
       value = desktop_dygraph_means[3],
@@ -81,7 +88,7 @@ shinyServer(function(input, output) {
       color = "green"
     )
   )
-  
+
   output$desktop_event_clickthroughs <- renderValueBox(
     valueBox(
       value = desktop_dygraph_means[1],
@@ -90,7 +97,7 @@ shinyServer(function(input, output) {
       color = "green"
     )
   )
-  
+
   #The dynamic graphs of events on desktop
   output$desktop_event_plot <- make_dygraph(
     desktop_dygraph_set, "Date", "Events",
@@ -100,7 +107,7 @@ shinyServer(function(input, output) {
     desktop_load_data, "Date", "Load time (ms)",
     "Desktop result load times, by day"
   )
-  
+
   #Mobile value boxes
   output$mobile_event_searches <- renderValueBox(
     valueBox(
@@ -110,7 +117,7 @@ shinyServer(function(input, output) {
       color = "green"
     )
   )
-  
+
   output$mobile_event_resultsets <- renderValueBox(
     valueBox(
       value = mobile_dygraph_means[2],
@@ -119,7 +126,7 @@ shinyServer(function(input, output) {
       color = "green"
     )
   )
-  
+
   output$mobile_event_clickthroughs <- renderValueBox(
     valueBox(
       value = mobile_dygraph_means[1],
@@ -128,7 +135,7 @@ shinyServer(function(input, output) {
       color = "green"
     )
   )
-  
+
   #Mobile plots
   output$mobile_event_plot <- make_dygraph(
     mobile_dygraph_set, "Date", "Events",
@@ -138,45 +145,53 @@ shinyServer(function(input, output) {
     mobile_load_data, "Date", "Load time (ms)",
     "Mobile result load times, by day"
   )
-  
+
   #App value boxes
   output$app_event_searches <- renderValueBox(
     valueBox(
-      value = app_dygraph_means[3],
+      value = android_dygraph_means[3],
       subtitle = "Search sessions per day",
       icon = icon("search"),
       color = "green"
     )
   )
-  
+
   output$app_event_resultsets <- renderValueBox(
     valueBox(
-      value = app_dygraph_means[2],
+      value = android_dygraph_means[2],
       subtitle = "Result sets per day",
       icon = icon("list", lib = "glyphicon"),
       color = "green"
     )
   )
-  
+
   output$app_event_clickthroughs <- renderValueBox(
     valueBox(
-      value = app_dygraph_means[1],
+      value = android_dygraph_means[1],
       subtitle = "Clickthroughs per day",
       icon = icon("hand-up", lib = "glyphicon"),
       color = "green"
     )
   )
-  
+
   #App plots
-  output$app_event_plot <- make_dygraph(
-    app_dygraph_set, "Date", "Events",
-    "Mobile App search events, by day"
+  output$android_event_plot <- make_dygraph(
+    android_dygraph_set, "Date", "Events",
+    "Android mobile app search events, by day"
   )
-  output$app_load_plot <- make_dygraph(
+  output$android_load_plot <- make_dygraph(
     app_dygraph_set, "Date", "Load time (ms)",
-    "Mobile App result load times, by day"
+    "Android result load times, by day"
   )
-  
+  output$ios_event_plot <- make_dygraph(
+    ios_dygraph_set, "Date", "Events",
+    "iOS mobile app search events, by day"
+  )
+  output$ios_load_plot <- make_dygraph(
+    ios_dygraph_set, "Date", "Load time (ms)",
+    "iOs result load times, by day"
+  )
+
   #API plots
   output$cirrus_aggregate <- make_dygraph(
     split_dataset[[1]], "Date", "Events",
@@ -198,7 +213,7 @@ shinyServer(function(input, output) {
     split_dataset[[5]], "Date", "Events",
     "Language Search API usage by day", TRUE
   )
-  
+
   #Failure plots
   output$failure_rate_plot <- make_dygraph(
     failure_dygraph_set, "Date", "Queries",

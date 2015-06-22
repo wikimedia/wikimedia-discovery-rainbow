@@ -29,7 +29,7 @@ sidebar <- dashboardSidebar(
     menuItem(text = "Zero Results",
              menuSubItem(text = "Zero Rate", tabName = "failure_rate")
     )
-    
+
   )
 )
 
@@ -66,11 +66,13 @@ body <- dashboardBody(
               valueBoxOutput("app_event_resultsets"),
               valueBoxOutput("app_event_clickthroughs")
             ),
-            dygraphOutput("app_event_plot"),
+            dygraphOutput("android_event_plot"),
+            dygraphOutput("ios_event_plot"),
             includeMarkdown("./assets/content/app_events.md")
     ),
     tabItem(tabName = "app_load",
-            dygraphOutput("app_load_plot"),
+            dygraphOutput("android_load_plot"),
+            dygraphOutput("ios_load_plot"),
             includeMarkdown("./assets/content/app_load.md")
     ),
     tabItem(tabName = "failure_rate",

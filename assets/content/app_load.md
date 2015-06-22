@@ -3,7 +3,10 @@ Desktop result load times
 
 When a user types in a search query, it's sent off to the servers which identify and rank probable articles and then return them in a list. In an ideal world this would be instantaneous, but realistically, even with all the caching in the world it's going to take *some* time.
 
-One of the things we anonymously track is how long it takes search results to be provided to the user, after they've sent the request. Here we're displaying the mean, or average, the median, the 95th percentile and the 99th percentile. A caveat when interpreting the results is that the mean may sometimes be *higher* than the 99th percentile, in the case that that last percentile consists of requests that take a truly ludicrously long time to display. *Caveat emptor*.
+One of the things we anonymously track is how long it takes search results to be provided to the user, after they've sent the request. Here we're displaying the median, the 95th percentile and the 99th percentile.
+
+Due to a bug in the iOS EventLogging system, iOS events are currently being tracked much more frequently than Android ones and so are displayed in a different graph to avoid confusion.
+
 
 General trends
 ------
