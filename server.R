@@ -28,7 +28,7 @@ read_web <- function(){
 }
 
 read_apps <- function(){
-  data <- download_set("/test/app_event_counts.tsv")
+  data <- download_set("app_event_counts.tsv")
 
   ios <- reshape2::dcast(data[data$platform == "iOS",], formula = timestamp ~ action, fun.aggregate = sum)
   android <- reshape2::dcast(data[data$platform == "Android",], formula = timestamp ~ action, fun.aggregate = sum)
@@ -38,7 +38,7 @@ read_apps <- function(){
   android_dygraph_set <<- android
   android_dygraph_means <<- round(colMeans(android[,2:4]))
 
-  app_load_data <- download_set("/test/app_load_times.tsv")
+  app_load_data <- download_set("app_load_times.tsv")
   ios_load_data <<- app_load_data[app_load_data$platform == "iOS",]
   android_load_data <<- app_load_data[app_load_data$platform == "Android",]
 
