@@ -6,7 +6,8 @@ library(RColorBrewer)
 
 #Utility functions for handling particularly common tasks
 download_set <- function(location){
-  location <- paste0("http://datasets.wikimedia.org/aggregate-datasets/search/", location)
+  location <- paste0("http://datasets.wikimedia.org/aggregate-datasets/search/", location,
+                     "?ts=", gsub(x = Sys.time(), pattern = "(-| )", replacement = ""))
   con <- url(location)
   return(readr::read_delim(con, delim = "\t"))
 }
