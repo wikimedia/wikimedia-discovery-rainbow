@@ -1,4 +1,4 @@
-#Version 0.1.0
+#Version 0.1.1
 source("utils.R")
 
 existing_date <- (Sys.Date()-1)
