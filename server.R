@@ -181,7 +181,7 @@ shinyServer(function(input, output) {
     "Android mobile app search events, by day"
   )
   output$android_load_plot <- make_dygraph(
-    app_dygraph_set, "Date", "Load time (ms)",
+    android_load_data, "Date", "Load time (ms)",
     "Android result load times, by day"
   )
   output$ios_event_plot <- make_dygraph(
@@ -189,7 +189,7 @@ shinyServer(function(input, output) {
     "iOS mobile app search events, by day"
   )
   output$ios_load_plot <- make_dygraph(
-    ios_dygraph_set, "Date", "Load time (ms)",
+    ios_load_data, "Date", "Load time (ms)",
     "iOs result load times, by day"
   )
 

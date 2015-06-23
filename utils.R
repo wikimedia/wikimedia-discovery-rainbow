@@ -13,7 +13,7 @@ download_set <- function(location){
 
 #Create a dygraph using our standard format.
 make_dygraph <- function(data, x, y, title, is_single = FALSE){
-  
+
   if(is_single){
     data <- xts(data[,3], data[,1])
     names(data) <- "events"
