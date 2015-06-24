@@ -190,7 +190,7 @@ shinyServer(function(input, output) {
   )
   output$ios_load_plot <- make_dygraph(
     ios_load_data, "Date", "Load time (ms)",
-    "iOs result load times, by day"
+    "iOS result load times, by day"
   )
 
   #API plots
