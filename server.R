@@ -65,6 +65,7 @@ read_failures <- function(date){
   }
 
   failure_roc_dygraph_set <<- data.frame(date = interim_data$date[2:nrow(interim_data)],
+                                         variable = "failure ROC",
                                          change_by_week = output_vector*100,
                                          stringsAsFactors = FALSE)
   return(invisible())
@@ -232,6 +233,7 @@ shinyServer(function(input, output) {
   )
   output$failure_rate_change_plot <- make_dygraph(
     failure_roc_dygraph_set, "Date", "Change (%)",
-    "Zero result rate change, by day"
+    "Zero result rate change, by day", TRUE,
+    "Rate of Change"
   )
 })

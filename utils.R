@@ -13,11 +13,15 @@ download_set <- function(location){
 }
 
 #Create a dygraph using our standard format.
-make_dygraph <- function(data, x, y, title, is_single = FALSE){
+make_dygraph <- function(data, x, y, title, is_single = FALSE, legend_name = NULL){
 
   if(is_single){
     data <- xts(data[,3], data[,1])
-    names(data) <- "events"
+    if(is.null(legend_name)){
+      names(data) <- "events"
+    } else {
+      names(data) <- legend_name
+    }
   } else {
     data <- xts(data[,-1], data[,1])
   }
