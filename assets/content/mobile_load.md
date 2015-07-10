@@ -1,4 +1,4 @@
-Desktop result load times
+Mobile web result load times
 =======
 
 When a user types in a search query, it's sent off to the servers which identify and rank probable articles and then return them in a list. In an ideal world this would be instantaneous, but realistically, even with all the caching in the world it's going to take *some* time.
