@@ -77,6 +77,7 @@ body <- dashboardBody(
     ),
     tabItem(tabName = "failure_rate",
             dygraphOutput("failure_rate_plot"),
+            dygraphOutput("failure_rate_change_plot"),
             includeMarkdown("./assets/content/failure_rate.md")
     ),
     tabItem(tabName = "cirrus_search",

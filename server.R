@@ -57,6 +57,16 @@ read_failures <- function(date){
   data <- download_set("cirrus_query_aggregates.tsv")
   interim_data <- reshape2::dcast(data, formula = date ~ variable, fun.aggregate = sum)
   failure_dygraph_set <<- interim_data
+
+  interim_vector <- interim_data$`Zero Result Queries`/interim_data$`Search Queries`
+  output_vector <- numeric(length(interim_vector)-1)
+  for(i in 2:nrow(interim_data)){
+    output_vector[i-1] <- interim_vector[i] - interim_vector[i-1]
+  }
+
+  failure_roc_dygraph_set <<- data.frame(date = interim_data$date[2:nrow(interim_data)],
+                                         change_by_week = output_vector*100,
+                                         stringsAsFactors = FALSE)
   return(invisible())
 }
 
@@ -219,5 +229,9 @@ shinyServer(function(input, output) {
   output$failure_rate_plot <- make_dygraph(
     failure_dygraph_set, "Date", "Queries",
     "Search Queries with Zero Results, by day"
+  )
+  output$failure_rate_change_plot <- make_dygraph(
+    failure_roc_dygraph_set, "Date", "Change (%)",
+    "Zero result rate change, by day"
   )
 })
