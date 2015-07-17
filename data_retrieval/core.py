@@ -5,16 +5,19 @@ import os.path
 import csv
 from collections import Counter, OrderedDict
 from sys import exit
+from floccus import check
+from floccus import misc
+from floccus import get
 
 #Regexes for parsing
 is_valid_regex = re.compile("^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}")
 has_zero_results_regex = re.compile("Found 0 total results")
-query_regex = re.compile("(?<= search for ').*(?=' against .*wiki_content took)")
 execution_id_regex = re.compile("by executor (.{16})\.$")
 
 #File paths for output
-output_daily = "/a/aggregate-datasets/search/daily_pages/"
-output_single = "/a/aggregate-datasets/search/cirrus_query_aggregates.tsv"
+output_daily = "/home/ironholds/zero_results/"
+aggregate_filepath = "/a/aggregate-datasets/search/cirrus_query_aggregates.tsv"
+breakdown_filepath = "/a/aggregate-datasets/search/cirrus_query_breakdowns.tsv"
 
 class BoundedRelatedStatCollector(object):
   '''
@@ -58,14 +61,6 @@ class BoundedRelatedStatCollector(object):
       self.callback(values)
       del self.data[group_by]
 
-#Construct a filepath
-def construct_filepath(date = None):
-  if date is None:
-    date = datetime.date.fromordinal(datetime.date.today().toordinal()-1)
-  parsed_date = date.strftime("%Y%m%d")
-  path = "/a/mw-log/archive/CirrusSearchRequests.log-" + parsed_date + ".gz"
-  return path, date
-
 #Check if a line is even valid
 def extract_timestamp(row):
   match = is_valid_regex.match(row)
@@ -84,36 +79,12 @@ def extract_execution_id(row):
   else:
     return None
 
-#Check if a request returned zero results
-def is_zero(row):
-  if(re.search(has_zero_results_regex, row)):
-    return True
-  return False
-
-#Extract the actual query string from a row
-def extract_query(row):
-  match_result = re.search(query_regex, row)
-  if(match_result is None):
-    return ""
-  return match_result.group(0)
-
-#Write out to a file
-def single_write(date, query_count, zero_count):
-  if(os.path.exists(output_single) == False):
-    with open(output_single, "wb") as tsv_file:
-      write_obj = csv.writer(tsv_file, delimiter = "\t")
-      write_obj.writerow(["date","variable","value"])
-  with open(output_single, "ab") as tsv_file:
-    write_obj = csv.writer(tsv_file, delimiter = "\t")
-    write_obj.writerow([str(date), "Search Queries", str(query_count)])
-    write_obj.writerow([str(date), "Zero Result Queries", str(zero_count)])
-
 def daily_write(date, zero_results):
-  with open((output_daily + date.strftime("%Y%m%d") + ".tsv"), "ab") as tsv_file:
+  with open((output_daily + date + ".tsv"), "ab") as tsv_file:
     write_obj = csv.writer(tsv_file, delimiter = "\t")
     for line in zero_results:
-      line = re.sub("(\\t|\\n|\")", "", line)
-      write_obj.writerow([line])
+      start = re.sub("(\\t|\\n|\")", "", line[0])
+      write_obj.writerow([start, str(line[1])])
 
 #For each line in the file, if it's valid, increment the query count.
 #If it has zero results, log the query to the query list and increment
@@ -122,31 +93,53 @@ def parse_file(filename):
   stats = {
     'queries': 0,
     'zero_result_count': 0,
+    'prefix_queries': 0,
+    'prefix_zero': 0,
+    'full_queries': 0,
+    'full_zero': 0,
     'zero_result_queries': list(),
   }
   def count_query(lines):
     # Just assume whichever logline showed up last is the one we want
     line = lines[-1]
-    stats['queries'] += 1
-    if is_zero(line):
-      stats['zero_result_count'] += 1
-      stats['zero_result_queries'].append(extract_query(line))
+    if check.check_prefix_search(line):
+      stats['queries'] += 1
+      stats['prefix_queries'] += 1
+      if check.check_zero(line):
+        stats['prefix_zero'] += 1
+        stats['zero_result_queries'].append(get.get_query(line))
+    elif check.check_full_search(line):
+      stats['queries'] += 1
+      stats['full_queries'] += 1
+      if check.check_zero(line):
+        stats['full_zero'] += 1
+        stats['zero_result_queries'].append(get.get_query(line))
 
   collector = BoundedRelatedStatCollector(count_query)
   connection = gzip.open(filename)
   for line in connection:
     timestamp = extract_timestamp(line)
-    if timestamp != None:
+    if timestamp is not None:
       execution_id = extract_execution_id(line)
       collector.push(execution_id, line, timestamp)
+
   connection.close()
   collector.flush()
 
-  zero_result_queries = Counter(stats['zero_result_queries'])
-  return(stats['queries'], stats['zero_result_count'], zero_result_queries.most_common(100))
+  zero_result_queries = Counter(stats['zero_result_queries']).most_common(100)
+  high_level_stats = Counter({"Search Queries": stats['queries'],
+    "Zero Results Queries": stats['prefix_zero'] + stats['full_zero']
+  })
+  breakdown_stats = Counter({
+    "Full-Text Search": float(stats['full_zero'])/stats['full_queries'],
+    "Prefix Search": float(stats['prefix_zero'])/stats['prefix_queries']
+  })
+  return(high_level_stats, breakdown_stats, zero_result_queries)
 
-filepath, date = construct_filepath()
-query_count, zero_count, zero_results = parse_file(filepath)
-single_write(date, query_count, zero_count)
-#daily_write(date, zero_results)
+#Run and write out
+filepath, date = misc.get_filepath()
+high_level, breakdown, zero_results = parse_file(filepath)
+misc.write_counter(high_level, date, aggregate_filepath)
+misc.write_counter(breakdown, date, breakdown_filepath)
+daily_write(date, zero_results)
 exit()
