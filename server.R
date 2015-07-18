@@ -208,7 +208,7 @@ shinyServer(function(input, output) {
   )
   output$language_aggregate <- make_dygraph(
     split_dataset[[3]], "Date", "Events",
-    "Language Search API usage by day", TRUE
+    "Prefix Search API usage by day", TRUE
   )
   output$prefix_aggregate <- make_dygraph(
     split_dataset[[5]], "Date", "Events",
