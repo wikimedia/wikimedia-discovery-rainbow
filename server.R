@@ -223,7 +223,7 @@ shinyServer(function(input, output) {
   )
   output$prefix_aggregate <- make_dygraph(
     split_dataset[[5]], "Date", "Events",
-    "Language Search API usage by day", TRUE
+    "Prefix Search API usage by day", TRUE
   )
 
   #Failure plots
