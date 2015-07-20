@@ -27,7 +27,8 @@ sidebar <- dashboardSidebar(
              menuSubItem(text = "Language Search", tabName = "language_search")
     ),
     menuItem(text = "Zero Results",
-             menuSubItem(text = "Zero Rate", tabName = "failure_rate")
+             menuSubItem(text = "Summary", tabName = "failure_rate"),
+             menuSubItem(text = "Search Type Breakdown", tabName = "failure_breakdown")
     )
 
   )
@@ -75,11 +76,6 @@ body <- dashboardBody(
             dygraphOutput("ios_load_plot"),
             includeMarkdown("./assets/content/app_load.md")
     ),
-    tabItem(tabName = "failure_rate",
-            dygraphOutput("failure_rate_plot"),
-            dygraphOutput("failure_rate_change_plot"),
-            includeMarkdown("./assets/content/failure_rate.md")
-    ),
     tabItem(tabName = "cirrus_search",
             dygraphOutput("cirrus_aggregate"),
             includeMarkdown("./assets/content/cirrus_basic.md")
@@ -99,6 +95,15 @@ body <- dashboardBody(
     tabItem(tabName = "language_search",
             dygraphOutput("language_aggregate"),
             includeMarkdown("./assets/content/language_basic.md")
+    ),
+    tabItem(tabName = "failure_rate",
+            dygraphOutput("failure_rate_plot"),
+            dygraphOutput("failure_rate_change_plot"),
+            includeMarkdown("./assets/content/failure_rate.md")
+    ),
+    tabItem(tabName = "failure_breakdown",
+            dygraphOutput("failure_breakdown_plot")#,
+#            includeMarkdown("./assets/content/failure_breakdown.md")
     )
   )
 )

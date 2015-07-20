@@ -1,4 +1,4 @@
-#Version 0.1.1
+#Version 0.2.0
 source("utils.R")
 
 existing_date <- (Sys.Date()-1)
@@ -68,6 +68,12 @@ read_failures <- function(date){
                                          variable = "failure ROC",
                                          change_by_week = output_vector*100,
                                          stringsAsFactors = FALSE)
+
+  interim_breakdown_data <- download_set("cirrus_query_breakdowns.tsv")
+  interim_breakdown_data$value <- interim_breakdown_data$value*100
+  failure_breakdown_dygraph_set <<- reshape2::dcast(interim_breakdown_data,
+                                                    formula = date ~ variable, fun.aggregate = sum)
+
   return(invisible())
 }
 
@@ -235,5 +241,9 @@ shinyServer(function(input, output) {
     failure_roc_dygraph_set, "Date", "Change (%)",
     "Zero result rate change, by day", TRUE,
     "Rate of Change"
+  )
+  output$failure_breakdown_plot <- make_dygraph(
+    failure_breakdown_dygraph_set, "Date", "Zero Results Rate (%)",
+    "Zero result rate by search type"
   )
 })
