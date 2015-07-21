@@ -102,8 +102,8 @@ body <- dashboardBody(
             includeMarkdown("./assets/content/failure_rate.md")
     ),
     tabItem(tabName = "failure_breakdown",
-            dygraphOutput("failure_breakdown_plot")#,
-#            includeMarkdown("./assets/content/failure_breakdown.md")
+            dygraphOutput("failure_breakdown_plot"),
+            includeMarkdown("./assets/content/failure_breakdown.md")
     )
   )
 )
