@@ -18,7 +18,7 @@ execution_id_regex = re.compile("by executor (.{16})\.$")
 output_daily = "/home/ironholds/zero_results/"
 aggregate_filepath = "/a/aggregate-datasets/search/cirrus_query_aggregates.tsv"
 breakdown_filepath = "/a/aggregate-datasets/search/cirrus_query_breakdowns.tsv"
-suggests_filepath = "/a/aggregate-datasets/search/cirrus_suggestion_breakdown.tsv"
+suggest_filepath = "/a/aggregate-datasets/search/cirrus_suggestion_breakdown.tsv"
 
 class BoundedRelatedStatCollector(object):
   '''
