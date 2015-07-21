@@ -18,6 +18,7 @@ execution_id_regex = re.compile("by executor (.{16})\.$")
 output_daily = "/home/ironholds/zero_results/"
 aggregate_filepath = "/a/aggregate-datasets/search/cirrus_query_aggregates.tsv"
 breakdown_filepath = "/a/aggregate-datasets/search/cirrus_query_breakdowns.tsv"
+suggests_filepath = "/a/aggregate-datasets/search/cirrus_suggestion_breakdown.tsv"
 
 class BoundedRelatedStatCollector(object):
   '''
@@ -97,6 +98,8 @@ def parse_file(filename):
     'prefix_zero': 0,
     'full_queries': 0,
     'full_zero': 0,
+    'suggested_queries': 0,
+    'suggested_zero': 0,
     'zero_result_queries': list(),
   }
   def count_query(lines):
@@ -114,6 +117,10 @@ def parse_file(filename):
       if check.check_zero(line):
         stats['full_zero'] += 1
         stats['zero_result_queries'].append(get.get_query(line))
+    if check.check_suggestion(line):
+      stats['suggested_queries'] += 1
+      if check.check_zero(line):
+        stats['suggested_zero'] += 1
 
   collector = BoundedRelatedStatCollector(count_query)
   connection = gzip.open(filename)
@@ -128,18 +135,23 @@ def parse_file(filename):
 
   zero_result_queries = Counter(stats['zero_result_queries']).most_common(100)
   high_level_stats = Counter({"Search Queries": stats['queries'],
-    "Zero Results Queries": stats['prefix_zero'] + stats['full_zero']
+    "Zero Result Queries": stats['prefix_zero'] + stats['full_zero']
   })
   breakdown_stats = Counter({
     "Full-Text Search": float(stats['full_zero'])/stats['full_queries'],
     "Prefix Search": float(stats['prefix_zero'])/stats['prefix_queries']
   })
-  return(high_level_stats, breakdown_stats, zero_result_queries)
+
+  suggestion_stats = Counter({
+    "Searches with Suggestions": float(stats['suggested_zero'])/stats['suggested_queries']
+  })
+  return(high_level_stats, breakdown_stats, suggestion_stats, zero_result_queries)
 
 #Run and write out
 filepath, date = misc.get_filepath()
-high_level, breakdown, zero_results = parse_file(filepath)
+high_level, breakdown, suggests, zero_results = parse_file(filepath)
 misc.write_counter(high_level, date, aggregate_filepath)
 misc.write_counter(breakdown, date, breakdown_filepath)
+misc.write_counter(suggests, date, suggest_filepath)
 daily_write(date, zero_results)
 exit()
