@@ -13,7 +13,7 @@ download_set <- function(location){
 }
 
 #Create a dygraph using our standard format.
-make_dygraph <- function(data, x, y, title, is_single = FALSE, legend_name = NULL){
+make_dygraph <- function(data, x, y, title, is_single = FALSE, legend_name = NULL, use_si = TRUE){
 
   if(is_single){
     data <- xts(data[,3], data[,1])
@@ -34,7 +34,7 @@ make_dygraph <- function(data, x, y, title, is_single = FALSE, legend_name = NUL
                   xlab = x, ylab = y),
           width = 400, show = "always"
         ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE,
+        drawPoints = TRUE, pointSize = 3, labelsKMB = use_si,
         includeZero = TRUE
       )
       ,css = "./assets/css/custom.css")

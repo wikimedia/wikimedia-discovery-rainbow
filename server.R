@@ -123,7 +123,7 @@ shinyServer(function(input, output) {
   )
   output$desktop_load_plot <- make_dygraph(
     desktop_load_data, "Date", "Load time (ms)",
-    "Desktop result load times, by day"
+    "Desktop result load times, by day", use_si = FALSE
   )
 
   #Mobile value boxes
@@ -161,7 +161,7 @@ shinyServer(function(input, output) {
   )
   output$mobile_load_plot <- make_dygraph(
     mobile_load_data, "Date", "Load time (ms)",
-    "Mobile result load times, by day"
+    "Mobile result load times, by day", use_si = FALSE
   )
 
   #App value boxes
@@ -199,7 +199,7 @@ shinyServer(function(input, output) {
   )
   output$android_load_plot <- make_dygraph(
     android_load_data, "Date", "Load time (ms)",
-    "Android result load times, by day"
+    "Android result load times, by day", use_si = FALSE
   )
   output$ios_event_plot <- make_dygraph(
     ios_dygraph_set, "Date", "Events",
@@ -207,7 +207,7 @@ shinyServer(function(input, output) {
   )
   output$ios_load_plot <- make_dygraph(
     ios_load_data, "Date", "Load time (ms)",
-    "iOS result load times, by day"
+    "iOS result load times, by day", use_si = FALSE
   )
 
   #API plots
