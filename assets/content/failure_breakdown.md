@@ -11,4 +11,4 @@ General trends
 
 Outages and inaccuracies
 ------
-* None so far!
+* On 15 July 2015 we updated our heuristics to avoid counting maintenance tasks as search requests. The historic data on the dashboards is being backfilled to reflect this - until it's done, the dashboards may look somewhat strange.

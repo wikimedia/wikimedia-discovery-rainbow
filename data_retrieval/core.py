@@ -117,10 +117,10 @@ def parse_file(filename):
       if check.check_zero(line):
         stats['full_zero'] += 1
         stats['zero_result_queries'].append(get.get_query(line))
-    if check.check_suggestion(line):
-      stats['suggested_queries'] += 1
-      if check.check_zero(line):
-        stats['suggested_zero'] += 1
+      if check.check_suggestion(line):
+        stats['suggested_queries'] += 1
+        if check.check_zero(line):
+          stats['suggested_zero'] += 1
 
   collector = BoundedRelatedStatCollector(count_query)
   connection = gzip.open(filename)
