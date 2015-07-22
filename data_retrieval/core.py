@@ -12,7 +12,7 @@ from floccus import get
 #Regexes for parsing
 is_valid_regex = re.compile("^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}")
 has_zero_results_regex = re.compile("Found 0 total results")
-execution_id_regex = re.compile("by executor (.{16})\.$")
+execution_id_regex = re.compile("by executor (\d{9,})\.$")
 
 #File paths for output
 output_daily = "/home/ironholds/zero_results/"
