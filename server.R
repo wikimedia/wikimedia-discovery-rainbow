@@ -74,6 +74,14 @@ read_failures <- function(date){
   failure_breakdown_dygraph_set <<- reshape2::dcast(interim_breakdown_data,
                                                     formula = date ~ variable, fun.aggregate = sum)
 
+  suggestion_data <- download_set("cirrus_suggestion_breakdown.tsv")
+  suggestion_data$variable <- "Full-Text with Suggestions"
+  suggestion_data$value <- suggestion_data$value*100
+  suggestion_data <- rbind(suggestion_data,
+                           interim_breakdown_data[interim_breakdown_data$date %in% suggestion_data$date
+                                                  & interim_breakdown_data$variable == "Full-Text Search",])
+  suggestion_dygraph_set <<- reshape2::dcast(suggestion_data,
+                                             formula = date ~ variable, fun.aggregate = sum)
   return(invisible())
 }
 
@@ -246,4 +254,10 @@ shinyServer(function(input, output) {
     failure_breakdown_dygraph_set, "Date", "Zero Results Rate (%)",
     "Zero result rate by search type"
   )
+  output$suggestion_dygraph_plot <- make_dygraph(
+    suggestion_dygraph_set, "Date", "Zero Results Rate (%)",
+    "Zero Result Rates with Search Suggestions"
+  )
+
+
 })

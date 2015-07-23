@@ -28,7 +28,8 @@ sidebar <- dashboardSidebar(
     ),
     menuItem(text = "Zero Results",
              menuSubItem(text = "Summary", tabName = "failure_rate"),
-             menuSubItem(text = "Search Type Breakdown", tabName = "failure_breakdown")
+             menuSubItem(text = "Search Type Breakdown", tabName = "failure_breakdown"),
+             menuSubItem(text = "Search Suggestions", tabName = "failure_suggestions")
     )
 
   )
@@ -104,6 +105,9 @@ body <- dashboardBody(
     tabItem(tabName = "failure_breakdown",
             dygraphOutput("failure_breakdown_plot"),
             includeMarkdown("./assets/content/failure_breakdown.md")
+    ),
+    tabItem(tabName = "failure_suggestions",
+            dygraphOutput("suggestion_dygraph_plot")
     )
   )
 )
