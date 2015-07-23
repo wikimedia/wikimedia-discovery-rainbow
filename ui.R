@@ -107,7 +107,8 @@ body <- dashboardBody(
             includeMarkdown("./assets/content/failure_breakdown.md")
     ),
     tabItem(tabName = "failure_suggestions",
-            dygraphOutput("suggestion_dygraph_plot")
+            dygraphOutput("suggestion_dygraph_plot"),
+            includeMarkdown("./assets/content/failure_suggests.md")
     )
   )
 )
