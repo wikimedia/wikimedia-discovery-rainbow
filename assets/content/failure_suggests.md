@@ -11,3 +11,7 @@ General trends
 Outages and inaccuracies
 ------
 * None so far.
+
+Questions, bug reports, and feature suggestions
+------
+For technical, non-bug questions, [email Oliver](mailto:okeyes@wikimedia.org?subject=Dashboard%20Question). If you experience a technical issue or have a suggestion, [open a ticket in Phabricator](https://phabricator.wikimedia.org/maniphest/task/create/) in the Discovery board or [email Dan](mailto:dgarry@wikimedia.org?subject=Dashboard%20Question). 
