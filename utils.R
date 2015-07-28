@@ -3,6 +3,8 @@ library(readr)
 library(xts)
 library(reshape2)
 library(RColorBrewer)
+library(ggplot2)
+library(grid) # for unit
 
 #Utility functions for handling particularly common tasks
 download_set <- function(location){

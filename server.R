@@ -259,5 +259,118 @@ shinyServer(function(input, output) {
     "Zero Result Rates with Search Suggestions"
   )
 
+  # KPI module
+  output$kpi_summary_api_usage_proportions <- renderPlot({
+    api_latest <- c("Cirrus" = dplyr::select(dplyr::arrange(split_dataset[[1]], dplyr::desc(timestamp)), events)[[1]][1],
+           "OpenSearch" = dplyr::select(dplyr::arrange(split_dataset[[2]], dplyr::desc(timestamp)), events)[[1]][1],
+           "Geo" = dplyr::select(dplyr::arrange(split_dataset[[3]], dplyr::desc(timestamp)), events)[[1]][1],
+           "Language" = dplyr::select(dplyr::arrange(split_dataset[[4]], dplyr::desc(timestamp)), events)[[1]][1],
+           "Prefix" = dplyr::select(dplyr::arrange(split_dataset[[5]], dplyr::desc(timestamp)), events)[[1]][1]) %>%
+           { data.frame(API = names(.), Events = ., Prop = ./sum(.)) }
+    ggplot(api_latest, aes(x = 1, fill = API)) +
+      geom_bar(aes(y = Prop), stat="identity") +
+      scale_fill_discrete(guide = FALSE) +
+      scale_y_continuous(expand = c(0,0)) + scale_x_continuous(expand = c(0,0)) +
+      coord_flip() +
+      theme_bw() +
+      theme(axis.ticks = element_blank(),
+            axis.text = element_blank(),
+            axis.title = element_blank(),
+            plot.margin = unit(rep(0, 4), "lines"),
+            panel.margin = unit(0, "lines")) +
+      geom_text(aes(label = API, x = seq(0.95, 1.05, length.out = 5),
+                    y = cumsum(Prop) + (c(0, cumsum(Prop)[-5]) - cumsum(Prop))/2))
+  })
+  output$kpi_summary_zero_results_latest <- renderValueBox({
+    valueBox(
+      "Latest",
+      "20%",
+      color = "blue"
+    )
+  })
+  output$kpi_summary_zero_results_week_avg <- renderValueBox({
+    valueBox(
+      "Wk Avg",
+      "25%",
+      color = "blue"
+    )
+  })
+  output$kpi_summary_zero_results_rate_change <- renderValueBox({
+    valueBox(
+      "% Change",
+      "-1%",
+      icon = icon("arrow-down"),
+      color = "green"
+    )
+  })
+  output$kpi_summary_zero_results_rate_week_avg <- renderValueBox({
+    valueBox(
+      "Wk Avg % Change",
+      "2%",
+      icon = icon("arrow-up"),
+      color = "red"
+    )
+  })
+  output$kpi_summary_api_usage_all <- renderValueBox({
+    valueBox(
+      "All",
+      "--%"
+    )
+  })
+  output$kpi_summary_api_usage_cirrus <- renderValueBox({
+    valueBox(
+      "Cirrus Search",
+      "--%"
+    )
+  })
+  output$kpi_summary_api_usage_open <- renderValueBox({
+    valueBox(
+      "OpenSearch",
+      "--%"
+    )
+  })
+  output$kpi_summary_api_usage_geo <- renderValueBox({
+    valueBox(
+      "Geo Search",
+      "--%"
+    )
+  })
+  output$kpi_summary_api_usage_prefix <- renderValueBox({
+    valueBox(
+      "Prefix Search",
+      "--%"
+    )
+  })
+  output$kpi_summary_api_usage_language <- renderValueBox({
+    valueBox(
+      "Language Search",
+      "--%"
+    )
+  })
+
+  # Experimental feature
+  output$custom_plot <- renderUI({
+    list(radioButtons("data_type", "Type of Data",
+                      choices = list("Events" = "events",
+                                     "Load times" = "load_times"),
+                      inline = TRUE),
+         checkboxGroupInput("data_source", "Source of Data",
+                            choices = list("Desktop" = "desktop",
+                                           "Mobile Web" = "mobile_web",
+                                           "Mobile Apps" = "mobile_apps"),
+                            inline = TRUE),
+         dygraphOutput("experimental")
+    )
+  })
+#   output$experimental <- renderDygraph({
+#     if ( input$data_source == "desktop" ) {
+#       if ( input$data_type == "events" ) {
+#         dygraph(desktop_dygraph_set)
+#       } else { # load_times
+#         dygraph(desktop_load_data)
+#       }
+#     }
+#   })
+
 
 })
