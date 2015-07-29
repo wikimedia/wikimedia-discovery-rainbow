@@ -9,8 +9,9 @@ header <- dashboardHeader(title = "Search & Discovery", disable = FALSE)
 #Sidebar elements for the search visualisations.
 sidebar <- dashboardSidebar(
   sidebarMenu(
-    menuItem(text = "KPIs",
-             menuSubItem(text = "Summary", tabName = "kpis_summary", selected = TRUE)),
+    menuItem(text = "KPIs", tabName = "kpis_summary",
+             badgeLabel = "new", badgeColor = "light-blue",
+             selected = TRUE),
     menuItem(text = "Desktop",
              menuSubItem(text = "Events", tabName = "desktop_events"),
              menuSubItem(text = "Load times", tabName = "desktop_load")),
@@ -33,7 +34,7 @@ sidebar <- dashboardSidebar(
              menuSubItem(text = "Search Type Breakdown", tabName = "failure_breakdown"),
              menuSubItem(text = "Search Suggestions", tabName = "failure_suggestions")
     ),
-    menuItem(text = "Build-A-Plot(TM)",
+    menuItem(text = "Build-A-Plot™",
              tabName = "build_a_plot",
              badgeLabel = "experimental",
              badgeColor = "fuchsia")
@@ -44,28 +45,28 @@ sidebar <- dashboardSidebar(
 body <- dashboardBody(
   tabItems(
     tabItem(tabName = "kpis_summary",
-            fluidRow(valueBox("--%", "User Satisfaction",
-                              color = "green", # make dynamic
-                              width = 6,
-                              icon = icon("thumbs-up", lib = "glyphicon")),
-                     valueBox("--ms", "User-perceived load time",
-                              color = "purple", # make dynamic
-                              width = 6,
-                              icon = icon("time", lib = "glyphicon"))
-                     ),
-            h2("Zero Results Rate"),
-            fluidRow(valueBoxOutput("kpi_summary_zero_results_latest", width = 2),
+            # valueBox("--%", "User Satisfaction",
+            #          color = "green", # make dynamic
+            #          width = 3,
+            #          icon = icon("thumbs-up", lib = "glyphicon"))
+            h3("Median User-perceived Load Times"),
+            fluidRow(valueBoxOutput("kpi_summary_load_time_desktop", width = 3),
+                     valueBoxOutput("kpi_summary_load_time_mobile_web", width = 3),
+                     valueBoxOutput("kpi_summary_load_time_mobile_apps_android", width = 3),
+                     valueBoxOutput("kpi_summary_load_time_mobile_apps_ios", width = 3)),
+            h3("Zero Results Rate"),
+            fluidRow(valueBoxOutput("kpi_summary_zero_results_latest", width = 3),
                      valueBoxOutput("kpi_summary_zero_results_week_avg", width = 3),
                      valueBoxOutput("kpi_summary_zero_results_rate_change", width = 3),
-                     valueBoxOutput("kpi_summary_zero_results_rate_week_avg", width = 4)),
-            h2("API Usage"),
+                     valueBoxOutput("kpi_summary_zero_results_rate_week_avg", width = 3)),
+            h3("API Usage"),
             fluidRow(valueBoxOutput("kpi_summary_api_usage_all", width = 2),
                      valueBoxOutput("kpi_summary_api_usage_cirrus", width = 2),
                      valueBoxOutput("kpi_summary_api_usage_open", width = 2),
                      valueBoxOutput("kpi_summary_api_usage_geo", width = 2),
                      valueBoxOutput("kpi_summary_api_usage_prefix", width = 2),
                      valueBoxOutput("kpi_summary_api_usage_language", width = 2)),
-            plotOutput("kpi_summary_api_usage_proportions", height = "120px"),
+            plotOutput("kpi_summary_api_usage_proportions", height = "30px"),
             includeMarkdown("./assets/content/kpis_summary.md")
             ),
     tabItem(tabName = "desktop_events",

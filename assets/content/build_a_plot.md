@@ -1,4 +1,4 @@
-Build-A-Plot(TM)
+Build-A-Plot™
 =======
 
 This is where descriptions of other things would go.

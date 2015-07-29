@@ -42,3 +42,15 @@ make_dygraph <- function(data, x, y, title, is_single = FALSE, legend_name = NUL
       ,css = "./assets/css/custom.css")
   })
 }
+
+mad <- function(x) {
+  median(abs(x - median(x)))
+}
+
+compress <- function(x, round.by = 2) {
+  # by StackOverflow user 'BondedDust' : http://stackoverflow.com/a/28160474
+  div <- findInterval(as.numeric(gsub("\\,", "", x)),
+                      c(1, 1e3, 1e6, 1e9, 1e12) )
+  paste(round( as.numeric(gsub("\\,","",x))/10^(3*(div-1)), round.by),
+        c("","K","M","B","T")[div], sep = "" )
+}

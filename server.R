@@ -220,23 +220,23 @@ shinyServer(function(input, output) {
 
   #API plots
   output$cirrus_aggregate <- make_dygraph(
-    split_dataset[[1]], "Date", "Events",
+    split_dataset$cirrus, "Date", "Events",
     "Cirrus Search API usage by day", TRUE
   )
   output$open_aggregate <- make_dygraph(
-    split_dataset[[4]], "Date", "Events",
+    split_dataset$open, "Date", "Events",
     "OpenSearch API usage by day", TRUE
   )
   output$geo_aggregate <- make_dygraph(
-    split_dataset[[2]], "Date", "Events",
+    split_dataset$geo, "Date", "Events",
     "Geo Search API usage by day", TRUE
   )
   output$language_aggregate <- make_dygraph(
-    split_dataset[[3]], "Date", "Events",
+    split_dataset$language, "Date", "Events",
     "Language Search API usage by day", TRUE
   )
   output$prefix_aggregate <- make_dygraph(
-    split_dataset[[5]], "Date", "Events",
+    split_dataset$prefix, "Date", "Events",
     "Prefix Search API usage by day", TRUE
   )
 
@@ -260,91 +260,144 @@ shinyServer(function(input, output) {
   )
 
   # KPI module
+  output$kpi_summary_load_time_desktop <- renderValueBox({
+    x <- tail(desktop_load_data$Median, 2)
+    y <- 100*(x[2] - x[1])/x[1]
+    valueBox(subtitle = sprintf("Desktop %s",
+                                ifelse(abs(y) > 0,
+                                       sprintf("(%.2f%% change)", y), "(no change)")),
+             value = sprintf("%.0fms", x[2]),
+             color = ifelse(y > 0, "red", "green"),
+             icon = icon("time", lib = "glyphicon"))
+  })
+  output$kpi_summary_load_time_mobile_web <- renderValueBox({
+    x <- tail(mobile_load_data$Median, 2)
+    y <- 100*(x[2] - x[1])/x[1]
+    valueBox(subtitle = sprintf("Mobile Web %s",
+                                ifelse(abs(y) > 0,
+                                       sprintf("(%.2f%% change)", y), "(no change)")),
+             value = sprintf("%.0fms", x[2]),
+             color = ifelse(y > 0, "red", "green"),
+             icon = icon("time", lib = "glyphicon"))
+  })
+  output$kpi_summary_load_time_mobile_apps_android <- renderValueBox({
+    x <- tail(android_load_data$Median, 2)
+    y <- 100*(x[2] - x[1])/x[1]
+    valueBox(subtitle = sprintf("Android %s",
+                                ifelse(abs(y) > 0,
+                                       sprintf("(%.2f%% change)", y), "(no change)")),
+             value = sprintf("%.0fms", x[2]),
+             color = ifelse(y > 0, "red", "green"),
+             icon = icon("time", lib = "glyphicon"))
+  })
+  output$kpi_summary_load_time_mobile_apps_ios <- renderValueBox({
+    x <- tail(ios_load_data$Median, 2)
+    y <- 100*(x[2] - x[1])/x[1]
+    valueBox(subtitle = sprintf("iOS %s",
+                                ifelse(abs(y) > 0,
+                                       sprintf("(%.2f%% change)", y), "(no change)")),
+             value = sprintf("%.0fms", x[2]),
+             color = ifelse(y > 0, "red", "green"),
+             icon = icon("time", lib = "glyphicon"))
+  })
   output$kpi_summary_api_usage_proportions <- renderPlot({
-    api_latest <- c("Cirrus" = dplyr::select(dplyr::arrange(split_dataset[[1]], dplyr::desc(timestamp)), events)[[1]][1],
-           "OpenSearch" = dplyr::select(dplyr::arrange(split_dataset[[2]], dplyr::desc(timestamp)), events)[[1]][1],
-           "Geo" = dplyr::select(dplyr::arrange(split_dataset[[3]], dplyr::desc(timestamp)), events)[[1]][1],
-           "Language" = dplyr::select(dplyr::arrange(split_dataset[[4]], dplyr::desc(timestamp)), events)[[1]][1],
-           "Prefix" = dplyr::select(dplyr::arrange(split_dataset[[5]], dplyr::desc(timestamp)), events)[[1]][1]) %>%
-           { data.frame(API = names(.), Events = ., Prop = ./sum(.)) }
+    api_latest <- c("Cirrus" = tail(split_dataset$cirrus$events, 1),
+                    "OpenSearch" = tail(split_dataset$open$events, 1),
+                    "Geo" = tail(split_dataset$geo$events, 1),
+                    "Language" = tail(split_dataset$language$events, 1),
+                    "Prefix" = tail(split_dataset$prefix$events, 1))
+    api_latest <- data.frame(API = names(api_latest),
+                             Events = api_latest,
+                             Prop = api_latest/sum(api_latest))
+    api_latest <- api_latest[api_latest$Prop > 0.01, ]
+    api_latest$text_pos <- cumsum(api_latest$Prop) + (c(0, cumsum(api_latest$Prop)[-nrow(api_latest)]) - cumsum(api_latest$Prop))/2
     ggplot(api_latest, aes(x = 1, fill = API)) +
       geom_bar(aes(y = Prop), stat="identity") +
-      scale_fill_discrete(guide = FALSE) +
-      scale_y_continuous(expand = c(0,0)) + scale_x_continuous(expand = c(0,0)) +
+      scale_fill_discrete(guide = FALSE, expand = c(0,0)) +
+      scale_y_continuous(expand = c(0,0)) +
+      scale_x_continuous(expand = c(0,0)) +
+      labs(x = NULL, y = NULL) +
       coord_flip() +
       theme_bw() +
       theme(axis.ticks = element_blank(),
             axis.text = element_blank(),
             axis.title = element_blank(),
-            plot.margin = grid::unit(rep(0, 4), "lines"),
+            plot.margin = grid::unit(c(0, 0, -0.5, -0.5), "lines"),
             panel.margin = grid::unit(0, "lines")) +
-      geom_text(aes(label = API, x = seq(0.95, 1.05, length.out = 5),
-                    y = cumsum(Prop) + (c(0, cumsum(Prop)[-5]) - cumsum(Prop))/2))
+      geom_text(aes(label = API,
+                    y = text_pos,
+                    x = 1))
   })
   output$kpi_summary_zero_results_latest <- renderValueBox({
+    x <- tail(failure_breakdown_dygraph_set, 1)
     valueBox(
-      "Latest",
-      "20%",
-      color = "blue"
+      subtitle = "Latest (Full/Prefix)",
+      value = sprintf("%.0f%% / %.0f%%", x[2], x[3]),
+      color = ifelse(all(x[2:3] < 20), ifelse(all(x[2:3] < 12.5), "green", "yellow"), "red")
     )
   })
   output$kpi_summary_zero_results_week_avg <- renderValueBox({
+    x <- tail(failure_breakdown_dygraph_set, 7)
     valueBox(
-      "Wk Avg",
-      "25%",
-      color = "blue"
+      subtitle = "Weekly Median (Full/Prefix)",
+      value = sprintf("%.0f%% / %.0f%%", median(x[, 2]), median(x[, 3])),
+      color = "black"
     )
   })
   output$kpi_summary_zero_results_rate_change <- renderValueBox({
+    x <- tail(failure_roc_dygraph_set$change_by_week, 1)
     valueBox(
-      "% Change",
-      "-1%",
-      icon = icon("arrow-down"),
-      color = "green"
+      subtitle = "% Change From Yesterday",
+      value = sprintf("%.2f%%", x),
+      icon = icon(ifelse(x > 0, "arrow-up", "arrow-down")),
+      color = ifelse(x > 0, "red", "green")
     )
   })
   output$kpi_summary_zero_results_rate_week_avg <- renderValueBox({
+    x <- median(tail(failure_roc_dygraph_set$change_by_week, 7))
     valueBox(
-      "Wk Avg % Change",
-      "2%",
-      icon = icon("arrow-up"),
-      color = "red"
+      subtitle = "Weekly Median % Change",
+      value = sprintf("%.2f%%", x),
+      icon = icon(ifelse(x > 0, "arrow-up", "arrow-down")),
+      color = ifelse(x > 0, "red", "green")
     )
   })
   output$kpi_summary_api_usage_all <- renderValueBox({
     valueBox(
-      "All",
-      "--%"
+      subtitle = "All",
+      value = compress(sum(unlist(lapply(split_dataset, function(x) {
+        tail(x$events, 1)
+      }))), 0)
     )
   })
   output$kpi_summary_api_usage_cirrus <- renderValueBox({
     valueBox(
-      "Cirrus Search",
-      "--%"
+      subtitle = "Cirrus",
+      value = compress(tail(split_dataset$cirrus$events, 1), 0)
     )
   })
   output$kpi_summary_api_usage_open <- renderValueBox({
     valueBox(
-      "OpenSearch",
-      "--%"
+      subtitle = "OpenSearch",
+      value = compress(tail(split_dataset$open$events, 1), 0)
     )
   })
   output$kpi_summary_api_usage_geo <- renderValueBox({
     valueBox(
-      "Geo Search",
-      "--%"
+      subtitle = "Geo",
+      value = compress(tail(split_dataset$geo$events, 1), 0)
     )
   })
   output$kpi_summary_api_usage_prefix <- renderValueBox({
     valueBox(
-      "Prefix Search",
-      "--%"
+      subtitle = "Prefix",
+      value = compress(tail(split_dataset$prefix$events, 1), 0)
     )
   })
   output$kpi_summary_api_usage_language <- renderValueBox({
     valueBox(
-      "Language Search",
-      "--%"
+      subtitle = "Language",
+      value = compress(tail(split_dataset$language$events, 1), 0)
     )
   })
 
