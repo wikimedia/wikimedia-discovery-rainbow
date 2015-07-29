@@ -276,8 +276,8 @@ shinyServer(function(input, output) {
       theme(axis.ticks = element_blank(),
             axis.text = element_blank(),
             axis.title = element_blank(),
-            plot.margin = unit(rep(0, 4), "lines"),
-            panel.margin = unit(0, "lines")) +
+            plot.margin = grid::unit(rep(0, 4), "lines"),
+            panel.margin = grid::unit(0, "lines")) +
       geom_text(aes(label = API, x = seq(0.95, 1.05, length.out = 5),
                     y = cumsum(Prop) + (c(0, cumsum(Prop)[-5]) - cumsum(Prop))/2))
   })

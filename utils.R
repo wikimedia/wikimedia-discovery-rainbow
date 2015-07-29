@@ -4,7 +4,7 @@ library(xts)
 library(reshape2)
 library(RColorBrewer)
 library(ggplot2)
-library(grid) # for unit
+# library(grid) # for unit
 
 #Utility functions for handling particularly common tasks
 download_set <- function(location){
@@ -16,16 +16,16 @@ download_set <- function(location){
 
 #Create a dygraph using our standard format.
 make_dygraph <- function(data, x, y, title, is_single = FALSE, legend_name = NULL, use_si = TRUE){
-
+  # cat("Making dygraph:", title, "\n"); # Debugging
   if(is_single){
-    data <- xts(data[,3], data[,1])
+    data <- xts(data[,3], data[[1]])
     if(is.null(legend_name)){
       names(data) <- "events"
     } else {
       names(data) <- legend_name
     }
   } else {
-    data <- xts(data[,-1], data[,1])
+    data <- xts(data[,-1], order.by = data[[1]])
   }
   renderDygraph({
     dyCSS(
