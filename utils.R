@@ -4,6 +4,7 @@ library(xts)
 library(reshape2)
 library(RColorBrewer)
 library(ggplot2)
+
 # library(grid) # for unit
 
 #Utility functions for handling particularly common tasks
@@ -43,6 +44,7 @@ make_dygraph <- function(data, x, y, title, is_single = FALSE, legend_name = NUL
   })
 }
 
+# Computes a median absolute deviation
 mad <- function(x) {
   median(abs(x - median(x)))
 }

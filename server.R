@@ -297,10 +297,10 @@ shinyServer(function(input, output) {
     )
   })
   output$kpi_summary_api_usage_proportions <- renderPlot({
-    api_latest <- c("Cirrus" = tail(split_dataset$cirrus$events, 1),
-                    "OpenSearch" = tail(split_dataset$open$events, 1),
-                    "Geo" = tail(split_dataset$geo$events, 1),
-                    "Language" = tail(split_dataset$language$events, 1),
+    api_latest <- c("Cirrus" = tail(split_dataset$cirrus$events, 1),     # This assumes the last entry is always literally the last
+                    "OpenSearch" = tail(split_dataset$open$events, 1),   # entry. Most of the time this will be true but in the case of
+                    "Geo" = tail(split_dataset$geo$events, 1),           # backfilled data, where we have to cover for a system outage,
+                    "Language" = tail(split_dataset$language$events, 1), # it might not be.
                     "Prefix" = tail(split_dataset$prefix$events, 1))
     api_latest <- data.frame(API = names(api_latest),
                              Events = api_latest,
