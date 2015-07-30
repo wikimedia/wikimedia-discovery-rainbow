@@ -10,8 +10,7 @@ header <- dashboardHeader(title = "Search & Discovery", disable = FALSE)
 sidebar <- dashboardSidebar(
   sidebarMenu(
     menuItem(text = "KPIs", tabName = "kpis_summary",
-             badgeLabel = "new", badgeColor = "light-blue",
-             selected = TRUE),
+             badgeLabel = "new", badgeColor = "light-blue"),
     menuItem(text = "Desktop",
              menuSubItem(text = "Events", tabName = "desktop_events"),
              menuSubItem(text = "Load times", tabName = "desktop_load")),
