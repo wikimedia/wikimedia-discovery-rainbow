@@ -51,9 +51,9 @@ body <- dashboardBody(
             #          icon = icon("thumbs-up", lib = "glyphicon"))
             # h3("Median User-perceived Load Times"),
             fluidRow(valueBoxOutput("kpi_summary_load_time", width = 3),
-                     valueBoxOutput("kpi_summary_zero_results_latest", width = 3),
-                     valueBoxOutput("kpi_summary_zero_results_rate_change", width = 3),
-                     valueBoxOutput("kpi_summary_api_usage_all", width = 3)),
+                     valueBoxOutput("kpi_summary_zero_results", width = 3),
+                     valueBoxOutput("kpi_summary_api_usage_all", width = 3),
+                     valueBox(subtitle = "User-satisfaction", value = "WIP", color = "black", width = 3)),
             plotOutput("kpi_summary_api_usage_proportions", height = "30px"),
             includeMarkdown("./assets/content/kpis_summary.md")
             ),

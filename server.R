@@ -267,35 +267,33 @@ shinyServer(function(input, output) {
     z <- 100 * (y2 - y1) / y1 # % change from t-1 to t
     valueBox(subtitle = sprintf("Median Load Time %s",
                                 ifelse(abs(z) > 0,
-                                       sprintf("(%.2f%% change)", z), "")),
+                                       sprintf("(%.1f%% change)", z), "")),
              value = sprintf("%.0fms", y2),
              color = ifelse(z > 0, "red", "green"),
-             icon = icon("time", lib = "glyphicon"))
+             icon = icon(ifelse(z > 0, "arrow-up", "arrow-down")))
   })
-  output$kpi_summary_zero_results_latest <- renderValueBox({
+  output$kpi_summary_zero_results <- renderValueBox({
     x <- tail(failure_dygraph_set, 1)
+    y <- tail(failure_roc_dygraph_set$change_by_week, 1)
     valueBox(
-      subtitle = "Zero Results Rate (ZRR)",
-      value = sprintf("%.1f%%", 100*x[3]/x[2]),
-      color = "purple"
-    )
-  })
-  output$kpi_summary_zero_results_rate_change <- renderValueBox({
-    x <- tail(failure_roc_dygraph_set$change_by_week, 1)
-    valueBox(
-      subtitle = "ZRR Change From Yesterday",
-      value = sprintf("%.2f%%", x),
-      icon = icon(ifelse(x > 0, "arrow-up", "arrow-down")),
-      color = ifelse(x > 0, "red", "green")
+      subtitle = sprintf("Zero Results Rate (%.1f%% change)", y),
+      value = sprintf("%.1f%%", 100*(x[3])/x[2]),
+      icon = icon(ifelse(y > 0, "arrow-up", "arrow-down")),
+      color = ifelse(y > 0, "red", "green")
     )
   })
   output$kpi_summary_api_usage_all <- renderValueBox({
+    x <- lapply(split_dataset, function(x) {
+      tail(x$events, 2)
+    })
+    y1 <- sum(unlist(x)[seq(1, 9, 2)])
+    y2 <- sum(unlist(x)[seq(2, 10, 2)])
+    z <- 100*(y2-y1)/y1
     valueBox(
-      subtitle = "API Usage (All)",
-      value = compress(sum(unlist(lapply(split_dataset, function(x) {
-        tail(x$events, 1)
-      }))), 0),
-      color = "black"
+      subtitle = sprintf("API Usage (%.1f%% change)", z),
+      value = compress(y2, 0),
+      color = ifelse(z > 0, "green", "red"),
+      icon = icon(ifelse(z > 0, "arrow-up", "arrow-down"))
     )
   })
   output$kpi_summary_api_usage_proportions <- renderPlot({
