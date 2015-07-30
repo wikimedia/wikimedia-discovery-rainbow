@@ -262,8 +262,9 @@ shinyServer(function(input, output) {
   # KPI module
   output$kpi_summary_load_time <- renderValueBox({
     x <- lapply(list(desktop_load_data$Median, mobile_load_data$Median, android_load_data$Median, ios_load_data$Median), tail, n = 2)
-    y <- median(sapply(x, function(xx) { xx[2] }))
-    z <- median(sapply(x, function(xx) { 100*(xx[2] - xx[1])/xx[1] }))
+    y2 <- median(sapply(x, function(xx) { xx[2] })) # median at t
+    y1 <- median(sapply(x, function(xx) { xx[1] })) # median at t-1
+    z <- 100 * (y2 - y1) / y1 # % change from t-1 to t
     valueBox(subtitle = sprintf("Median Load Time %s",
                                 ifelse(abs(z) > 0,
                                        sprintf("(%.2f%% change)", z), "")),
