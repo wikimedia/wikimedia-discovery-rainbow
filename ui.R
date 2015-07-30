@@ -8,6 +8,15 @@ header <- dashboardHeader(title = "Search & Discovery", disable = FALSE)
 
 #Sidebar elements for the search visualisations.
 sidebar <- dashboardSidebar(
+  tags$head(
+    tags$script("$(function() {
+    if (window.location.hash){
+      var hash = $.trim(window.location.hash);
+      var tab = decodeURI(hash.substring(1, 100));
+      $('a[data-value=\"'+tab+'\"]').click();
+    }
+  });")
+  ),
   sidebarMenu(
     menuItem(text = "KPIs", tabName = "kpis_summary",
              badgeLabel = "new", badgeColor = "light-blue"),

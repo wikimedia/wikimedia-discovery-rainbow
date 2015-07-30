@@ -26,3 +26,11 @@ There are occasionally going to be outages that will affect the accuracy of data
 Questions, bug reports, and feature suggestions
 ------
 For technical, non-bug questions, [email Oliver](mailto:okeyes@wikimedia.org?subject=Dashboard%20Question). If you experience a technical issue or have a suggestion, [open a ticket in Phabricator](https://phabricator.wikimedia.org/maniphest/task/create/) in the Discovery board or [email Dan](mailto:dgarry@wikimedia.org?subject=Dashboard%20Question). 
+
+<hr style="border-color: gray;">
+<p style="font-size: small; color: gray;">
+  <strong>Link to this dashboard:</strong>
+  <a href="http://searchdata.wmflabs.org/metrics/#desktop_events">
+    http://searchdata.wmflabs.org/metrics/#desktop_events
+  </a>
+</p>
