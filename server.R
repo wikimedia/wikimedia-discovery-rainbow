@@ -268,7 +268,7 @@ shinyServer(function(input, output) {
     valueBox(subtitle = sprintf("Median Load Time %s",
                                 ifelse(abs(z) > 0,
                                        sprintf("(%.2f%% change)", z), "")),
-             value = sprintf("%.0fms", y),
+             value = sprintf("%.0fms", y2),
              color = ifelse(z > 0, "red", "green"),
              icon = icon("time", lib = "glyphicon"))
   })
