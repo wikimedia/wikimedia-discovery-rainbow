@@ -221,7 +221,7 @@ shinyServer(function(input, output) {
   #API plots
   output$cirrus_aggregate <- make_dygraph(
     split_dataset$cirrus, "Date", "Events",
-    "Cirrus Search API usage by day", TRUE
+    "Full-text via API usage by day", TRUE
   )
   output$open_aggregate <- make_dygraph(
     split_dataset$open, "Date", "Events",
@@ -297,10 +297,10 @@ shinyServer(function(input, output) {
     )
   })
   output$kpi_summary_api_usage_proportions <- renderPlot({
-    api_latest <- c("Cirrus" = tail(split_dataset$cirrus$events, 1),     # This assumes the last entry is always literally the last
-                    "OpenSearch" = tail(split_dataset$open$events, 1),   # entry. Most of the time this will be true but in the case of
-                    "Geo" = tail(split_dataset$geo$events, 1),           # backfilled data, where we have to cover for a system outage,
-                    "Language" = tail(split_dataset$language$events, 1), # it might not be.
+    api_latest <- c("Full-text via API" = tail(split_dataset$cirrus$events, 1),
+                    "Geo Search" = tail(split_dataset$geo$events, 1),
+                    "OpenSearch" = tail(split_dataset$open$events, 1),
+                    "Language" = tail(split_dataset$language$events, 1),
                     "Prefix" = tail(split_dataset$prefix$events, 1))
     api_latest <- data.frame(API = names(api_latest),
                              Events = api_latest,
@@ -308,7 +308,7 @@ shinyServer(function(input, output) {
     api_latest <- api_latest[api_latest$Prop > 0.01, ]
     api_latest$text_pos <- cumsum(api_latest$Prop) + (c(0, cumsum(api_latest$Prop)[-nrow(api_latest)]) - cumsum(api_latest$Prop))/2
     api_latest$label <- sprintf("%s (%.0f%%)", api_latest$API, 100*api_latest$Prop)
-    i <- which(api_latest$Prop > 0.6)
+    i <- which(api_latest$Prop > 0.5) # Majority API usage type gets additional text (for clarity)
     if ( length(i) == 1 )
         api_latest$label[i] <- sprintf("%s (%.0f%% of total API usage)", api_latest$API[i], 100*api_latest$Prop[i])
     rm(i)

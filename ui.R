@@ -31,7 +31,7 @@ sidebar <- dashboardSidebar(
              menuSubItem(text = "Load times", tabName = "app_load")
     ),
     menuItem(text = "API",
-             menuSubItem(text = "Cirrus Search", tabName = "cirrus_search"),
+             menuSubItem(text = "Full-text via API", tabName = "fulltext_search"),
              menuSubItem(text = "Open Search", tabName = "open_search"),
              menuSubItem(text = "Geo Search", tabName = "geo_search"),
              menuSubItem(text = "Prefix Search", tabName = "prefix_search"),
@@ -104,9 +104,9 @@ body <- dashboardBody(
             dygraphOutput("ios_load_plot"),
             includeMarkdown("./assets/content/app_load.md")
     ),
-    tabItem(tabName = "cirrus_search",
+    tabItem(tabName = "fulltext_search",
             dygraphOutput("cirrus_aggregate"),
-            includeMarkdown("./assets/content/cirrus_basic.md")
+            includeMarkdown("./assets/content/fulltext_basic.md")
     ),
     tabItem(tabName = "open_search",
             dygraphOutput("open_aggregate"),
