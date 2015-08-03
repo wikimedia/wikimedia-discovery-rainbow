@@ -266,7 +266,7 @@ shinyServer(function(input, output) {
              sub("([a-z]{2})", "<sup>\\1</sup>",
                  sapply(as.numeric(as.character(., "%e")), toOrdinal)))
     } %>%
-      { sprintf("<h3>KPI summary for %s, and %% change from %s:</h3>", .[1], .[2]) } %>%
+      { sprintf("<h3>KPI summary for %s, and %% change from %s:</h3>", .[2], .[1]) } %>%
       HTML()
   })
   output$kpi_summary_load_time <- renderValueBox({
