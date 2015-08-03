@@ -260,6 +260,16 @@ shinyServer(function(input, output) {
   )
 
   # KPI module
+  output$kpi_summary_date_range <- renderUI({
+    tail(desktop_load_data$timestamp, 2) %>% {
+      paste0(as.character(., "%A, %B "),
+             sub("([a-z]{2})", "<sup>\\1</sup>",
+                 sapply(as.numeric(as.character(., "%e")),
+                        toOrdinal::toOrdinal)))
+    } %>%
+      { sprintf("<h3>KPI summary for %s, and %% change from %s:</h3>", .[1], .[2]) } %>%
+      HTML()
+  })
   output$kpi_summary_load_time <- renderValueBox({
     x <- lapply(list(desktop_load_data$Median, mobile_load_data$Median, android_load_data$Median, ios_load_data$Median), tail, n = 2)
     y2 <- median(sapply(x, function(xx) { xx[2] })) # median at t
@@ -267,19 +277,19 @@ shinyServer(function(input, output) {
     z <- 100 * (y2 - y1) / y1 # % change from t-1 to t
     valueBox(subtitle = sprintf("Median Load Time %s",
                                 ifelse(abs(z) > 0,
-                                       sprintf("(%.1f%% change)", z), "")),
+                                       sprintf("(%.1f%%)", z), "")),
              value = sprintf("%.0fms", y2),
-             color = ifelse(z > 0, "red", "green"),
-             icon = icon(ifelse(z > 0, "arrow-up", "arrow-down")))
+             color = cond_color(z > 0, "red"),
+             icon = cond_icon(z > 0))
   })
   output$kpi_summary_zero_results <- renderValueBox({
     x <- tail(failure_dygraph_set, 1)
     y <- tail(failure_roc_dygraph_set$change_by_week, 1)
     valueBox(
-      subtitle = sprintf("Zero Results Rate (%.1f%% change)", y),
+      subtitle = sprintf("Zero Results Rate (%.1f%%)", y),
       value = sprintf("%.1f%%", 100*(x[3])/x[2]),
-      icon = icon(ifelse(y > 0, "arrow-up", "arrow-down")),
-      color = ifelse(y > 0, "red", "green")
+      icon = cond_icon(y > 0),
+      color = cond_color(y > 0, "red")
     )
   })
   output$kpi_summary_api_usage_all <- renderValueBox({
@@ -290,10 +300,10 @@ shinyServer(function(input, output) {
     y2 <- sum(unlist(x)[seq(2, 10, 2)])
     z <- 100*(y2-y1)/y1
     valueBox(
-      subtitle = sprintf("API Usage (%.1f%% change)", z),
+      subtitle = sprintf("API Usage (%.1f%%)", z),
       value = compress(y2, 0),
-      color = ifelse(z > 0, "green", "red"),
-      icon = icon(ifelse(z > 0, "arrow-up", "arrow-down"))
+      color = cond_color(z > 0),
+      icon = cond_icon(z > 0)
     )
   })
   output$kpi_summary_api_usage_proportions <- renderPlot({
@@ -306,28 +316,13 @@ shinyServer(function(input, output) {
                              Events = api_latest,
                              Prop = api_latest/sum(api_latest))
     api_latest <- api_latest[api_latest$Prop > 0.01, ]
-    api_latest$text_pos <- cumsum(api_latest$Prop) + (c(0, cumsum(api_latest$Prop)[-nrow(api_latest)]) - cumsum(api_latest$Prop))/2
-    api_latest$label <- sprintf("%s (%.0f%%)", api_latest$API, 100*api_latest$Prop)
+    # api_latest$text_pos <- cumsum(api_latest$Prop) + (c(0, cumsum(api_latest$Prop)[-nrow(api_latest)]) - cumsum(api_latest$Prop))/2
+    api_latest$Label <- sprintf("%s (%.0f%%)", api_latest$API, 100*api_latest$Prop)
     i <- which(api_latest$Prop > 0.5) # Majority API usage type gets additional text (for clarity)
     if ( length(i) == 1 )
-        api_latest$label[i] <- sprintf("%s (%.0f%% of total API usage)", api_latest$API[i], 100*api_latest$Prop[i])
+        api_latest$Label[i] <- sprintf("%s (%.0f%% of total API usage)", api_latest$API[i], 100*api_latest$Prop[i])
     rm(i)
-    ggplot(api_latest, aes(x = 1, fill = API)) +
-      geom_bar(aes(y = Prop), stat="identity") +
-      scale_fill_discrete(guide = FALSE, expand = c(0,0)) +
-      scale_y_continuous(expand = c(0,0)) +
-      scale_x_continuous(expand = c(0,0)) +
-      labs(x = NULL, y = NULL) +
-      coord_flip() +
-      theme_bw() +
-      theme(axis.ticks = element_blank(),
-            axis.text = element_blank(),
-            axis.title = element_blank(),
-            plot.margin = grid::unit(c(0, 0, -0.5, -0.5), "lines"),
-            panel.margin = grid::unit(0, "lines")) +
-      geom_text(aes(label = label,
-                    y = text_pos,
-                    x = 1))
+    gg_prop_bar(api_latest, cols = list(item = "API", prop = "Prop", label = "Label"))
   })
 
   # Experimental feature

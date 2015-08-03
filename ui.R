@@ -53,11 +53,7 @@ sidebar <- dashboardSidebar(
 body <- dashboardBody(
   tabItems(
     tabItem(tabName = "kpis_summary",
-            # valueBox("--%", "User Satisfaction",
-            #          color = "green", # make dynamic
-            #          width = 3,
-            #          icon = icon("thumbs-up", lib = "glyphicon"))
-            # h3("Median User-perceived Load Times"),
+            htmlOutput("kpi_summary_date_range"),
             fluidRow(valueBoxOutput("kpi_summary_load_time", width = 3),
                      valueBoxOutput("kpi_summary_zero_results", width = 3),
                      valueBoxOutput("kpi_summary_api_usage_all", width = 3),

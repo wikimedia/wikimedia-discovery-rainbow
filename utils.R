@@ -56,3 +56,39 @@ compress <- function(x, round.by = 2) {
   paste(round( as.numeric(gsub("\\,","",x))/10^(3*(div-1)), round.by),
         c("","K","M","B","T")[div], sep = "" )
 }
+
+# Conditional icon for widget
+cond_icon <- function(condition, true_direction = "up") {
+  # Returns arrow-up icon on true (if true_direction is 'up'), e.g. load time % change > 0
+  if ( true_direction == "up" ) icon(ifelse(condition, "arrow-up", "arrow-down"))
+  else icon(ifelse(condition, "arrow-down", "arrow-up"))
+}
+
+# Conditional color for widget
+cond_color <- function(condition, true_color = "green") {
+  # Returns 'green' on true, 'red' on false, e.g. api usage % change > 0
+  #                                               load time % change < 0
+  ifelse(condition, true_color, ifelse(true_color == "green", "red", "green"))
+}
+
+# Uses ggplot2 to create a pie chart in bar form. (Will look up actual name later.)
+gg_prop_bar <- function(data, cols) {
+  # `cols` = list(`item`, `prop`, `label`)
+  data$text_position <- cumsum(data[[cols$prop]]) + (c(0, cumsum(data[[cols$prop]])[-nrow(data)]) - cumsum(data[[cols$prop]]))/2
+  ggplot(data, aes_string(x = 1, fill = cols$item)) +
+    geom_bar(aes_string(y = cols$prop), stat="identity") +
+    scale_fill_discrete(name = item, guide = FALSE, expand = c(0,0)) +
+    scale_y_continuous(expand = c(0,0)) +
+    scale_x_continuous(expand = c(0,0)) +
+    labs(x = NULL, y = NULL) +
+    coord_flip() +
+    theme_bw() +
+    theme(axis.ticks = element_blank(),
+          axis.text = element_blank(),
+          axis.title = element_blank(),
+          plot.margin = grid::unit(c(0, 0, -0.5, -0.5), "lines"),
+          panel.margin = grid::unit(0, "lines")) +
+    geom_text(aes_string(label = cols$label,
+                  y = "text_position",
+                  x = 1))
+}
