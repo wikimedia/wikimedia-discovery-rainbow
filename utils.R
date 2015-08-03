@@ -58,18 +58,27 @@ compress <- function(x, round.by = 2) {
         c("","K","M","B","T")[div], sep = "" )
 }
 
-# Conditional icon for widget
+# Conditional icon for widget.
+# Returns arrow-up icon on true (if true_direction is 'up'), e.g. load time % change > 0
 cond_icon <- function(condition, true_direction = "up") {
-  # Returns arrow-up icon on true (if true_direction is 'up'), e.g. load time % change > 0
-  if ( true_direction == "up" ) icon(ifelse(condition, "arrow-up", "arrow-down"))
-  else icon(ifelse(condition, "arrow-down", "arrow-up"))
+
+  if (true_direction == "up") {
+    return(icon(ifelse(condition, "arrow-up", "arrow-down")))
+  }
+
+  return(icon(ifelse(condition, "arrow-down", "arrow-up")))
 }
 
 # Conditional color for widget
+# Returns 'green' on true, 'red' on false, e.g. api usage % change > 0
+#                                               load time % change < 0
 cond_color <- function(condition, true_color = "green") {
-  # Returns 'green' on true, 'red' on false, e.g. api usage % change > 0
-  #                                               load time % change < 0
-  ifelse(condition, true_color, ifelse(true_color == "green", "red", "green"))
+  if(is.na(condition)){
+    return("black")
+  }
+
+  colours <- c("green","red")
+  return(ifelse(condition, true_color, colours[!colours == true_color]))
 }
 
 # Uses ggplot2 to create a pie chart in bar form. (Will look up actual name)
@@ -92,4 +101,17 @@ gg_prop_bar <- function(data, cols) {
     geom_text(aes_string(label = cols$label,
                   y = "text_position",
                   x = 1))
+}
+
+# It's fairly common to need to grab the last N [whatever] of values.
+# The problem with using tail() for this comes in the case where (perhaps
+# due to backfilling) the last rows are not actually the last rows. This
+# function will provide a 'safe' tail mechanism.
+safe_tail <- function(x, n, col = NULL){
+
+  if(is.vector(x)){
+    ordered_x <- x[order(x, decreasing = T)]
+    return(ordered_x[(length(ordered_x)-n):length(ordered_x)])
+  }
+
 }
