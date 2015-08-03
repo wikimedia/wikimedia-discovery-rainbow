@@ -264,8 +264,7 @@ shinyServer(function(input, output) {
     tail(desktop_load_data$timestamp, 2) %>% {
       paste0(as.character(., "%A, %B "),
              sub("([a-z]{2})", "<sup>\\1</sup>",
-                 sapply(as.numeric(as.character(., "%e")),
-                        toOrdinal::toOrdinal)))
+                 sapply(as.numeric(as.character(., "%e")), toOrdinal)))
     } %>%
       { sprintf("<h3>KPI summary for %s, and %% change from %s:</h3>", .[1], .[2]) } %>%
       HTML()

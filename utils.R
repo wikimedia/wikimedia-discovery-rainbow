@@ -72,13 +72,13 @@ cond_color <- function(condition, true_color = "green") {
   ifelse(condition, true_color, ifelse(true_color == "green", "red", "green"))
 }
 
-# Uses ggplot2 to create a pie chart in bar form. (Will look up actual name later.)
+# Uses ggplot2 to create a pie chart in bar form. (Will look up actual name)
 gg_prop_bar <- function(data, cols) {
   # `cols` = list(`item`, `prop`, `label`)
   data$text_position <- cumsum(data[[cols$prop]]) + (c(0, cumsum(data[[cols$prop]])[-nrow(data)]) - cumsum(data[[cols$prop]]))/2
   ggplot(data, aes_string(x = 1, fill = cols$item)) +
     geom_bar(aes_string(y = cols$prop), stat="identity") +
-    scale_fill_discrete(name = item, guide = FALSE, expand = c(0,0)) +
+    scale_fill_discrete(guide = FALSE, expand = c(0,0)) +
     scale_y_continuous(expand = c(0,0)) +
     scale_x_continuous(expand = c(0,0)) +
     labs(x = NULL, y = NULL) +
