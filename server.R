@@ -266,32 +266,32 @@ shinyServer(function(input, output) {
              sub("([a-z]{2})", "<sup>\\1</sup>",
                  sapply(as.numeric(as.character(., "%e")), toOrdinal)))
     } %>%
-      { sprintf("<h3>KPI summary for %s, and %% change from %s:</h3>", .[2], .[1]) } %>%
+    { sprintf("<h3>KPI summary for %s, and %% change from %s:</h3>", .[2], .[1]) } %>%
       HTML()
   })
-  output$kpi_summary_load_time <- renderValueBox({
+  output$kpi_summary_box_load_time <- renderValueBox({
     x <- lapply(list(desktop_load_data$Median, mobile_load_data$Median, android_load_data$Median, ios_load_data$Median), tail, n = 2)
     y2 <- median(sapply(x, function(xx) { xx[2] })) # median at t
     y1 <- median(sapply(x, function(xx) { xx[1] })) # median at t-1
-    z <- 100 * (y2 - y1) / y1 # % change from t-1 to t
-    valueBox(subtitle = sprintf("Median Load Time %s",
+    z <- 100 * (y2 - y1) / y1 # % change (of median!) from t-1 to t
+    valueBox(subtitle = sprintf("Median load time %s",
                                 ifelse(abs(z) > 0,
                                        sprintf("(%.1f%%)", z), "")),
              value = sprintf("%.0fms", y2),
              color = cond_color(z > 0, "red"),
              icon = cond_icon(z > 0))
   })
-  output$kpi_summary_zero_results <- renderValueBox({
+  output$kpi_summary_box_zero_results <- renderValueBox({
     x <- tail(failure_dygraph_set, 1)
     y <- tail(failure_roc_dygraph_set$change_by_week, 1)
     valueBox(
-      subtitle = sprintf("Zero Results Rate (%.1f%%)", y),
+      subtitle = sprintf("Zero results rate (%.1f%%)", y),
       value = sprintf("%.1f%%", 100*(x[3])/x[2]),
       icon = cond_icon(y > 0),
       color = cond_color(y > 0, "red")
     )
   })
-  output$kpi_summary_api_usage_all <- renderValueBox({
+  output$kpi_summary_box_api_usage <- renderValueBox({
     x <- lapply(split_dataset, function(x) {
       tail(x$events, 2)
     })
@@ -299,7 +299,7 @@ shinyServer(function(input, output) {
     y2 <- sum(unlist(x)[seq(2, 10, 2)])
     z <- 100*(y2-y1)/y1
     valueBox(
-      subtitle = sprintf("API Usage (%.1f%%)", z),
+      subtitle = sprintf("API usage (%.1f%%)", z),
       value = compress(y2, 0),
       color = cond_color(z > 0),
       icon = cond_icon(z > 0)
@@ -319,25 +319,149 @@ shinyServer(function(input, output) {
     api_latest$Label <- sprintf("%s (%.0f%%)", api_latest$API, 100*api_latest$Prop)
     i <- which(api_latest$Prop > 0.5) # Majority API usage type gets additional text (for clarity)
     if ( length(i) == 1 )
-        api_latest$Label[i] <- sprintf("%s (%.0f%% of total API usage)", api_latest$API[i], 100*api_latest$Prop[i])
+      api_latest$Label[i] <- sprintf("%s (%.0f%% of total API usage)", api_latest$API[i], 100*api_latest$Prop[i])
     rm(i)
     gg_prop_bar(api_latest, cols = list(item = "API", prop = "Prop", label = "Label"))
   })
-
-  # Experimental feature
-  output$custom_plot <- renderUI({
-    list(radioButtons("data_type", "Type of Data",
-                      choices = list("Events" = "events",
-                                     "Load times" = "load_times"),
-                      inline = TRUE),
-         checkboxGroupInput("data_source", "Source of Data",
-                            choices = list("Desktop" = "desktop",
-                                           "Mobile Web" = "mobile_web",
-                                           "Mobile Apps" = "mobile_apps"),
-                            inline = TRUE),
-         dygraphOutput("experimental")
-    )
+  output$kpi_load_time_series <- renderDygraph({
+    num_of_days_in_common <- min(sapply(list(desktop_load_data$Median, mobile_load_data$Median, android_load_data$Median, ios_load_data$Median), length))
+    load_times <- list(desktop_load_data$Median, mobile_load_data$Median, android_load_data$Median, ios_load_data$Median) %>%
+      lapply(tail, num_of_days_in_common) %>% # need to make safe_tail
+      as.data.frame %>%
+      { colnames(.) <- c("Desktop", "Mobile Web", "Android", "iOS"); . } %>%
+      {
+        Median = apply(., 1, median)
+        # Median_change = percent_change(Median)
+        cbind(Median = Median[-1], .[-1, ])# , "Median % change" = Median_change[-1])
+      } %>%
+      xts(order.by = mobile_load_data$timestamp[-1]) # need to make dynamic
+    return(dyCSS(
+      dyOptions(
+        dyLegend(
+          dyAxis(
+            dySeries(
+              dygraph(load_times,
+                      main = "Load times over time",
+                      xlab = "Date",
+                      ylab = "Load time (ms)"),
+              "Median", axis = 'y2', strokeWidth = 4, label = "Cross-platform Median"),
+            "y2", label = "Day-to-day % change in median load time",
+            independentTicks = TRUE, drawGrid = FALSE),
+          width = 500, show = "always"),
+        strokeWidth = 2, colors = brewer.pal(5, "Set2")[5:1],
+        drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
+        includeZero = TRUE),
+      css = "./assets/css/custom.css"))
   })
+  output$kpi_zero_results_series <- renderDygraph({
+    zrr <- 100 * failure_dygraph_set$`Zero Result Queries` / failure_dygraph_set$`Search Queries`
+    zrr <- xts(zrr, failure_dygraph_set$date)
+    colnames(zrr) <- "rate"
+    zrr_change <- xts(failure_roc_dygraph_set$change_by_week, failure_roc_dygraph_set$date)
+    colnames(zrr_change) <- "change"
+    zrr <- cbind(zrr, zrr_change)[-1, ]
+    ## Experimental code for later:
+    # start_of_quarter <- which(failure_dygraph_set$date == "2015-07-01") # make dynamic
+    # zrr_change_since_quarter_started <- as.numeric(zrr$rate) %>% { 100*(.-.[start_of_quarter])/.[start_of_quarter] }
+    # zrr_change_since_quarter_started[1:(start_of_quarter-1)] <- NA
+    # zrr_change_since_quarter_started <- xts(zrr_change_since_quarter_started,
+    #                                         order.by = failure_dygraph_set$date)
+    # colnames(zrr_change_since_quarter_started) <- "change.since.quarter.start"
+    # zrr <- cbind(zrr, zrr_change, zrr_change_since_quarter_started)[-1, ]
+    return(dyCSS(
+      dyOptions(
+        dyLegend(
+          dyLimit(
+            dyAxis(
+              dyAxis(
+                dyLimit(
+                  dySeries(
+                    dygraph(zrr,
+                            main = "Zero results rate over time",
+                            xlab = "Date",
+                            ylab = "% of search queries that yield zero results"),
+                    "change", axis = 'y2', label = "day-to-day % change"),
+                  limit = 12.50, label = "Goal: 12.50% zero results rate",
+                  color = brewer.pal(3, "Set2")[3]),
+                "y2", label = "Day-to-day % change",
+                valueRange = c(-1, 1) * max(max(abs(as.numeric(zrr$change))), 10),
+                axisLineColor = brewer.pal(3, "Set2")[2],
+                axisLabelColor = brewer.pal(3, "Set2")[2],
+                independentTicks = TRUE, drawGrid = FALSE),
+              "y", drawGrid = FALSE,
+              axisLineColor = brewer.pal(3, "Set2")[1],
+              axisLabelColor = brewer.pal(3, "Set2")[1]),
+            limit = 0, color = brewer.pal(3, "Set2")[2], strokePattern = "dashed"),
+          width = 400, show = "always"),
+        strokeWidth = 3, colors = brewer.pal(3, "Set2"),
+        drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
+        includeZero = TRUE),
+      css = "./assets/css/custom.css"))
+  })
+  output$kpi_api_usage_series <- renderDygraph({
+    api_usage <- cbind(timestamp = split_dataset$cirrus$timestamp, as.data.frame(lapply(split_dataset, function(x) x$events)))
+    api_usage <- api_usage[order(api_usage$timestamp, decreasing = FALSE), ]
+    if ( input$kpi_api_usage_series_include_open ) {
+      api_usage <- transform(api_usage, all = cirrus + geo + language + open + prefix)
+    } else {
+      api_usage <- transform(api_usage, all = cirrus + geo + language + prefix)
+    }
+    if ( input$kpi_api_usage_series_data == "raw" ) {
+      api_usage <- xts(api_usage[, -1], api_usage[, 1])
+      if (!input$kpi_api_usage_series_include_open) colnames(api_usage)[6] <- "all except open"
+      return(dyCSS(
+        dyOptions(
+          dyLegend(
+            dySeries(
+              dygraph(api_usage,
+                      main = "Calls over time",
+                      xlab = "Date",
+                      ylab = ifelse(input$kpi_api_usage_series_log_scale, "Calls (log10 scale)", "Calls")),
+              "cirrus", label = "full-text via API"),
+            width = 400, show = "always"
+          ), strokeWidth = 3, colors = brewer.pal(6, "Set2")[6:1],
+          drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE,
+          includeZero = input$kpi_api_usage_series_log_scale,
+          logscale = input$kpi_api_usage_series_log_scale
+        ), css = "./assets/css/custom.css"))
+    }
+    api_usage_change <- transform(api_usage,
+                                  cirrus = percent_change(cirrus),
+                                  geo = percent_change(geo),
+                                  language = percent_change(language),
+                                  open = percent_change(open),
+                                  prefix = percent_change(prefix),
+                                  all = percent_change(all)) %>%
+                                  { .[-1, ] }
+    api_usage_change <- xts(api_usage_change[, -1], api_usage_change[, 1])
+    if (!input$kpi_api_usage_series_include_open) colnames(api_usage_change)[6] <- "all except open"
+    return(dyCSS(
+      dyOptions(
+        dyLegend(
+          dygraph(api_usage_change,
+                  main = "Day-to-day % change over time",
+                  xlab = "Date", ylab = "% change"),
+          width = 400, show = "always"
+        ), strokeWidth = 3, colors = brewer.pal(6, "Set2"),
+        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE,
+        includeZero = TRUE
+      ) ,css = "./assets/css/custom.css"))
+  })
+
+### Experimental feature
+#   output$custom_plot <- renderUI({
+#     list(radioButtons("data_type", "Type of Data",
+#                       choices = list("Events" = "events",
+#                                      "Load times" = "load_times"),
+#                       inline = TRUE),
+#          checkboxGroupInput("data_source", "Source of Data",
+#                             choices = list("Desktop" = "desktop",
+#                                            "Mobile Web" = "mobile_web",
+#                                            "Mobile Apps" = "mobile_apps"),
+#                             inline = TRUE),
+#          dygraphOutput("experimental")
+#     )
+#   })
 #   output$experimental <- renderDygraph({
 #     if ( input$data_source == "desktop" ) {
 #       if ( input$data_type == "events" ) {
@@ -347,6 +471,5 @@ shinyServer(function(input, output) {
 #       }
 #     }
 #   })
-
 
 })

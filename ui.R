@@ -10,16 +10,32 @@ header <- dashboardHeader(title = "Search & Discovery", disable = FALSE)
 sidebar <- dashboardSidebar(
   tags$head(
     tags$script("$(function() {
+    // Enables linking to specific tabs:
     if (window.location.hash){
       var hash = $.trim(window.location.hash);
       var tab = decodeURI(hash.substring(1, 100));
       $('a[data-value=\"'+tab+'\"]').click();
     }
+    // Enables clicking on a kpi summary value box to view the time series:
+    $('div[id^=kpi_summary_box_]').click(function(){
+        var parent_id = $(this).closest('div').attr('id');
+        var parent_target = parent_id.replace('_summary_box', '');
+        $('a[data-value=\"'+parent_target+'\"]').click();
+    });
+    // Visual feedback that the value box is now something you can click:
+    $('div[id^=kpi_summary_box_]').hover(function() {
+        $(this).css('cursor','pointer');
+    });
+    // Reveals the KPI dropdown menu at launch:
+    $('ul.sidebar-menu li.treeview').first().addClass('active');
   });")
   ),
   sidebarMenu(
-    menuItem(text = "KPIs", tabName = "kpis_summary",
-             badgeLabel = "new", badgeColor = "light-blue"),
+    menuItem(text = "KPIs",
+             menuSubItem(text = "Summary", tabName = "kpis_summary"),
+             menuSubItem(text = "Load times", tabName = "kpi_load_time"),
+             menuSubItem(text = "Zero results", tabName = "kpi_zero_results"),
+             menuSubItem(text = "API usage", tabName = "kpi_api_usage")),
     menuItem(text = "Desktop",
              menuSubItem(text = "Events", tabName = "desktop_events"),
              menuSubItem(text = "Load times", tabName = "desktop_load")),
@@ -54,13 +70,36 @@ body <- dashboardBody(
   tabItems(
     tabItem(tabName = "kpis_summary",
             htmlOutput("kpi_summary_date_range"),
-            fluidRow(valueBoxOutput("kpi_summary_load_time", width = 3),
-                     valueBoxOutput("kpi_summary_zero_results", width = 3),
-                     valueBoxOutput("kpi_summary_api_usage_all", width = 3),
+            fluidRow(valueBoxOutput("kpi_summary_box_load_time", width = 3),
+                     valueBoxOutput("kpi_summary_box_zero_results", width = 3),
+                     valueBoxOutput("kpi_summary_box_api_usage", width = 3),
                      valueBox(subtitle = "User-satisfaction", value = "WIP", color = "black", width = 3)),
             plotOutput("kpi_summary_api_usage_proportions", height = "30px"),
             includeMarkdown("./assets/content/kpis_summary.md")
             ),
+    tabItem(tabName = "kpi_load_time",
+            dygraphOutput("kpi_load_time_series"),
+            includeMarkdown("./assets/content/kpi_load_time.md")),
+    tabItem(tabName = "kpi_zero_results",
+            dygraphOutput("kpi_zero_results_series"),
+            includeMarkdown("./assets/content/kpi_zero_results.md")),
+    tabItem(tabName = "kpi_api_usage",
+            fluidRow(column(radioButtons("kpi_api_usage_series_data",
+                                         label = "Type of data to display",
+                                         choices = list("Calls" = "raw",
+                                                        "Day-to-day % change" = "change"),
+                                         inline = TRUE),
+                            width = 5),
+                     column(checkboxInput("kpi_api_usage_series_log_scale",
+                                          label = "Log10 Scale",
+                                          value = FALSE),
+                            width = 3),
+                     column(checkboxInput("kpi_api_usage_series_include_open",
+                                          label = "Include OpenSearch in total",
+                                          value = TRUE),
+                            width = 4)),
+            dygraphOutput("kpi_api_usage_series"),
+            includeMarkdown("./assets/content/kpi_api_usage.md")),
     tabItem(tabName = "desktop_events",
             fluidRow(
               valueBoxOutput("desktop_event_searches"),
