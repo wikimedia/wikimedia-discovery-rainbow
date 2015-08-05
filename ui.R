@@ -8,28 +8,7 @@ header <- dashboardHeader(title = "Search & Discovery", disable = FALSE)
 
 #Sidebar elements for the search visualisations.
 sidebar <- dashboardSidebar(
-  tags$head(
-    tags$script("$(function() {
-    // Enables linking to specific tabs:
-    if (window.location.hash){
-      var hash = $.trim(window.location.hash);
-      var tab = decodeURI(hash.substring(1, 100));
-      $('a[data-value=\"'+tab+'\"]').click();
-    }
-    // Enables clicking on a kpi summary value box to view the time series:
-    $('div[id^=kpi_summary_box_]').click(function(){
-        var parent_id = $(this).closest('div').attr('id');
-        var parent_target = parent_id.replace('_summary_box', '');
-        $('a[data-value=\"'+parent_target+'\"]').click();
-    });
-    // Visual feedback that the value box is now something you can click:
-    $('div[id^=kpi_summary_box_]').hover(function() {
-        $(this).css('cursor','pointer');
-    });
-    // Reveals the KPI dropdown menu at launch:
-    $('ul.sidebar-menu li.treeview').first().addClass('active');
-  });")
-  ),
+  tags$head(tags$script(src="rainbow.js")),
   sidebarMenu(
     menuItem(text = "KPIs",
              menuSubItem(text = "Summary", tabName = "kpis_summary"),
