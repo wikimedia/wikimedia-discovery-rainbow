@@ -5,6 +5,7 @@ library(reshape2)
 library(RColorBrewer)
 library(ggplot2)
 library(toOrdinal)
+library(scales) # for date_format function for ggplot2
 
 # library(grid) # for unit
 
@@ -101,6 +102,14 @@ gg_prop_bar <- function(data, cols) {
     geom_text(aes_string(label = cols$label,
                   y = "text_position",
                   x = 1))
+}
+
+# Calculates percent change either in `x` or from `x` to `y`
+percent_change <- function(x, y = NULL) {
+  if(is.null(y)) {
+    return(100 * (x - c(NA, x[-length(x)])) / c(NA, x[-length(x)]))
+  }
+  return(100 * (y - x) / x)
 }
 
 # It's fairly common to need to grab the last N [whatever] of values.
