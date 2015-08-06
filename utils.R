@@ -5,7 +5,6 @@ library(reshape2)
 library(RColorBrewer)
 library(ggplot2)
 library(toOrdinal)
-library(scales) # for date_format function for ggplot2
 
 # library(grid) # for unit
 

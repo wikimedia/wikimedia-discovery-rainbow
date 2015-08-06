@@ -6,7 +6,7 @@ Install the dependencies:
 $ R
 > install.packages(c("curl", "httpuv", "readr", "xts", "reshape2",
     "RColorBrewer", "shiny", "shinydashboard", "dygraphs", "markdown",
-    "ggplot2", "toOrdinal", "scales"))
+    "ggplot2", "toOrdinal"))
 ```
 
 Run the server:
