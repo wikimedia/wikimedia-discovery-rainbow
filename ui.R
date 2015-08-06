@@ -8,7 +8,10 @@ header <- dashboardHeader(title = "Search & Discovery", disable = FALSE)
 
 #Sidebar elements for the search visualisations.
 sidebar <- dashboardSidebar(
-  tags$head(tags$script(src="rainbow.js")),
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "stylesheet.css"),
+    tags$script(src = "rainbow.js")
+  ),
   sidebarMenu(
     menuItem(text = "KPIs",
              menuSubItem(text = "Summary", tabName = "kpis_summary"),
