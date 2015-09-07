@@ -7,7 +7,7 @@ library(ggplot2)
 library(toOrdinal)
 library(plyr)
 library(lubridate)
-# library(grid) # for unit
+library(magrittr)
 
 #Utility functions for handling particularly common tasks
 download_set <- function(location){
@@ -82,6 +82,14 @@ cond_color <- function(condition, true_color = "green") {
   return(ifelse(condition, true_color, colours[!colours == true_color]))
 }
 
+# Allows very quickly to get half a vector:
+half <- function(x, which = c("top", "bottom")) {
+  if (which == "top") {
+    return(head(x, n = length(x)/2))
+  }
+  return(tail(x, n = length(x)/2))
+}
+
 # Uses ggplot2 to create a pie chart in bar form. (Will look up actual name)
 gg_prop_bar <- function(data, cols) {
   # `cols` = list(`item`, `prop`, `label`)
@@ -116,13 +124,27 @@ percent_change <- function(x, y = NULL) {
 # The problem with using tail() for this comes in the case where (perhaps
 # due to backfilling) the last rows are not actually the last rows. This
 # function will provide a 'safe' tail mechanism.
-safe_tail <- function(x, n, col = NULL){
-
-  if(is.vector(x)){
-    ordered_x <- x[order(x, decreasing = T)]
-    return(ordered_x[(length(ordered_x)-n):length(ordered_x)])
+safe_tail <- function(x, n, silent = TRUE) {
+  if (!is.vector(x) && !is.data.frame(x)) {
+    stop("safe_trail() only works with vectors and data frames.")
   }
-
+  # \code{silent} suppresses messages which may be used for debugging
+  if (is.vector(x)) {
+    return(tail(sort(x), n))
+  }
+  # Intelligently figure out which column is the date/timestamp column (in case it's not the first column):
+  timestamp_column <- names(x)[sapply(x, class) %in% c("Date", "POSIXt", "POSIXlt", "POSIXct")]
+  if (length(timestamp_column) == 0) {
+    if (!silent) {
+      message("No date/timestamp column detected for this dataset. It'd be faster to use tail().")
+    }
+    return(tail(x, n))
+  }
+  if (length(timestamp_column) > 1) warning("More than one date/timestamp column detected. Defaulting to the first one.")
+  if (!silent) {
+    message("Sorting by the date/timestamp column before returning the bottom ", n, " rows.")
+  }
+  return(tail(x[order(x[[timestamp_column[1]]]), ], n))
 }
 
 # Takes an untidy (read: dygraph-appropriate) dataset and adds
