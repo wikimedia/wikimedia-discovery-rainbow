@@ -99,7 +99,7 @@ shinyServer(function(input, output) {
   #Desktop value boxes
   output$desktop_event_searches <- renderValueBox(
     valueBox(
-      value = desktop_dygraph_means[4],
+      value = desktop_dygraph_means["search sessions"],
       subtitle = "Search sessions per day",
       icon = icon("search"),
       color = "green"
@@ -108,7 +108,7 @@ shinyServer(function(input, output) {
 
   output$desktop_event_resultsets <- renderValueBox(
     valueBox(
-      value = desktop_dygraph_means[3],
+      value = desktop_dygraph_means["Result pages opened"],
       subtitle = "Result sets per day",
       icon = icon("list", lib = "glyphicon"),
       color = "green"
@@ -117,7 +117,7 @@ shinyServer(function(input, output) {
 
   output$desktop_event_clickthroughs <- renderValueBox(
     valueBox(
-      value = desktop_dygraph_means[1],
+      value = desktop_dygraph_means["clickthroughs"],
       subtitle = "Clickthroughs per day",
       icon = icon("hand-up", lib = "glyphicon"),
       color = "green"
@@ -137,7 +137,7 @@ shinyServer(function(input, output) {
   #Mobile value boxes
   output$mobile_event_searches <- renderValueBox(
     valueBox(
-      value = mobile_dygraph_means[3],
+      value = mobile_dygraph_means["search sessions"],
       subtitle = "Search sessions per day",
       icon = icon("search"),
       color = "green"
@@ -146,7 +146,7 @@ shinyServer(function(input, output) {
 
   output$mobile_event_resultsets <- renderValueBox(
     valueBox(
-      value = mobile_dygraph_means[2],
+      value = mobile_dygraph_means["Result pages opened"],
       subtitle = "Result sets per day",
       icon = icon("list", lib = "glyphicon"),
       color = "green"
@@ -155,7 +155,7 @@ shinyServer(function(input, output) {
 
   output$mobile_event_clickthroughs <- renderValueBox(
     valueBox(
-      value = mobile_dygraph_means[1],
+      value = mobile_dygraph_means["clickthroughs"],
       subtitle = "Clickthroughs per day",
       icon = icon("hand-up", lib = "glyphicon"),
       color = "green"
