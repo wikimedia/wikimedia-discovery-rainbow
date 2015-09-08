@@ -513,28 +513,4 @@ shinyServer(function(input, output) {
       dyCSS(css = "./assets/css/custom.css"))
   })
 
-### Experimental feature
-#   output$custom_plot <- renderUI({
-#     list(radioButtons("data_type", "Type of Data",
-#                       choices = list("Events" = "events",
-#                                      "Load times" = "load_times"),
-#                       inline = TRUE),
-#          checkboxGroupInput("data_source", "Source of Data",
-#                             choices = list("Desktop" = "desktop",
-#                                            "Mobile Web" = "mobile_web",
-#                                            "Mobile Apps" = "mobile_apps"),
-#                             inline = TRUE),
-#          dygraphOutput("experimental")
-#     )
-#   })
-#   output$experimental <- renderDygraph({
-#     if ( input$data_source == "desktop" ) {
-#       if ( input$data_type == "events" ) {
-#         dygraph(desktop_dygraph_set)
-#       } else { # load_times
-#         dygraph(desktop_load_data)
-#       }
-#     }
-#   })
-
 })
