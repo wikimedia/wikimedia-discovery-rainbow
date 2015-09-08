@@ -158,7 +158,7 @@ smooth_mean <- function(dataset, smooth_level = "day"){
                     # Construct output names for the averages, compute those averages, and
                     # apply said names.
                     output_names <- paste(names(df)[2:(ncol(df) - 2)], name_append)
-                    holding <- as.data.frame(t(colMeans(df[,2:(ncol(df) - 2)])))
+                    holding <- as.data.frame(t(round(apply(df[,2:(ncol(df) - 2)], 2, FUN = median))))
                     names(holding) <- output_names
 
                     # Return the bound original values and averaged values
@@ -166,4 +166,12 @@ smooth_mean <- function(dataset, smooth_level = "day"){
                   }, name_append = name_append)
 
   return(result[,!names(result) %in% c("filter_1","filter_2")])
+}
+
+# Standardised input selector for smoothing
+standard_select <- function(input_id){
+  return(
+    shiny::selectInput(inputId = input_id, label = "Smoothing",
+                       choices = c("no smoothing","weekly median","monthly median"), selected = "day")
+  )
 }
