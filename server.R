@@ -59,14 +59,11 @@ read_failures <- function(date){
   failure_dygraph_set <<- interim_data
 
   interim_vector <- interim_data$`Zero Result Queries`/interim_data$`Search Queries`
-  output_vector <- numeric(length(interim_vector)-1)
-  for(i in 2:nrow(interim_data)){
-    output_vector[i-1] <- interim_vector[i] - interim_vector[i-1]
-  }
+  output_vector <- (interim_vector[2:nrow(interim_data)] - interim_vector[1:(nrow(interim_data)-1)]) / interim_vector[1:(nrow(interim_data)-1)]
 
   failure_roc_dygraph_set <<- data.frame(date = interim_data$date[2:nrow(interim_data)],
                                          variable = "failure ROC",
-                                         change_by_week = output_vector*100,
+                                         daily_change = output_vector*100,
                                          stringsAsFactors = FALSE)
 
   interim_breakdown_data <- download_set("cirrus_query_breakdowns.tsv")
@@ -261,56 +258,149 @@ shinyServer(function(input, output) {
 
   # KPI module
   output$kpi_summary_date_range <- renderUI({
-    tail(desktop_load_data$timestamp, 2) %>% {
-      paste0(as.character(., "%A, %B "),
-             sub("([a-z]{2})", "<sup>\\1</sup>",
-                 sapply(as.numeric(as.character(., "%e")), toOrdinal)))
-    } %>%
-    { sprintf("<h3 class='kpi_date'>KPI summary for %s, and %% change from %s:</h3>", .[2], .[1]) } %>%
-      HTML()
+    date_range <- input$kpi_summary_date_range_selector
+    switch(date_range,
+           daily = {
+             temp <- safe_tail(desktop_load_data, 2)$timestamp %>% {
+               paste0(as.character(., "%A, %b "),
+                      sub("([a-z]{2})", "<sup>\\1</sup>",
+                          sapply(as.numeric(as.character(., "%e")), toOrdinal)))
+             }
+           },
+           weekly = {
+             date_range_index <- c(1, 7, 8, 14)
+             temp <- safe_tail(desktop_load_data, date_range_index[4])$timestamp %>% {
+               paste0(as.character(.[date_range_index], "%b "),
+                      sub("([a-z]{2})", "<sup>\\1</sup>",
+                          sapply(as.numeric(as.character(.[date_range_index], "%e")), toOrdinal)))
+             } %>% {
+               c(paste(.[1:2], collapse = "—"), paste(.[3:4], collapse = "—"))
+             }
+           },
+           monthly = {
+             date_range_index <- c(1, 31, 31, 60)
+             temp <- safe_tail(desktop_load_data, date_range_index[4])$timestamp %>% {
+               paste0(as.character(.[date_range_index], "%b "),
+                      sub("([a-z]{2})", "<sup>\\1</sup>",
+                          sapply(as.numeric(as.character(.[date_range_index], "%e")), toOrdinal)))
+             } %>% {
+               c(paste(.[1:2], collapse = "—"), paste(.[3:4], collapse = "—"))
+             }
+           },
+           quarterly = {
+             date_range_index <- c(1, 90)
+             temp <- safe_tail(desktop_load_data, date_range_index[2])$timestamp %>% {
+               paste0(as.character(.[date_range_index], "%B "),
+                      sub("([a-z]{2})", "<sup>\\1</sup>",
+                          sapply(as.numeric(as.character(.[date_range_index], "%e")), toOrdinal)))
+             } %>% paste0(collapse = "—")
+             return(HTML("<h3 class='kpi_date'>KPI summary for ", temp, ":</h3>"))
+    })
+    return(HTML("<h3 class='kpi_date'>KPI summary for ", temp[2], ", and % change from ", temp[1], ":</h3>"))
   })
   output$kpi_summary_box_load_time <- renderValueBox({
-    x <- lapply(list(desktop_load_data$Median, mobile_load_data$Median, android_load_data$Median, ios_load_data$Median), tail, n = 2)
-    y2 <- median(sapply(x, function(xx) { xx[2] })) # median at t
-    y1 <- median(sapply(x, function(xx) { xx[1] })) # median at t-1
-    z <- 100 * (y2 - y1) / y1 # % change (of median!) from t-1 to t
-    valueBox(subtitle = sprintf("Median load time %s",
-                                ifelse(abs(z) > 0,
-                                       sprintf("(%.1f%%)", z), "")),
-             value = sprintf("%.0fms", y2),
-             color = cond_color(z > 0, "red"),
-             icon = cond_icon(z > 0))
+    date_range <- input$kpi_summary_date_range_selector
+    switch(date_range,
+           daily = {
+             x <- lapply(list(desktop_load_data, mobile_load_data,
+                              android_load_data, ios_load_data),
+                         safe_tail, n = 2) %>%
+               lapply(function(data_tail) return(data_tail$Median)) %>%
+               do.call(cbind, .) %>%
+               apply(MARGIN = 1, FUN = median)
+           },
+           weekly = {
+             x <- lapply(list(desktop_load_data, mobile_load_data,
+                              android_load_data, ios_load_data),
+                         safe_tail, n = 14) %>%
+               lapply(function(data_tail) return(data_tail$Median)) %>%
+               do.call(cbind, .) %>%
+               apply(MARGIN = 1, FUN = median)
+           },
+           monthly = {
+             x <- lapply(list(desktop_load_data, mobile_load_data,
+                              android_load_data, ios_load_data),
+                         safe_tail, n = 60) %>%
+               lapply(function(data_tail) return(data_tail$Median)) %>%
+               do.call(cbind, .) %>%
+               apply(MARGIN = 1, FUN = median)
+           },
+           quarterly = {
+             x <- lapply(list(desktop_load_data, mobile_load_data,
+                              android_load_data, ios_load_data),
+                         safe_tail, n = 90) %>%
+               lapply(function(data_tail) return(data_tail$Median))
+             suppressWarnings(y <- median(apply(do.call(cbind, x), 1, median)))
+             # ^ will soon be unnecessary. warning arises from iOS data being 88 days as of 2015-09-07
+             return(valueBox(subtitle = "Load time", value = sprintf("%.0fms", y), color = "orange"))
+           })
+    y1 <- median(half(x, "top")); y2 <- median(half(x, "bottom")); z <- 100 * (y2 - y1) / y1
+    if (abs(z) > 0) {
+      return(valueBox(subtitle = sprintf("Load time (%.1f%%)", z),
+                      value = sprintf("%.0fms", y2),
+                      color = cond_color(z>0, "red"), icon = cond_icon(z>0)))
+    }
+    return(valueBox(subtitle = "Load time (no change)", value = sprintf("%.0fms", y2), color = "orange"))
   })
   output$kpi_summary_box_zero_results <- renderValueBox({
-    x <- tail(failure_dygraph_set, 1)
-    y <- tail(failure_roc_dygraph_set$change_by_week, 1)
-    valueBox(
-      subtitle = sprintf("Zero results rate (%.1f%%)", y),
-      value = sprintf("%.1f%%", 100*(x[3])/x[2]),
-      icon = cond_icon(y > 0),
-      color = cond_color(y > 0, "red")
-    )
+    date_range <- input$kpi_summary_date_range_selector
+    switch(date_range,
+           daily = {x <- safe_tail(failure_dygraph_set, 2)},
+           weekly = {x <- safe_tail(failure_dygraph_set, 14)},
+           monthly = {x <- safe_tail(failure_dygraph_set, 60)},
+           quarterly = {x <- safe_tail(failure_dygraph_set, 90)})
+    x <- transform(x, Rate = `Zero Result Queries` / `Search Queries`)$Rate
+    if (date_range == "quarterly") {
+      return(valueBox(subtitle = "Zero results rate", color = "orange",
+                      value = sprintf("%.1f%%", median(100 * x))))
+    }
+    y1 <- median(half(x, "top")); y2 <- median(half(x, "bottom")); z <- 100 * (y2 - y1)/y1
+    if (abs(z) > 0) {
+      return(valueBox(
+        subtitle = sprintf("Zero results rate (%.1f%%)", z),
+        value = sprintf("%.1f%%", 100 * y2),
+        icon = cond_icon(z > 0), color = cond_color(z > 0, "red")
+      ))
+    }
+    return(valueBox(subtitle = "Zero results rate (no change)",
+                    value = sprintf("%.1f%%", 100 * y2), color = "orange"))
   })
   output$kpi_summary_box_api_usage <- renderValueBox({
+    date_range <- input$kpi_summary_date_range_selector
     x <- lapply(split_dataset, function(x) {
-      tail(x$events, 2)
-    })
-    y1 <- sum(unlist(x)[seq(1, 9, 2)])
-    y2 <- sum(unlist(x)[seq(2, 10, 2)])
-    z <- 100*(y2-y1)/y1
-    valueBox(
-      subtitle = sprintf("API usage (%.1f%%)", z),
-      value = compress(y2, 0),
-      color = cond_color(z > 0),
-      icon = cond_icon(z > 0)
-    )
+      switch(date_range,
+             daily = { safe_tail(x, 2)$events },
+             weekly = { safe_tail(x, 14)$events },
+             monthly = { safe_tail(x, 60)$events },
+             quarterly = { safe_tail(x, 90)$events })
+    }) %>% do.call(cbind, .) %>%
+      transform(total = cirrus + geo + language + open + prefix) %>%
+      { .$total }
+    if (date_range == "quarterly") {
+      return(valueBox(subtitle = "API usage", value = compress(median(x), 0), color = "orange"))
+    }
+    y1 <- median(half(x, "top"))
+    y2 <- median(half(x, "bottom"))
+    z <- 100 * (y2 - y1) / y1 # % change from t-1 to t
+    if (abs(z) > 0) {
+      return(valueBox(subtitle = sprintf("API usage (%.1f%%)", z),
+                      value = compress(y2, 0), color = cond_color(z>0), icon = cond_icon(z>0)))
+    }
+    return(valueBox(subtitle = "API usage (no change)", value = compress(y2, 0), color = "orange"))
   })
   output$kpi_summary_api_usage_proportions <- renderPlot({
-    api_latest <- c("Full-text via API" = tail(split_dataset$cirrus$events, 1),
-                    "Geo Search" = tail(split_dataset$geo$events, 1),
-                    "OpenSearch" = tail(split_dataset$open$events, 1),
-                    "Language" = tail(split_dataset$language$events, 1),
-                    "Prefix" = tail(split_dataset$prefix$events, 1))
+    switch (input$kpi_summary_date_range_selector,
+      daily = { n <- 1 },
+      weekly = { n <- 7 },
+      monthly = { n <- 30 },
+      quarterly = { n <- 90 }
+    )
+    api_latest <- cbind("Full-text via API" = safe_tail(split_dataset$cirrus, n)$events,
+                        "Geo Search" = safe_tail(split_dataset$geo, n)$events,
+                        "OpenSearch" = safe_tail(split_dataset$open, n)$events,
+                        "Language" = safe_tail(split_dataset$language, n)$events,
+                        "Prefix" = safe_tail(split_dataset$prefix, n)$events) %>%
+      apply(2, median) %>% round
     api_latest <- data.frame(API = names(api_latest),
                              Events = api_latest,
                              Prop = api_latest/sum(api_latest))
@@ -325,8 +415,9 @@ shinyServer(function(input, output) {
   })
   output$kpi_load_time_series <- renderDygraph({
     num_of_days_in_common <- min(sapply(list(desktop_load_data$Median, mobile_load_data$Median, android_load_data$Median, ios_load_data$Median), length))
-    load_times <- list(desktop_load_data$Median, mobile_load_data$Median, android_load_data$Median, ios_load_data$Median) %>%
-      lapply(tail, num_of_days_in_common) %>% # need to make safe_tail
+    load_times <- list(desktop_load_data, mobile_load_data, android_load_data, ios_load_data) %>%
+      lapply(safe_tail, num_of_days_in_common) %>%
+      lapply(function(data_tail) return(data_tail$Median)) %>%
       as.data.frame %>%
       { colnames(.) <- c("Desktop", "Mobile Web", "Android", "iOS"); . } %>%
       {
@@ -335,72 +426,52 @@ shinyServer(function(input, output) {
         cbind(Median = Median[-1], .[-1, ])# , "Median % change" = Median_change[-1])
       } %>%
       xts(order.by = mobile_load_data$timestamp[-1]) # need to make dynamic
-    return(dyCSS(
-      dyOptions(
-        dyLegend(
-          dyAxis(
-            dySeries(
-              dygraph(load_times,
-                      main = "Load times over time",
-                      xlab = "Date",
-                      ylab = "Load time (ms)"),
-              "Median", axis = 'y2', strokeWidth = 4, label = "Cross-platform Median"),
-            "y2", label = "Day-to-day % change in median load time",
-            independentTicks = TRUE, drawGrid = FALSE),
-          width = 500, show = "always"),
-        strokeWidth = 2, colors = brewer.pal(5, "Set2")[5:1],
-        drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
-        includeZero = TRUE),
-      css = "./assets/css/custom.css"))
+    return(dygraph(load_times,
+            main = "Load times over time",
+            xlab = "Date",
+            ylab = "Load time (ms)") %>%
+      dySeries("Median", axis = 'y2', strokeWidth = 4, label = "Cross-platform Median") %>%
+      dyAxis("y2", label = "Day-to-day % change in median load time",
+             independentTicks = TRUE, drawGrid = FALSE) %>%
+      dyLegend(width = 500, show = "always") %>%
+      dyOptions(strokeWidth = 2, colors = brewer.pal(5, "Set2")[5:1],
+                drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
+                includeZero = TRUE) %>%
+      dyCSS(css = "./assets/css/custom.css"))
   })
   output$kpi_zero_results_series <- renderDygraph({
     zrr <- 100 * failure_dygraph_set$`Zero Result Queries` / failure_dygraph_set$`Search Queries`
+    zrr_change <- 100 * (zrr[2:length(zrr)] - zrr[1:(length(zrr)-1)])/zrr[1:(length(zrr)-1)]
     zrr <- xts(zrr, failure_dygraph_set$date)
     colnames(zrr) <- "rate"
-    zrr_change <- xts(failure_roc_dygraph_set$change_by_week, failure_roc_dygraph_set$date)
+    zrr_change <- xts(zrr_change, failure_dygraph_set$date[-1])
     colnames(zrr_change) <- "change"
-    zrr <- cbind(zrr, zrr_change)[-1, ]
-    ## Experimental code for later:
-    # start_of_quarter <- which(failure_dygraph_set$date == "2015-07-01") # make dynamic
-    # zrr_change_since_quarter_started <- as.numeric(zrr$rate) %>% { 100*(.-.[start_of_quarter])/.[start_of_quarter] }
-    # zrr_change_since_quarter_started[1:(start_of_quarter-1)] <- NA
-    # zrr_change_since_quarter_started <- xts(zrr_change_since_quarter_started,
-    #                                         order.by = failure_dygraph_set$date)
-    # colnames(zrr_change_since_quarter_started) <- "change.since.quarter.start"
-    # zrr <- cbind(zrr, zrr_change, zrr_change_since_quarter_started)[-1, ]
-    return(dyCSS(
-      dyOptions(
-        dyLegend(
-          dyLimit(
-            dyAxis(
-              dyAxis(
-                dyLimit(
-                  dySeries(
-                    dygraph(zrr,
-                            main = "Zero results rate over time",
-                            xlab = "Date",
-                            ylab = "% of search queries that yield zero results"),
-                    "change", axis = 'y2', label = "day-to-day % change"),
-                  limit = 12.50, label = "Goal: 12.50% zero results rate",
-                  color = brewer.pal(3, "Set2")[3]),
-                "y2", label = "Day-to-day % change",
-                valueRange = c(-1, 1) * max(max(abs(as.numeric(zrr$change))), 10),
-                axisLineColor = brewer.pal(3, "Set2")[2],
-                axisLabelColor = brewer.pal(3, "Set2")[2],
-                independentTicks = TRUE, drawGrid = FALSE),
-              "y", drawGrid = FALSE,
-              axisLineColor = brewer.pal(3, "Set2")[1],
-              axisLabelColor = brewer.pal(3, "Set2")[1]),
-            limit = 0, color = brewer.pal(3, "Set2")[2], strokePattern = "dashed"),
-          width = 400, show = "always"),
-        strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
-        includeZero = TRUE),
-      css = "./assets/css/custom.css"))
+    zrr <- cbind(zrr[-1, ], zrr_change)
+    return(dygraph(zrr,
+            main = "Zero results rate over time",
+            xlab = "Date",
+            ylab = "% of search queries that yield zero results") %>%
+      dySeries("change", axis = 'y2', label = "day-to-day % change", strokeWidth = 1) %>%
+      dyLimit(limit = 12.50, label = "Goal: 12.50% zero results rate",
+              color = brewer.pal(3, "Set2")[3]) %>%
+      dyAxis("y2", label = "Day-to-day % change",
+             valueRange = c(-1, 1) * max(max(abs(as.numeric(zrr$change))), 10),
+             axisLineColor = brewer.pal(3, "Set2")[2],
+             axisLabelColor = brewer.pal(3, "Set2")[2],
+             independentTicks = TRUE, drawGrid = FALSE) %>%
+      dyAxis("y", drawGrid = FALSE,
+             axisLineColor = brewer.pal(3, "Set2")[1],
+             axisLabelColor = brewer.pal(3, "Set2")[1]) %>%
+      dyLimit(limit = 0, color = brewer.pal(3, "Set2")[2], strokePattern = "dashed") %>%
+      dyLegend(width = 400, show = "always") %>%
+      dyOptions(strokeWidth = 3, colors = brewer.pal(3, "Set2"),
+                drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
+                includeZero = TRUE) %>%
+      dyCSS(css = "./assets/css/custom.css"))
   })
   output$kpi_api_usage_series <- renderDygraph({
     api_usage <- cbind(timestamp = split_dataset$cirrus$timestamp, as.data.frame(lapply(split_dataset, function(x) x$events)))
-    api_usage <- api_usage[order(api_usage$timestamp, decreasing = FALSE), ]
+    # api_usage <- api_usage[order(api_usage$timestamp, decreasing = FALSE), ]
     if ( input$kpi_api_usage_series_include_open ) {
       api_usage <- transform(api_usage, all = cirrus + geo + language + open + prefix)
     } else {
@@ -408,22 +479,19 @@ shinyServer(function(input, output) {
     }
     if ( input$kpi_api_usage_series_data == "raw" ) {
       api_usage <- xts(api_usage[, -1], api_usage[, 1])
-      if (!input$kpi_api_usage_series_include_open) colnames(api_usage)[6] <- "all except open"
-      return(dyCSS(
-        dyOptions(
-          dyLegend(
-            dySeries(
-              dygraph(api_usage,
-                      main = "Calls over time",
-                      xlab = "Date",
-                      ylab = ifelse(input$kpi_api_usage_series_log_scale, "Calls (log10 scale)", "Calls")),
-              "cirrus", label = "full-text via API"),
-            width = 400, show = "always"
-          ), strokeWidth = 3, colors = brewer.pal(6, "Set2")[6:1],
-          drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE,
-          includeZero = input$kpi_api_usage_series_log_scale,
-          logscale = input$kpi_api_usage_series_log_scale
-        ), css = "./assets/css/custom.css"))
+      if (!input$kpi_api_usage_series_include_open) {
+        colnames(api_usage)[6] <- "all except open"
+      }
+      return(dygraph(api_usage, main = "Calls over time", xlab = "Date",
+              ylab = ifelse(input$kpi_api_usage_series_log_scale, "Calls (log10 scale)", "Calls")) %>%
+        dySeries("cirrus", label = "full-text via API") %>%
+        dyLegend(width = 400, show = "always") %>%
+        dyOptions(strokeWidth = 3, colors = brewer.pal(6, "Set2")[6:1],
+                  drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE,
+                  includeZero = input$kpi_api_usage_series_log_scale,
+                  logscale = input$kpi_api_usage_series_log_scale
+        ) %>%
+        dyCSS(css = "./assets/css/custom.css"))
     }
     api_usage_change <- transform(api_usage,
                                   cirrus = percent_change(cirrus),
@@ -435,17 +503,14 @@ shinyServer(function(input, output) {
                                   { .[-1, ] }
     api_usage_change <- xts(api_usage_change[, -1], api_usage_change[, 1])
     if (!input$kpi_api_usage_series_include_open) colnames(api_usage_change)[6] <- "all except open"
-    return(dyCSS(
-      dyOptions(
-        dyLegend(
-          dygraph(api_usage_change,
-                  main = "Day-to-day % change over time",
-                  xlab = "Date", ylab = "% change"),
-          width = 400, show = "always"
-        ), strokeWidth = 3, colors = brewer.pal(6, "Set2"),
-        drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE,
-        includeZero = TRUE
-      ) ,css = "./assets/css/custom.css"))
+    return(dygraph(api_usage_change,
+            main = "Day-to-day % change over time",
+            xlab = "Date", ylab = "% change") %>%
+      dyLegend(width = 400, show = "always") %>%
+      dyOptions(strokeWidth = 3, colors = brewer.pal(6, "Set2"),
+                drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE,
+                includeZero = TRUE) %>%
+      dyCSS(css = "./assets/css/custom.css"))
   })
 
 ### Experimental feature

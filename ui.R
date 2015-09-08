@@ -51,6 +51,9 @@ sidebar <- dashboardSidebar(
 body <- dashboardBody(
   tabItems(
     tabItem(tabName = "kpis_summary",
+            selectInput("kpi_summary_date_range_selector", label = "Data range", multiple = FALSE, selected = "weekly",
+                        choices = list("Yesterday" = "daily", "Last 7 days" = "weekly",
+                                       "Last 30 days" = "monthly", "Last 90 days" = "quarterly")),
             htmlOutput("kpi_summary_date_range"),
             fluidRow(valueBoxOutput("kpi_summary_box_load_time", width = 3),
                      valueBoxOutput("kpi_summary_box_zero_results", width = 3),
