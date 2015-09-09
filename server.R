@@ -274,7 +274,7 @@ shinyServer(function(input, output) {
                       sub("([a-z]{2})", "<sup>\\1</sup>",
                           sapply(as.numeric(as.character(.[date_range_index], "%e")), toOrdinal)))
              } %>% {
-               c(paste(.[1:2], collapse = "—"), paste(.[3:4], collapse = "—"))
+               c(paste(.[1:2], collapse = "-"), paste(.[3:4], collapse = "-"))
              }
            },
            monthly = {
@@ -284,7 +284,7 @@ shinyServer(function(input, output) {
                       sub("([a-z]{2})", "<sup>\\1</sup>",
                           sapply(as.numeric(as.character(.[date_range_index], "%e")), toOrdinal)))
              } %>% {
-               c(paste(.[1:2], collapse = "—"), paste(.[3:4], collapse = "—"))
+               c(paste(.[1:2], collapse = "-"), paste(.[3:4], collapse = "-"))
              }
            },
            quarterly = {
