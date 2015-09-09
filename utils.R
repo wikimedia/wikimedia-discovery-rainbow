@@ -1,11 +1,11 @@
 #Dependent libs
+library(plyr)
 library(readr)
 library(xts)
 library(reshape2)
 library(RColorBrewer)
 library(ggplot2)
 library(toOrdinal)
-library(plyr)
 library(lubridate)
 library(magrittr)
 
