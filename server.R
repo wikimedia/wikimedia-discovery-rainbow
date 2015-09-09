@@ -1,10 +1,10 @@
-#Version 0.2.0
+## Version 0.2.0
 source("utils.R")
 
 existing_date <- (Sys.Date()-1)
 
-#Read in desktop data and generate means for the value boxes, along with a time-series appropriate form for
-#dygraphs.
+## Read in desktop data and generate means for the value boxes, along with a time-series appropriate form for
+## dygraphs.
 read_desktop <- function(){
   data <- download_set("desktop_event_counts.tsv")
   interim <- reshape2::dcast(data, formula = timestamp ~ action, fun.aggregate = sum)
@@ -40,8 +40,8 @@ read_apps <- function(){
   android_dygraph_means <<- round(colMeans(android[,2:4]))
 
   app_load_data <- download_set("app_load_times.tsv")
-  ios_load_data <<- app_load_data[app_load_data$platform == "iOS",]
-  android_load_data <<- app_load_data[app_load_data$platform == "Android",]
+  ios_load_data <<- app_load_data[app_load_data$platform == "iOS", names(app_load_data) != "platform"]
+  android_load_data <<- app_load_data[app_load_data$platform == "Android", names(app_load_data) != "platform"]
 
   return(invisible())
 }
@@ -93,7 +93,7 @@ shinyServer(function(input, output) {
     existing_date <<- Sys.Date()
   }
 
-  #Desktop value boxes
+  ## Desktop value boxes
   output$desktop_event_searches <- renderValueBox(
     valueBox(
       value = desktop_dygraph_means["search sessions"],
@@ -121,17 +121,22 @@ shinyServer(function(input, output) {
     )
   )
 
-  #The dynamic graphs of events on desktop
-  output$desktop_event_plot <- make_dygraph(
-    desktop_dygraph_set, "Date", "Events",
-    "Desktop search events, by day"
-  )
-  output$desktop_load_plot <- make_dygraph(
-    desktop_load_data, "Date", "Load time (ms)",
-    "Desktop result load times, by day", use_si = FALSE
-  )
+  ## The dynamic graphs of events on desktop
+  output$desktop_event_plot <- renderDygraph({
+    smooth_level <- input$smoothing_desktop_event
+    make_dygraph(desktop_dygraph_set,
+                 "Date", "Events", "Desktop search events, by day",
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
+  output$desktop_load_plot <- renderDygraph({
+    smooth_level <- input$smoothing_desktop_load
+    make_dygraph(desktop_load_data,
+                 "Date", "Load time (ms)", "Desktop result load times, by day",
+                 use_si = FALSE,
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
 
-  #Mobile value boxes
+  ## Mobile value boxes
   output$mobile_event_searches <- renderValueBox(
     valueBox(
       value = mobile_dygraph_means["search sessions"],
@@ -159,17 +164,19 @@ shinyServer(function(input, output) {
     )
   )
 
-  #Mobile plots
-  output$mobile_event_plot <- make_dygraph(
-    mobile_dygraph_set, "Date", "Events",
-    "Mobile search events, by day"
-  )
-  output$mobile_load_plot <- make_dygraph(
-    mobile_load_data, "Date", "Load time (ms)",
-    "Mobile result load times, by day", use_si = FALSE
-  )
+  ## Mobile plots
+  output$mobile_event_plot <- renderDygraph({
+    smooth_level <- input$smoothing_mobile_event
+    make_dygraph(mobile_dygraph_set, "Date", "Events", "Mobile search events, by day",
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
+  output$mobile_load_plot <- renderDygraph({
+    smooth_level <- input$smoothing_mobile_load
+    make_dygraph(mobile_load_data, "Date", "Load time (ms)", "Mobile result load times, by day",
+                 use_si = FALSE, smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
 
-  #App value boxes
+  ## App value boxes
   output$app_event_searches <- renderValueBox(
     valueBox(
       value = android_dygraph_means[3],
@@ -197,66 +204,78 @@ shinyServer(function(input, output) {
     )
   )
 
-  #App plots
-  output$android_event_plot <- make_dygraph(
-    android_dygraph_set, "Date", "Events",
-    "Android mobile app search events, by day"
-  )
-  output$android_load_plot <- make_dygraph(
-    android_load_data, "Date", "Load time (ms)",
-    "Android result load times, by day", use_si = FALSE
-  )
-  output$ios_event_plot <- make_dygraph(
-    ios_dygraph_set, "Date", "Events",
-    "iOS mobile app search events, by day"
-  )
-  output$ios_load_plot <- make_dygraph(
-    ios_load_data, "Date", "Load time (ms)",
-    "iOS result load times, by day", use_si = FALSE
-  )
+  ## App plots
+  output$android_event_plot <- renderDygraph({
+    smooth_level <- input$smoothing_app_event
+    make_dygraph(android_dygraph_set, "Date", "Events", "Android mobile app search events, by day",
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
+  output$android_load_plot <- renderDygraph({
+    smooth_level <- input$smoothing_app_load
+    make_dygraph(android_load_data, "Date", "Load time (ms)","Android result load times, by day", use_si = FALSE,
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
+  output$ios_event_plot <- renderDygraph({
+    smooth_level <- input$smoothing_app_event
+    make_dygraph(ios_dygraph_set, "Date", "Events","iOS mobile app search events, by day",
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
+  output$ios_load_plot <- renderDygraph({
+    smooth_level <- input$smoothing_app_load
+    make_dygraph(ios_load_data, "Date", "Load time (ms)","iOS result load times, by day", use_si = FALSE,
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
 
-  #API plots
-  output$cirrus_aggregate <- make_dygraph(
-    split_dataset$cirrus, "Date", "Events",
-    "Full-text via API usage by day", TRUE
-  )
-  output$open_aggregate <- make_dygraph(
-    split_dataset$open, "Date", "Events",
-    "OpenSearch API usage by day", TRUE
-  )
-  output$geo_aggregate <- make_dygraph(
-    split_dataset$geo, "Date", "Events",
-    "Geo Search API usage by day", TRUE
-  )
-  output$language_aggregate <- make_dygraph(
-    split_dataset$language, "Date", "Events",
-    "Language Search API usage by day", TRUE
-  )
-  output$prefix_aggregate <- make_dygraph(
-    split_dataset$prefix, "Date", "Events",
-    "Prefix Search API usage by day", TRUE
-  )
+  ## API plots
+  output$cirrus_aggregate <- renderDygraph({
+    smooth_level <- input$smoothing_fulltext_search
+    make_dygraph(split_dataset$cirrus, "Date", "Events", "Full-text via API usage by day", TRUE,
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
+  output$open_aggregate <- renderDygraph({
+    smooth_level <- input$smoothing_open_search
+    make_dygraph(split_dataset$open, "Date", "Events", "OpenSearch API usage by day", TRUE,
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
+  output$geo_aggregate <- renderDygraph({
+    smooth_level <- input$smoothing_geo_search
+    make_dygraph(split_dataset$geo, "Date", "Events", "Geo Search API usage by day", TRUE,
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
+  output$language_aggregate <- renderDygraph({
+    smooth_level <- input$smoothing_language_search
+    make_dygraph(split_dataset$language, "Date", "Events", "Language Search API usage by day", TRUE,
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
+  output$prefix_aggregate <- renderDygraph({
+    smooth_level <- input$smoothing_prefix_search
+    make_dygraph(split_dataset$prefix, "Date", "Events", "Prefix Search API usage by day", TRUE,
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
 
-  #Failure plots
-  output$failure_rate_plot <- make_dygraph(
-    failure_dygraph_set, "Date", "Queries",
-    "Search Queries with Zero Results, by day"
-  )
-  output$failure_rate_change_plot <- make_dygraph(
-    failure_roc_dygraph_set, "Date", "Change (%)",
-    "Zero result rate change, by day", TRUE,
-    "Rate of Change"
-  )
-  output$failure_breakdown_plot <- make_dygraph(
-    failure_breakdown_dygraph_set, "Date", "Zero Results Rate (%)",
-    "Zero result rate by search type"
-  )
-  output$suggestion_dygraph_plot <- make_dygraph(
-    suggestion_dygraph_set, "Date", "Zero Results Rate (%)",
-    "Zero Result Rates with Search Suggestions"
-  )
+  ## Failure plots
+  output$failure_rate_plot <- renderDygraph({
+    smooth_level <- input$smoothing_failure_rate
+    make_dygraph(failure_dygraph_set, "Date", "Queries", "Search Queries with Zero Results, by day",
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
+  output$failure_rate_change_plot <- renderDygraph({
+    smooth_level <- input$smoothing_failure_rate
+    make_dygraph(failure_roc_dygraph_set, "Date", "Change (%)", "Zero result rate change, by day", TRUE, "Rate of Change",
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
+  output$failure_breakdown_plot <- renderDygraph({
+    smooth_level <- input$smoothing_failure_breakdown
+    make_dygraph(failure_breakdown_dygraph_set, "Date", "Zero Results Rate (%)", "Zero result rate by search type",
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
+  output$suggestion_dygraph_plot <- renderDygraph({
+    smooth_level <- input$smoothing_failure_suggestions
+    make_dygraph(suggestion_dygraph_set, "Date", "Zero Results Rate (%)", "Zero Result Rates with Search Suggestions",
+                 smoothing = ifelse(smooth_level == "global", input$smoothing_global, smooth_level))
+  })
 
-  # KPI module
+  ## KPI module
   output$kpi_summary_date_range <- renderUI({
     date_range <- input$kpi_summary_date_range_selector
     switch(date_range,
@@ -295,7 +314,7 @@ shinyServer(function(input, output) {
                           sapply(as.numeric(as.character(.[date_range_index], "%e")), toOrdinal)))
              } %>% paste0(collapse = "-")
              return(HTML("<h3 class='kpi_date'>KPI summary for ", temp, ":</h3>"))
-    })
+           })
     return(HTML("<h3 class='kpi_date'>KPI summary for ", temp[2], ", and % change from ", temp[1], ":</h3>"))
   })
   output$kpi_summary_box_load_time <- renderValueBox({
@@ -330,8 +349,7 @@ shinyServer(function(input, output) {
                               android_load_data, ios_load_data),
                          safe_tail, n = 90) %>%
                lapply(function(data_tail) return(data_tail$Median))
-             suppressWarnings(y <- median(apply(do.call(cbind, x), 1, median)))
-             # ^ will soon be unnecessary. warning arises from iOS data being 88 days as of 2015-09-07
+             y <- median(apply(do.call(cbind, x), 1, median))
              return(valueBox(subtitle = "Load time", value = sprintf("%.0fms", y), color = "orange"))
            })
     y1 <- median(half(x, "top")); y2 <- median(half(x, "bottom")); z <- 100 * (y2 - y1) / y1
@@ -390,10 +408,10 @@ shinyServer(function(input, output) {
   })
   output$kpi_summary_api_usage_proportions <- renderPlot({
     switch (input$kpi_summary_date_range_selector,
-      daily = { n <- 1 },
-      weekly = { n <- 7 },
-      monthly = { n <- 30 },
-      quarterly = { n <- 90 }
+            daily = { n <- 1 },
+            weekly = { n <- 7 },
+            monthly = { n <- 30 },
+            quarterly = { n <- 90 }
     )
     api_latest <- cbind("Full-text via API" = safe_tail(split_dataset$cirrus, n)$events,
                         "Geo Search" = safe_tail(split_dataset$geo, n)$events,
@@ -405,7 +423,6 @@ shinyServer(function(input, output) {
                              Events = api_latest,
                              Prop = api_latest/sum(api_latest))
     api_latest <- api_latest[api_latest$Prop > 0.01, ]
-    # api_latest$text_pos <- cumsum(api_latest$Prop) + (c(0, cumsum(api_latest$Prop)[-nrow(api_latest)]) - cumsum(api_latest$Prop))/2
     api_latest$Label <- sprintf("%s (%.0f%%)", api_latest$API, 100*api_latest$Prop)
     i <- which(api_latest$Prop > 0.5) # Majority API usage type gets additional text (for clarity)
     if ( length(i) == 1 )
@@ -414,6 +431,7 @@ shinyServer(function(input, output) {
     gg_prop_bar(api_latest, cols = list(item = "API", prop = "Prop", label = "Label"))
   })
   output$kpi_load_time_series <- renderDygraph({
+    smooth_level <- input$smoothing_kpi_load_time
     num_of_days_in_common <- min(sapply(list(desktop_load_data$Median, mobile_load_data$Median, android_load_data$Median, ios_load_data$Median), length))
     load_times <- list(desktop_load_data, mobile_load_data, android_load_data, ios_load_data) %>%
       lapply(safe_tail, num_of_days_in_common) %>%
@@ -422,76 +440,77 @@ shinyServer(function(input, output) {
       { colnames(.) <- c("Desktop", "Mobile Web", "Android", "iOS"); . } %>%
       {
         Median = apply(., 1, median)
-        # Median_change = percent_change(Median)
-        cbind(Median = Median[-1], .[-1, ])# , "Median % change" = Median_change[-1])
+        cbind(Median = Median, .)
       } %>%
-      xts(order.by = mobile_load_data$timestamp[-1]) # need to make dynamic
+      cbind(timestamp = safe_tail(desktop_load_data, num_of_days_in_common)$timestamp, .) %>%
+      smoother(smooth_level = ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE) %>%
+      { xts(.[, -1], order.by = .[, 1]) }
     return(dygraph(load_times,
-            main = "Load times over time",
-            xlab = "Date",
-            ylab = "Load time (ms)") %>%
-      dySeries("Median", axis = 'y2', strokeWidth = 4, label = "Cross-platform Median") %>%
-      dyAxis("y2", label = "Day-to-day % change in median load time",
-             independentTicks = TRUE, drawGrid = FALSE) %>%
-      dyLegend(width = 500, show = "always") %>%
-      dyOptions(strokeWidth = 2, colors = brewer.pal(5, "Set2")[5:1],
-                drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
-                includeZero = TRUE) %>%
-      dyCSS(css = "./assets/css/custom.css"))
+                   main = "Load times over time",
+                   xlab = "Date",
+                   ylab = "Load time (ms)") %>%
+             dySeries("Median", axis = 'y2', strokeWidth = 4, label = "Cross-platform Median") %>%
+             dyAxis("y2", label = "Day-to-day % change in median load time",
+                    independentTicks = TRUE, drawGrid = FALSE) %>%
+             dyLegend(width = 500, show = "always") %>%
+             dyOptions(strokeWidth = 2, colors = brewer.pal(5, "Set2")[5:1],
+                       drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
+                       includeZero = TRUE) %>%
+             dyCSS(css = "./assets/css/custom.css"))
   })
   output$kpi_zero_results_series <- renderDygraph({
+    smooth_level <- input$smoothing_kpi_zero_results
     zrr <- 100 * failure_dygraph_set$`Zero Result Queries` / failure_dygraph_set$`Search Queries`
     zrr_change <- 100 * (zrr[2:length(zrr)] - zrr[1:(length(zrr)-1)])/zrr[1:(length(zrr)-1)]
-    zrr <- xts(zrr, failure_dygraph_set$date)
-    colnames(zrr) <- "rate"
-    zrr_change <- xts(zrr_change, failure_dygraph_set$date[-1])
-    colnames(zrr_change) <- "change"
-    zrr <- cbind(zrr[-1, ], zrr_change)
+    zrr <- data.frame(date = failure_dygraph_set$date[-1], rate = zrr[-1], change = zrr_change)
+    zrr %<>% smoother(ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE)
+    zrr <- xts(zrr[, -1], zrr[, 1])
     return(dygraph(zrr,
-            main = "Zero results rate over time",
-            xlab = "Date",
-            ylab = "% of search queries that yield zero results") %>%
-      dySeries("change", axis = 'y2', label = "day-to-day % change", strokeWidth = 1) %>%
-      dyLimit(limit = 12.50, label = "Goal: 12.50% zero results rate",
-              color = brewer.pal(3, "Set2")[3]) %>%
-      dyAxis("y2", label = "Day-to-day % change",
-             valueRange = c(-1, 1) * max(max(abs(as.numeric(zrr$change))), 10),
-             axisLineColor = brewer.pal(3, "Set2")[2],
-             axisLabelColor = brewer.pal(3, "Set2")[2],
-             independentTicks = TRUE, drawGrid = FALSE) %>%
-      dyAxis("y", drawGrid = FALSE,
-             axisLineColor = brewer.pal(3, "Set2")[1],
-             axisLabelColor = brewer.pal(3, "Set2")[1]) %>%
-      dyLimit(limit = 0, color = brewer.pal(3, "Set2")[2], strokePattern = "dashed") %>%
-      dyLegend(width = 400, show = "always") %>%
-      dyOptions(strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-                drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
-                includeZero = TRUE) %>%
-      dyCSS(css = "./assets/css/custom.css"))
+                   main = "Zero results rate over time",
+                   xlab = "Date",
+                   ylab = "% of search queries that yield zero results") %>%
+             dySeries("change", axis = 'y2', label = "day-to-day % change", strokeWidth = 1) %>%
+             dyLimit(limit = 12.50, label = "Goal: 12.50% zero results rate",
+                     color = brewer.pal(3, "Set2")[3]) %>%
+             dyAxis("y2", label = "Day-to-day % change",
+                    valueRange = c(-1, 1) * max(max(abs(as.numeric(zrr$change))), 10),
+                    axisLineColor = brewer.pal(3, "Set2")[2],
+                    axisLabelColor = brewer.pal(3, "Set2")[2],
+                    independentTicks = TRUE, drawGrid = FALSE) %>%
+             dyAxis("y", drawGrid = FALSE,
+                    axisLineColor = brewer.pal(3, "Set2")[1],
+                    axisLabelColor = brewer.pal(3, "Set2")[1]) %>%
+             dyLimit(limit = 0, color = brewer.pal(3, "Set2")[2], strokePattern = "dashed") %>%
+             dyLegend(width = 400, show = "always") %>%
+             dyOptions(strokeWidth = 3, colors = brewer.pal(3, "Set2"),
+                       drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
+                       includeZero = TRUE) %>%
+             dyCSS(css = "./assets/css/custom.css"))
   })
   output$kpi_api_usage_series <- renderDygraph({
+    smooth_level <- input$smoothing_kpi_api_usage
     api_usage <- cbind(timestamp = split_dataset$cirrus$timestamp, as.data.frame(lapply(split_dataset, function(x) x$events)))
-    # api_usage <- api_usage[order(api_usage$timestamp, decreasing = FALSE), ]
     if ( input$kpi_api_usage_series_include_open ) {
       api_usage <- transform(api_usage, all = cirrus + geo + language + open + prefix)
     } else {
       api_usage <- transform(api_usage, all = cirrus + geo + language + prefix)
     }
     if ( input$kpi_api_usage_series_data == "raw" ) {
+      api_usage %<>% smoother(ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE)
       api_usage <- xts(api_usage[, -1], api_usage[, 1])
       if (!input$kpi_api_usage_series_include_open) {
         colnames(api_usage)[6] <- "all except open"
       }
       return(dygraph(api_usage, main = "Calls over time", xlab = "Date",
-              ylab = ifelse(input$kpi_api_usage_series_log_scale, "Calls (log10 scale)", "Calls")) %>%
-        dySeries("cirrus", label = "full-text via API") %>%
-        dyLegend(width = 400, show = "always") %>%
-        dyOptions(strokeWidth = 3, colors = brewer.pal(6, "Set2")[6:1],
-                  drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE,
-                  includeZero = input$kpi_api_usage_series_log_scale,
-                  logscale = input$kpi_api_usage_series_log_scale
-        ) %>%
-        dyCSS(css = "./assets/css/custom.css"))
+                     ylab = ifelse(input$kpi_api_usage_series_log_scale, "Calls (log10 scale)", "Calls")) %>%
+               dySeries("cirrus", label = "full-text via API") %>%
+               dyLegend(width = 400, show = "always") %>%
+               dyOptions(strokeWidth = 3, colors = brewer.pal(6, "Set2")[6:1],
+                         drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
+                         includeZero = input$kpi_api_usage_series_log_scale,
+                         logscale = input$kpi_api_usage_series_log_scale
+               ) %>%
+               dyCSS(css = "./assets/css/custom.css"))
     }
     api_usage_change <- transform(api_usage,
                                   cirrus = percent_change(cirrus),
@@ -501,16 +520,17 @@ shinyServer(function(input, output) {
                                   prefix = percent_change(prefix),
                                   all = percent_change(all)) %>%
                                   { .[-1, ] }
+    api_usage_change %<>% smoother(ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE)
     api_usage_change <- xts(api_usage_change[, -1], api_usage_change[, 1])
     if (!input$kpi_api_usage_series_include_open) colnames(api_usage_change)[6] <- "all except open"
     return(dygraph(api_usage_change,
-            main = "Day-to-day % change over time",
-            xlab = "Date", ylab = "% change") %>%
-      dyLegend(width = 400, show = "always") %>%
-      dyOptions(strokeWidth = 3, colors = brewer.pal(6, "Set2"),
-                drawPoints = TRUE, pointSize = 3, labelsKMB = TRUE,
-                includeZero = TRUE) %>%
-      dyCSS(css = "./assets/css/custom.css"))
+                   main = "Day-to-day % change over time",
+                   xlab = "Date", ylab = "% change") %>%
+             dyLegend(width = 400, show = "always") %>%
+             dyOptions(strokeWidth = 3, colors = brewer.pal(6, "Set2"),
+                       drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
+                       includeZero = TRUE) %>%
+             dyCSS(css = "./assets/css/custom.css"))
   })
 
 })

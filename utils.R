@@ -17,33 +17,81 @@ download_set <- function(location){
   return(readr::read_delim(con, delim = "\t"))
 }
 
+# Takes an untidy (read: dygraph-appropriate) dataset and adds
+# columns for each variable consisting of the smoothed, averaged mean
+smoother <- function(dataset, smooth_level = "day", rename = TRUE) {
+
+  # Determine the names and levels of aggregation. By default
+  # a smoothing level of "day" is assumed, which is no smoothing
+  # whatsoever, and so the original dataset is returned.
+  switch(smooth_level,
+         moving_avg = {
+           df <- apply(dataset[, -1, drop = FALSE], 2, function(x) {
+             y <- xts(x, dataset[, 1])
+             return(as.numeric(zoo::rollmean(x, k = 17, fill = NA)))
+           }) %>% as.data.frame %>% cbind(timestamp = dataset[, 1], .)
+           names(df) <- names(dataset)
+           if (rename) names(df)[-1] <- paste(names(df)[-1], " (Moving average)")
+           return(df)
+         },
+         week = {
+           dataset$filter_1 <- lubridate::week(dataset[, 1])
+           dataset$filter_2 <- lubridate::year(dataset[, 1])
+           name_append <- ifelse(rename, " (Weekly average)", "")
+         },
+         month = {
+           dataset$filter_1 <- lubridate::month(dataset[, 1])
+           dataset$filter_2 <- lubridate::year(dataset[, 1])
+           name_append <- ifelse(rename, " (Monthly average)", "")
+         },
+         {
+           return(dataset)
+         }
+  )
+
+  # If we're still here it was weekly or monthly. Calculate
+  # the average for each unique permutation of filters
+
+  result <- ddply(.data = dataset,
+                  .variables = c("filter_1", "filter_2"),
+                  .fun = function(df, name_append){
+
+                    # Construct output names for the averages, compute those averages, and
+                    # apply said names.
+                    output_names <- paste0(names(df)[2:(ncol(df) - 2)], name_append)
+                    holding <- apply(df[, 2:(ncol(df) - 2), drop = FALSE], 2, FUN = median) %>%
+                      round %>% t %>% as.data.frame
+                    names(holding) <- output_names
+
+                    # Return the bound original values and averaged values
+                    return(cbind(df[, 1, drop = FALSE], holding))
+                  }, name_append = name_append)
+
+  return(result[, !(names(result) %in% c("filter_1","filter_2"))])
+}
+
 #Create a dygraph using our standard format.
-make_dygraph <- function(data, x, y, title, is_single = FALSE, legend_name = NULL, use_si = TRUE){
+make_dygraph <- function(data, x, y, title, is_single = FALSE, legend_name = NULL, use_si = TRUE, smoothing = "day") {
   # cat("Making dygraph:", title, "\n"); # Debugging
-  if(is_single){
-    data <- xts(data[,3], data[[1]])
-    if(is.null(legend_name)){
+  if (is_single) {
+    data <- smoother(as.data.frame(data[, c(1, 3)]), smooth_level = smoothing)
+    data <- xts(data[, 2], data[, 1])
+    if (is.null(legend_name)) {
       names(data) <- "events"
     } else {
       names(data) <- legend_name
     }
   } else {
-    data <- xts(data[,-1], order.by = data[[1]])
+    data %<>% smoother(smooth_level = smoothing)
+    data <- xts(data[, -1], order.by = data[, 1])
   }
-  renderDygraph({
-    dyCSS(
-      dyOptions(
-        dyLegend(
-          dygraph(data,
-                  main = title,
-                  xlab = x, ylab = y),
-          width = 400, show = "always"
-        ), strokeWidth = 3, colors = brewer.pal(3, "Set2"),
-        drawPoints = FALSE, pointSize = 3, labelsKMB = use_si,
-        includeZero = TRUE
-      )
-      ,css = "./assets/css/custom.css")
-  })
+  return(dygraph(data, main = title, xlab = x, ylab = y) %>%
+           dyLegend(width = 400, show = "always") %>%
+           dyOptions(strokeWidth = 3,
+                     colors = brewer.pal(max(3, ncol(data)), "Set2"),
+                     drawPoints = FALSE, pointSize = 3, labelsKMB = use_si,
+                     includeZero = TRUE) %>%
+           dyCSS(css = "./assets/css/custom.css"))
 }
 
 # Computes a median absolute deviation
@@ -145,55 +193,4 @@ safe_tail <- function(x, n, silent = TRUE) {
     message("Sorting by the date/timestamp column before returning the bottom ", n, " rows.")
   }
   return(tail(x[order(x[[timestamp_column[1]]]), ], n))
-}
-
-# Takes an untidy (read: dygraph-appropriate) dataset and adds
-# columns for each variable consisting of the smoothed, averaged mean
-smooth_mean <- function(dataset, smooth_level = "day"){
-
-  # Determine the names and levels of aggregation. By default
-  # a smoothing level of "day" is assumed, which is no smoothing
-  # whatsoever, and so the original dataset is returned.
-  switch(smooth_level,
-    week = {
-      dataset$filter_1 <- lubridate::week(dataset[, 1])
-      dataset$filter_2 <- lubridate::year(dataset[, 1])
-      name_append <- "(Weekly average)"
-    },
-    month = {
-      dataset$filter_1 <- lubridate::month(dataset[, 1])
-      dataset$filter_2 <- lubridate::year(dataset[, 1])
-      name_append <- "(Monthly average)"
-    },
-    {
-      return(dataset)
-    }
-  )
-
-  # If we're still here it was weekly or monthly. Calculate
-  # the average for each unique permutation of filters
-
-  result <- ddply(.data = dataset,
-                  .variables = c("filter_1", "filter_2"),
-                  .fun = function(df, name_append){
-
-                    # Construct output names for the averages, compute those averages, and
-                    # apply said names.
-                    output_names <- paste(names(df)[2:(ncol(df) - 2)], name_append)
-                    holding <- as.data.frame(t(round(apply(df[,2:(ncol(df) - 2)], 2, FUN = median))))
-                    names(holding) <- output_names
-
-                    # Return the bound original values and averaged values
-                    return(cbind(cbind(df[,1, drop=FALSE], holding)))
-                  }, name_append = name_append)
-
-  return(result[,!names(result) %in% c("filter_1","filter_2")])
-}
-
-# Standardised input selector for smoothing
-standard_select <- function(input_id){
-  return(
-    shiny::selectInput(inputId = input_id, label = "Smoothing",
-                       choices = c("no smoothing","weekly median","monthly median"), selected = "day")
-  )
 }

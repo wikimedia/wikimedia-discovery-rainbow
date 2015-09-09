@@ -39,9 +39,20 @@ sidebar <- dashboardSidebar(
              menuSubItem(text = "Summary", tabName = "failure_rate"),
              menuSubItem(text = "Search Type Breakdown", tabName = "failure_breakdown"),
              menuSubItem(text = "Search Suggestions", tabName = "failure_suggestions")
-    )
+    ),
+    selectInput(inputId = "smoothing_global", label = "Smoothing (Global Setting)", selectize = TRUE, selected = "day",
+                choices = c("No Smoothing" = "day", "Moving Average" = "moving_avg",
+                            "Weekly Median" = "week", "Monthly Median" = "month"))
   )
 )
+
+# Standardised input selector for smoothing
+smooth_select <- function(input_id, label = "Smoothing") {
+  return(selectInput(inputId = input_id, label = label, selectize = TRUE,
+                     selected = "global", choices = c("Use Global Setting" = "global",
+                     "No Smoothing" = "day", "Moving Average" = "moving_avg",
+                     "Weekly Median" = "week", "Monthly Median" = "month")))
+}
 
 #Body elements for the search visualisations.
 body <- dashboardBody(
@@ -59,9 +70,11 @@ body <- dashboardBody(
             includeMarkdown("./assets/content/kpis_summary.md")
             ),
     tabItem(tabName = "kpi_load_time",
+            smooth_select("smoothing_kpi_load_time"),
             dygraphOutput("kpi_load_time_series"),
             includeMarkdown("./assets/content/kpi_load_time.md")),
     tabItem(tabName = "kpi_zero_results",
+            smooth_select("smoothing_kpi_zero_results"),
             dygraphOutput("kpi_zero_results_series"),
             includeMarkdown("./assets/content/kpi_zero_results.md")),
     tabItem(tabName = "kpi_api_usage",
@@ -70,15 +83,16 @@ body <- dashboardBody(
                                          choices = list("Calls" = "raw",
                                                         "Day-to-day % change" = "change"),
                                          inline = TRUE),
-                            width = 5),
+                            width = 4),
                      column(checkboxInput("kpi_api_usage_series_log_scale",
                                           label = "Log10 Scale",
                                           value = FALSE),
-                            width = 3),
+                            width = 2),
                      column(checkboxInput("kpi_api_usage_series_include_open",
                                           label = "Include OpenSearch in total",
                                           value = TRUE),
-                            width = 4)),
+                            width = 3),
+                     column(smooth_select("smoothing_kpi_api_usage"), width = 3)),
             dygraphOutput("kpi_api_usage_series"),
             includeMarkdown("./assets/content/kpi_api_usage.md")),
     tabItem(tabName = "desktop_events",
@@ -87,9 +101,11 @@ body <- dashboardBody(
               valueBoxOutput("desktop_event_resultsets"),
               valueBoxOutput("desktop_event_clickthroughs")
             ),
+            smooth_select("smoothing_desktop_event"),
             dygraphOutput("desktop_event_plot"),
             includeMarkdown("./assets/content/desktop_events.md")),
     tabItem(tabName = "desktop_load",
+            smooth_select("smoothing_desktop_load"),
             dygraphOutput("desktop_load_plot"),
             includeMarkdown("./assets/content/desktop_load.md")),
     tabItem(tabName = "mobile_events",
@@ -98,10 +114,12 @@ body <- dashboardBody(
               valueBoxOutput("mobile_event_resultsets"),
               valueBoxOutput("mobile_event_clickthroughs")
             ),
+            smooth_select("smoothing_mobile_event"),
             dygraphOutput("mobile_event_plot"),
             includeMarkdown("./assets/content/mobile_events.md")
     ),
     tabItem(tabName = "mobile_load",
+            smooth_select("smoothing_mobile_load"),
             dygraphOutput("mobile_load_plot"),
             includeMarkdown("./assets/content/mobile_load.md")
     ),
@@ -111,45 +129,55 @@ body <- dashboardBody(
               valueBoxOutput("app_event_resultsets"),
               valueBoxOutput("app_event_clickthroughs")
             ),
+            smooth_select("smoothing_app_event"),
             dygraphOutput("android_event_plot"),
             dygraphOutput("ios_event_plot"),
             includeMarkdown("./assets/content/app_events.md")
     ),
     tabItem(tabName = "app_load",
+            smooth_select("smoothing_app_load"),
             dygraphOutput("android_load_plot"),
             dygraphOutput("ios_load_plot"),
             includeMarkdown("./assets/content/app_load.md")
     ),
     tabItem(tabName = "fulltext_search",
+            smooth_select("smoothing_fulltext_search"),
             dygraphOutput("cirrus_aggregate"),
             includeMarkdown("./assets/content/fulltext_basic.md")
     ),
     tabItem(tabName = "open_search",
+            smooth_select("smoothing_open_search"),
             dygraphOutput("open_aggregate"),
             includeMarkdown("./assets/content/open_basic.md")
     ),
     tabItem(tabName = "geo_search",
+            smooth_select("smoothing_geo_search"),
             dygraphOutput("geo_aggregate"),
             includeMarkdown("./assets/content/geo_basic.md")
     ),
     tabItem(tabName = "prefix_search",
+            smooth_select("smoothing_prefix_search"),
             dygraphOutput("prefix_aggregate"),
             includeMarkdown("./assets/content/prefix_basic.md")
     ),
     tabItem(tabName = "language_search",
+            smooth_select("smoothing_language_search"),
             dygraphOutput("language_aggregate"),
             includeMarkdown("./assets/content/language_basic.md")
     ),
     tabItem(tabName = "failure_rate",
+            smooth_select("smoothing_failure_rate"),
             dygraphOutput("failure_rate_plot"),
             dygraphOutput("failure_rate_change_plot"),
             includeMarkdown("./assets/content/failure_rate.md")
     ),
     tabItem(tabName = "failure_breakdown",
+            smooth_select("smoothing_failure_breakdown"),
             dygraphOutput("failure_breakdown_plot"),
             includeMarkdown("./assets/content/failure_breakdown.md")
     ),
     tabItem(tabName = "failure_suggestions",
+            smooth_select("smoothing_failure_suggestions"),
             dygraphOutput("suggestion_dygraph_plot"),
             includeMarkdown("./assets/content/failure_suggests.md")
     )
