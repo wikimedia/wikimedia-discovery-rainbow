@@ -293,7 +293,7 @@ shinyServer(function(input, output) {
                paste0(as.character(.[date_range_index], "%B "),
                       sub("([a-z]{2})", "<sup>\\1</sup>",
                           sapply(as.numeric(as.character(.[date_range_index], "%e")), toOrdinal)))
-             } %>% paste0(collapse = "—")
+             } %>% paste0(collapse = "-")
              return(HTML("<h3 class='kpi_date'>KPI summary for ", temp, ":</h3>"))
     })
     return(HTML("<h3 class='kpi_date'>KPI summary for ", temp[2], ", and % change from ", temp[1], ":</h3>"))
