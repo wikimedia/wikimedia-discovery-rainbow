@@ -1,95 +1,18 @@
 ## Version 0.2.0
 source("utils.R")
 
-existing_date <- (Sys.Date()-1)
-
-## Read in desktop data and generate means for the value boxes, along with a time-series appropriate form for
-## dygraphs.
-read_desktop <- function(){
-  data <- polloi::read_dataset("search/desktop_event_counts.tsv")
-  interim <- reshape2::dcast(data, formula = timestamp ~ action, fun.aggregate = sum)
-  interim[is.na(interim)] <- 0
-  desktop_dygraph_set <<- interim
-  desktop_dygraph_means <<- round(colMeans(desktop_dygraph_set[,2:5]))
-
-  data <- polloi::read_dataset("search/desktop_load_times.tsv")
-  desktop_load_data <<- data
-  return(invisible())
-}
-
-read_web <- function(){
-  data <- polloi::read_dataset("search/mobile_event_counts.tsv")
-  interim <- reshape2::dcast(data, formula = timestamp ~ action, fun.aggregate = sum)
-  interim[is.na(interim)] <- 0
-  mobile_dygraph_set <<- interim
-  mobile_dygraph_means <<- round(colMeans(mobile_dygraph_set[,2:4]))
-
-  mobile_load_data <<- polloi::read_dataset("search/mobile_load_times.tsv")
-  return(invisible())
-}
-
-read_apps <- function(){
-  data <- polloi::read_dataset("search/app_event_counts.tsv")
-
-  ios <- reshape2::dcast(data[data$platform == "iOS",], formula = timestamp ~ action, fun.aggregate = sum)
-  android <- reshape2::dcast(data[data$platform == "Android",], formula = timestamp ~ action, fun.aggregate = sum)
-  ios_dygraph_set <<- ios
-  ios_dygraph_means <<- round(colMeans(ios[,2:4]))
-
-  android_dygraph_set <<- android
-  android_dygraph_means <<- round(colMeans(android[,2:4]))
-
-  app_load_data <- polloi::read_dataset("search/app_load_times.tsv")
-  ios_load_data <<- app_load_data[app_load_data$platform == "iOS", names(app_load_data) != "platform"]
-  android_load_data <<- app_load_data[app_load_data$platform == "Android", names(app_load_data) != "platform"]
-
-  return(invisible())
-}
-
-read_api <- function(){
-  data <- polloi::read_dataset("search/search_api_aggregates.tsv")
-  data <- data[order(data$event_type),]
-  split_dataset <<- split(data, f = data$event_type)
-  return(invisible())
-}
-
-read_failures <- function(date){
-  data <- polloi::read_dataset("search/cirrus_query_aggregates.tsv")
-  interim_data <- reshape2::dcast(data, formula = date ~ variable, fun.aggregate = sum)
-  failure_dygraph_set <<- interim_data
-
-  interim_vector <- interim_data$`Zero Result Queries`/interim_data$`Search Queries`
-  output_vector <- (interim_vector[2:nrow(interim_data)] - interim_vector[1:(nrow(interim_data)-1)]) / interim_vector[1:(nrow(interim_data)-1)]
-
-  failure_roc_dygraph_set <<- data.frame(date = interim_data$date[2:nrow(interim_data)],
-                                         variable = "failure ROC",
-                                         daily_change = output_vector*100,
-                                         stringsAsFactors = FALSE)
-
-  interim_breakdown_data <- polloi::read_dataset("search/cirrus_query_breakdowns.tsv")
-  interim_breakdown_data$value <- interim_breakdown_data$value*100
-  failure_breakdown_dygraph_set <<- reshape2::dcast(interim_breakdown_data,
-                                                    formula = date ~ variable, fun.aggregate = sum)
-
-  suggestion_data <- polloi::read_dataset("search/cirrus_suggestion_breakdown.tsv")
-  suggestion_data$variable <- "Full-Text with Suggestions"
-  suggestion_data$value <- suggestion_data$value*100
-  suggestion_data <- rbind(suggestion_data,
-                           interim_breakdown_data[interim_breakdown_data$date %in% suggestion_data$date
-                                                  & interim_breakdown_data$variable == "Full-Text Search",])
-  suggestion_dygraph_set <<- reshape2::dcast(suggestion_data,
-                                             formula = date ~ variable, fun.aggregate = sum)
-  return(invisible())
-}
+existing_date <- Sys.Date() - 1
 
 shinyServer(function(input, output) {
 
-  if(Sys.Date() != existing_date){
+  if (Sys.Date() != existing_date) {
     read_desktop()
     read_apps()
     read_web()
     read_api()
     read_failures(existing_date)
+    read_augmented_clickthrough()
+    read_lethal_dose()
     existing_date <<- Sys.Date()
   }
 
@@ -311,7 +234,18 @@ shinyServer(function(input, output) {
                          xlab = "Date", ylab = "Zero Results Rate (%)", "Zero Result Rates with Search Suggestions")
   })
 
-  ## KPI module
+  output$lethal_dose_plot <- renderDygraph({
+    polloi::make_dygraph(data = polloi::smoother(user_page_visit_dataset,
+                                                 smooth_level = polloi::smooth_switch(input$smoothing_global,
+                                                                                      input$smoothing_lethal_dose_plot)),
+                         xlab = "", ylab = "Time (s)",
+                         title = "Time at which we have lost N% of the users") %>%
+      dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = CustomAxisFormatter,
+             axisLabelWidth = 100, pixelsPerLabel = 80) %>%
+      dyLegend(labelsDiv = "lethal_dose_plot_legend")
+  })
+
+  ## KPI Summary Boxes
   output$kpi_summary_date_range <- renderUI({
     date_range <- input$kpi_summary_date_range_selector
     switch(date_range,
@@ -355,39 +289,15 @@ shinyServer(function(input, output) {
   })
   output$kpi_summary_box_load_time <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
-    switch(date_range,
-           daily = {
-             x <- lapply(list(desktop_load_data, mobile_load_data,
-                              android_load_data, ios_load_data),
-                         polloi::safe_tail, n = 2) %>%
-               lapply(function(data_tail) return(data_tail$Median)) %>%
-               do.call(cbind, .) %>%
-               apply(MARGIN = 1, FUN = median)
-           },
-           weekly = {
-             x <- lapply(list(desktop_load_data, mobile_load_data,
-                              android_load_data, ios_load_data),
-                         polloi::safe_tail, n = 14) %>%
-               lapply(function(data_tail) return(data_tail$Median)) %>%
-               do.call(cbind, .) %>%
-               apply(MARGIN = 1, FUN = median)
-           },
-           monthly = {
-             x <- lapply(list(desktop_load_data, mobile_load_data,
-                              android_load_data, ios_load_data),
-                         polloi::safe_tail, n = 60) %>%
-               lapply(function(data_tail) return(data_tail$Median)) %>%
-               do.call(cbind, .) %>%
-               apply(MARGIN = 1, FUN = median)
-           },
-           quarterly = {
-             x <- lapply(list(desktop_load_data, mobile_load_data,
-                              android_load_data, ios_load_data),
-                         polloi::safe_tail, n = 90) %>%
-               lapply(function(data_tail) return(data_tail$Median))
-             y <- median(apply(do.call(cbind, x), 1, median))
-             return(valueBox(subtitle = "Load time", value = sprintf("%.0fms", y), color = "orange"))
-           })
+    x <- lapply(list(desktop_load_data, mobile_load_data,
+                     android_load_data, ios_load_data),
+                polloi::safe_tail, n = date_range_switch(date_range)) %>%
+      lapply(function(data_tail) return(data_tail$Median))
+    if ( date_range == "quarterly" ) {
+      y <- median(apply(do.call(cbind, x), 1, median))
+      return(valueBox(subtitle = "Load time", value = sprintf("%.0fms", y), color = "orange"))
+    }
+    x %<>% do.call(cbind, .) %>% apply(MARGIN = 1, FUN = median)
     y1 <- median(polloi::half(x)); y2 <- median(polloi::half(x, FALSE)); z <- 100 * (y2 - y1) / y1
     if (abs(z) > 0) {
       return(valueBox(subtitle = sprintf("Load time (%.1f%%)", z),
@@ -398,11 +308,7 @@ shinyServer(function(input, output) {
   })
   output$kpi_summary_box_zero_results <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
-    switch(date_range,
-           daily = {x <- polloi::safe_tail(failure_dygraph_set, 2)},
-           weekly = {x <- polloi::safe_tail(failure_dygraph_set, 14)},
-           monthly = {x <- polloi::safe_tail(failure_dygraph_set, 60)},
-           quarterly = {x <- polloi::safe_tail(failure_dygraph_set, 90)})
+    x <- polloi::safe_tail(failure_dygraph_set, date_range_switch(date_range))
     x <- transform(x, Rate = `Zero Result Queries` / `Search Queries`)$Rate
     if (date_range == "quarterly") {
       return(valueBox(subtitle = "Zero results rate", color = "orange",
@@ -422,18 +328,14 @@ shinyServer(function(input, output) {
   output$kpi_summary_box_api_usage <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
     x <- lapply(split_dataset, function(x) {
-      switch(date_range,
-             daily = { polloi::safe_tail(x, 2)$events },
-             weekly = { polloi::safe_tail(x, 14)$events },
-             monthly = { polloi::safe_tail(x, 60)$events },
-             quarterly = { polloi::safe_tail(x, 90)$events })
+      polloi::safe_tail(x, date_range_switch(date_range))$events
     }) %>% do.call(cbind, .) %>%
       transform(total = cirrus + geo + language + open + prefix) %>%
       { .$total }
     if (date_range == "quarterly") {
       return(valueBox(subtitle = "API usage", value = polloi::compress(median(x), 0), color = "orange"))
     }
-    y1 <- median(polloi::half(x, FALSE))
+    y1 <- median(polloi::half(x, TRUE))
     y2 <- median(polloi::half(x, FALSE))
     z <- 100 * (y2 - y1) / y1 # % change from t-1 to t
     if (abs(z) > 0) {
@@ -442,13 +344,33 @@ shinyServer(function(input, output) {
     }
     return(valueBox(subtitle = "API usage (no change)", value = polloi::compress(y2, 0), color = "orange"))
   })
+  output$kpi_summary_box_augmented_clickthroughs <- renderValueBox({
+    date_range <- input$kpi_summary_date_range_selector
+    #========= We can delete this block after we get 90 days of data =========
+    if ( (date_range == "monthly" && (Sys.Date()-1)-60 < as.Date("2015-09-02")) || date_range == "quarterly" && (Sys.Date()-1)-90 < as.Date("2015-09-02") ) {
+      return(valueBox(subtitle = "User engagement", color = "black", value = "NA"))
+    }
+    #=========================================================================
+    x <- polloi::safe_tail(augmented_clickthroughs, date_range_switch(date_range))
+    if (date_range == "quarterly") {
+      return(valueBox(subtitle = "User engagement", color = "orange",
+                      value = sprintf("%.1f%%", median(x$user_engagement))))
+    }
+    y1 <- median(polloi::half(x$user_engagement))
+    y2 <- median(polloi::half(x$user_engagement, FALSE))
+    z <- 100 * (y2 - y1)/y1
+    if (abs(z) > 0) {
+      return(valueBox(
+        subtitle = sprintf("User engagement (%.1f%%)", z),
+        value = sprintf("%.1f%%", y2),
+        icon = cond_icon(z > 0), color = polloi::cond_color(z > 0, "green")
+      ))
+    }
+    return(valueBox(subtitle = "User engagement (no change)",
+                    value = sprintf("%.1f%%", y2), color = "orange"))
+  })
   output$kpi_summary_api_usage_proportions <- renderPlot({
-    switch (input$kpi_summary_date_range_selector,
-            daily = { n <- 1 },
-            weekly = { n <- 7 },
-            monthly = { n <- 30 },
-            quarterly = { n <- 90 }
-    )
+    n <- date_range_switch(input$kpi_summary_date_range_selector, 1, 7, 30, 90)
     api_latest <- cbind("Full-text via API" = polloi::safe_tail(split_dataset$cirrus, n)$events,
                         "Geo Search" = polloi::safe_tail(split_dataset$geo, n)$events,
                         "OpenSearch" = polloi::safe_tail(split_dataset$open, n)$events,
@@ -466,6 +388,8 @@ shinyServer(function(input, output) {
     rm(i)
     gg_prop_bar(api_latest, cols = list(item = "API", prop = "Prop", label = "Label"))
   })
+
+  ## KPI Modules
   output$kpi_load_time_series <- renderDygraph({
     smooth_level <- input$smoothing_kpi_load_time
     num_of_days_in_common <- min(sapply(list(desktop_load_data$Median, mobile_load_data$Median, android_load_data$Median, ios_load_data$Median), length))
@@ -489,10 +413,10 @@ shinyServer(function(input, output) {
              dyAxis("y2", label = "Day-to-day % change in median load time",
                     independentTicks = TRUE, drawGrid = FALSE) %>%
              dyLegend(width = 500, show = "always") %>%
-             dyOptions(strokeWidth = 2, colors = brewer.pal(5, "Set2")[5:1],
+             dyOptions(strokeWidth = 2, colors = RColorBrewer::brewer.pal(5, "Set2")[5:1],
                        drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
                        includeZero = TRUE) %>%
-             dyCSS(css = "./assets/css/custom.css"))
+             dyCSS(css = system.file("custom.css", package = "polloi")))
   })
   output$kpi_zero_results_series <- renderDygraph({
     smooth_level <- input$smoothing_kpi_zero_results
@@ -507,21 +431,21 @@ shinyServer(function(input, output) {
                    ylab = "% of search queries that yield zero results") %>%
              dySeries("change", axis = 'y2', label = "day-to-day % change", strokeWidth = 1) %>%
              dyLimit(limit = 12.50, label = "Goal: 12.50% zero results rate",
-                     color = brewer.pal(3, "Set2")[3]) %>%
+                     color = RColorBrewer::brewer.pal(3, "Set2")[3]) %>%
              dyAxis("y2", label = "Day-to-day % change",
                     valueRange = c(-1, 1) * max(max(abs(as.numeric(zrr$change))), 10),
-                    axisLineColor = brewer.pal(3, "Set2")[2],
-                    axisLabelColor = brewer.pal(3, "Set2")[2],
+                    axisLineColor = RColorBrewer::brewer.pal(3, "Set2")[2],
+                    axisLabelColor = RColorBrewer::brewer.pal(3, "Set2")[2],
                     independentTicks = TRUE, drawGrid = FALSE) %>%
              dyAxis("y", drawGrid = FALSE,
-                    axisLineColor = brewer.pal(3, "Set2")[1],
-                    axisLabelColor = brewer.pal(3, "Set2")[1]) %>%
-             dyLimit(limit = 0, color = brewer.pal(3, "Set2")[2], strokePattern = "dashed") %>%
+                    axisLineColor = RColorBrewer::brewer.pal(3, "Set2")[1],
+                    axisLabelColor = RColorBrewer::brewer.pal(3, "Set2")[1]) %>%
+             dyLimit(limit = 0, color = RColorBrewer::brewer.pal(3, "Set2")[2], strokePattern = "dashed") %>%
              dyLegend(width = 400, show = "always") %>%
-             dyOptions(strokeWidth = 3, colors = brewer.pal(3, "Set2"),
+             dyOptions(strokeWidth = 3, colors = RColorBrewer::brewer.pal(3, "Set2"),
                        drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
                        includeZero = TRUE) %>%
-             dyCSS(css = "./assets/css/custom.css"))
+             dyCSS(css = system.file("custom.css", package = "polloi")))
   })
   output$kpi_api_usage_series <- renderDygraph({
     smooth_level <- input$smoothing_kpi_api_usage
@@ -541,12 +465,12 @@ shinyServer(function(input, output) {
                      ylab = ifelse(input$kpi_api_usage_series_log_scale, "Calls (log10 scale)", "Calls")) %>%
                dySeries("cirrus", label = "full-text via API") %>%
                dyLegend(width = 400, show = "always") %>%
-               dyOptions(strokeWidth = 3, colors = brewer.pal(6, "Set2")[6:1],
+               dyOptions(strokeWidth = 3, colors = RColorBrewer::brewer.pal(6, "Set2")[6:1],
                          drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
                          includeZero = input$kpi_api_usage_series_log_scale,
                          logscale = input$kpi_api_usage_series_log_scale
                ) %>%
-               dyCSS(css = "./assets/css/custom.css"))
+               dyCSS(css = system.file("custom.css", package = "polloi")))
     }
     api_usage_change <- transform(api_usage,
                                   cirrus = polloi::percent_change(cirrus),
@@ -563,10 +487,18 @@ shinyServer(function(input, output) {
                    main = "Day-to-day % change over time",
                    xlab = "Date", ylab = "% change") %>%
              dyLegend(width = 400, show = "always") %>%
-             dyOptions(strokeWidth = 3, colors = brewer.pal(6, "Set2"),
+             dyOptions(strokeWidth = 3, colors = RColorBrewer::brewer.pal(6, "Set2"),
                        drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
                        includeZero = TRUE) %>%
-             dyCSS(css = "./assets/css/custom.css"))
+             dyCSS(css = system.file("custom.css", package = "polloi")))
+  })
+  output$kpi_augmented_clickthroughs_series <- renderDygraph({
+    smoothed_data <- polloi::smoother(augmented_clickthroughs,
+      smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_augmented_clickthroughs))
+    polloi::make_dygraph(data = smoothed_data, xlab = "Date", ylab = "Rates", "User engagement (augmented clickthroughs) by day") %>%
+      dySeries(name = colnames(smoothed_data)[2], strokeWidth = 1.5, strokePattern = "dashed") %>%
+      dySeries(name = colnames(smoothed_data)[3], strokeWidth = 1.5, strokePattern = "dashed") %>%
+      dyLegend(labelsDiv = "kpi_augmented_clickthroughs_series_legend")
   })
 
 })

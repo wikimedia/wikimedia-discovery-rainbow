@@ -1,10 +1,10 @@
 Key Performance Indicators
 =======
 
-* **User-perceived load time** If our search is fast and snappy, then more people will use it! 
-* **Zero Results Rate** If a user gets zero results for their query, they’ve by definition not found what they’re looking for.
-* **API usage** We want people, both within our movement and outside it, to be able to easily access our information.
-* **[User Satisfaction](https://meta.wikimedia.org/wiki/Research:Measuring_User_Search_Satisfaction)** If a user searches for something and clicks on a result, then they found what they wanted.
+- **User-perceived load time** If our search is fast and snappy, then more people will use it! 
+- **Zero Results Rate** If a user gets zero results for their query, they’ve by definition not found what they’re looking for.
+- **API usage** We want people, both within our movement and outside it, to be able to easily access our information.
+- **User Engagement** (not quite **[User Satisfaction](https://meta.wikimedia.org/wiki/Research:Measuring_User_Search_Satisfaction)**) This is an augmented version of clickthrough rate. In it we are including the proportion of users' sessions exceeding a pre-specified threshold. **Note** that we deployed v2.0 of the satisfaction schema on 9/2/2015. You may see **NA** if we do not have enough data available at the time.
 
 Outages and inaccuracies
 ------

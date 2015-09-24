@@ -4,7 +4,7 @@ library(dygraphs)
 options(scipen = 500)
 
 #Header elements for the visualisation
-header <- dashboardHeader(title = "Search & Discovery", disable = FALSE)
+header <- dashboardHeader(title = "Search Metrics", disable = FALSE)
 
 #Sidebar elements for the search visualisations.
 sidebar <- dashboardSidebar(
@@ -17,7 +17,8 @@ sidebar <- dashboardSidebar(
              menuSubItem(text = "Summary", tabName = "kpis_summary"),
              menuSubItem(text = "Load times", tabName = "kpi_load_time"),
              menuSubItem(text = "Zero results", tabName = "kpi_zero_results"),
-             menuSubItem(text = "API usage", tabName = "kpi_api_usage")),
+             menuSubItem(text = "API usage", tabName = "kpi_api_usage"),
+             menuSubItem(text = "Augmented Clickthrough", tabName = "kpi_augmented_clickthroughs")),
     menuItem(text = "Desktop",
              menuSubItem(text = "Events", tabName = "desktop_events"),
              menuSubItem(text = "Load times", tabName = "desktop_load")),
@@ -26,20 +27,19 @@ sidebar <- dashboardSidebar(
              menuSubItem(text = "Load times", tabName = "mobile_load")),
     menuItem(text = "Mobile Apps",
              menuSubItem(text = "Events", tabName = "app_events"),
-             menuSubItem(text = "Load times", tabName = "app_load")
-    ),
+             menuSubItem(text = "Load times", tabName = "app_load")),
     menuItem(text = "API",
              menuSubItem(text = "Full-text via API", tabName = "fulltext_search"),
              menuSubItem(text = "Open Search", tabName = "open_search"),
              menuSubItem(text = "Geo Search", tabName = "geo_search"),
              menuSubItem(text = "Prefix Search", tabName = "prefix_search"),
-             menuSubItem(text = "Language Search", tabName = "language_search")
-    ),
+             menuSubItem(text = "Language Search", tabName = "language_search")),
     menuItem(text = "Zero Results",
              menuSubItem(text = "Summary", tabName = "failure_rate"),
              menuSubItem(text = "Search Type Breakdown", tabName = "failure_breakdown"),
-             menuSubItem(text = "Search Suggestions", tabName = "failure_suggestions")
-    ),
+             menuSubItem(text = "Search Suggestions", tabName = "failure_suggestions")),
+    menuItem(text = "Page Visit Times", tabName = "survival",
+             badgeLabel = "new", badgeColor = "fuchsia"),
     selectInput(inputId = "smoothing_global", label = "Smoothing (Global Setting)", selectize = TRUE, selected = "day",
                 choices = c("No Smoothing" = "day", "Moving Average" = "moving_avg",
                             "Weekly Median" = "week", "Monthly Median" = "month"))
@@ -65,7 +65,7 @@ body <- dashboardBody(
             fluidRow(valueBoxOutput("kpi_summary_box_load_time", width = 3),
                      valueBoxOutput("kpi_summary_box_zero_results", width = 3),
                      valueBoxOutput("kpi_summary_box_api_usage", width = 3),
-                     valueBox(subtitle = "User-satisfaction", value = "WIP", color = "black", width = 3)),
+                     valueBoxOutput("kpi_summary_box_augmented_clickthroughs", width = 3)),
             plotOutput("kpi_summary_api_usage_proportions", height = "30px"),
             includeMarkdown("./assets/content/kpis_summary.md")
             ),
@@ -95,6 +95,12 @@ body <- dashboardBody(
                      column(smooth_select("smoothing_kpi_api_usage"), width = 3)),
             dygraphOutput("kpi_api_usage_series"),
             includeMarkdown("./assets/content/kpi_api_usage.md")),
+    tabItem(tabName = "kpi_augmented_clickthroughs",
+            fluidRow(
+              column(smooth_select("smoothing_augmented_clickthroughs"), width = 4),
+              column(div(id = "kpi_augmented_clickthroughs_series_legend"), width = 8)),
+            dygraphOutput("kpi_augmented_clickthroughs_series"),
+            includeMarkdown("./assets/content/kpi_augmented_clickthroughs.md")),
     tabItem(tabName = "desktop_events",
             fluidRow(
               valueBoxOutput("desktop_event_searches"),
@@ -180,8 +186,17 @@ body <- dashboardBody(
             smooth_select("smoothing_failure_suggestions"),
             dygraphOutput("suggestion_dygraph_plot"),
             includeMarkdown("./assets/content/failure_suggests.md")
+    ),
+    tabItem(tabName = "survival",
+            fluidRow(
+              column(smooth_select("smoothing_lethal_dose_plot"), width = 4),
+              column(div(id = "lethal_dose_plot_legend"), width = 8)
+            ),
+            dygraphOutput("lethal_dose_plot"),
+            includeMarkdown("./assets/content/survival.md")
     )
   )
 )
 
-dashboardPage(header, sidebar, body, skin = "black")
+dashboardPage(header, sidebar, body, skin = "black",
+              title = "Search Metrics Dashboard | Discovery | Engineering | Wikimedia Foundation")
