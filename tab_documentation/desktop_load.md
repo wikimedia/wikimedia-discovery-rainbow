@@ -15,6 +15,7 @@ Outages and inaccuracies
 There are occasionally going to be outages that will affect the accuracy of data. To make it easier to rely on the data (or not!) they will be listed here, from most- to least-recent.
 
 * Between 5 May and 6 May 2015, approximately 40% of incoming EventLogging data was lost due to a wider EventLogging outage. You can read more about the outage [here](https://wikitech.wikimedia.org/wiki/Incident_documentation/20150506-EventLogging).
+* Data in late September/early October 2015 is unavailable due to another bug in EventLogging as a whole, which impacted data collection.
 
 Questions, bug reports, and feature suggestions
 ------
@@ -23,7 +24,7 @@ For technical, non-bug questions, [email Mikhail](mailto:mpopov@wikimedia.org?su
 <hr style="border-color: gray;">
 <p style="font-size: small; color: gray;">
   <strong>Link to this dashboard:</strong>
-  <a href="http://searchdata.wmflabs.org/metrics/#desktop_load">
-    http://searchdata.wmflabs.org/metrics/#desktop_load
+  <a href="http://discovery.wmflabs.org/metrics/#desktop_load">
+    http://discovery.wmflabs.org/metrics/#desktop_load
   </a>
 </p>

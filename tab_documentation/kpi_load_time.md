@@ -15,7 +15,7 @@ For technical, non-bug questions, [email Mikhail](mailto:mpopov@wikimedia.org?su
 <hr style="border-color: gray;">
 <p style="font-size: small; color: gray;">
   <strong>Link to this dashboard:</strong>
-  <a href="http://searchdata.wmflabs.org/metrics/#kpi_load_time">
-    http://searchdata.wmflabs.org/metrics/#kpi_load_time
+  <a href="http://discovery.wmflabs.org/metrics/#kpi_load_time">
+    http://discovery.wmflabs.org/metrics/#kpi_load_time
   </a>
 </p>

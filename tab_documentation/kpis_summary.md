@@ -18,7 +18,7 @@ For technical, non-bug questions, [email Mikhail](mailto:mpopov@wikimedia.org?su
 <hr style="border-color: gray;">
 <p style="font-size: small; color: gray;">
   <strong>Link to this dashboard:</strong>
-  <a href="http://searchdata.wmflabs.org/metrics/#kpis_summary">
-    http://searchdata.wmflabs.org/metrics/#kpis_summary
+  <a href="http://discovery.wmflabs.org/metrics/#kpis_summary">
+    http://discovery.wmflabs.org/metrics/#kpis_summary
   </a>
 </p>
