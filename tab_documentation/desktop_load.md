@@ -14,6 +14,7 @@ Outages and inaccuracies
 ------
 There are occasionally going to be outages that will affect the accuracy of data. To make it easier to rely on the data (or not!) they will be listed here, from most- to least-recent.
 
+* Between 2 October 2015 and 28 October 2015 we were not logging any events from the Search schema. There was a change in core that broke the code being inserted into pages. Those pages were cached into varnish so an alternate solution had to be taken. that was delayed because of deployment freezes. The change in core only broke it because the way the code was added from our side was technically wrong, but happened to work anyways.
 * Between 5 May and 6 May 2015, approximately 40% of incoming EventLogging data was lost due to a wider EventLogging outage. You can read more about the outage [here](https://wikitech.wikimedia.org/wiki/Incident_documentation/20150506-EventLogging).
 * Data in late September/early October 2015 is unavailable due to another bug in EventLogging as a whole, which impacted data collection.
 
