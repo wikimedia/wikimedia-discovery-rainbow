@@ -10,28 +10,34 @@ library(xts)
 ## dygraphs.
 read_desktop <- function() {
   data <- polloi::read_dataset("search/desktop_event_counts.tsv")
-  interim <- reshape2::dcast(data, formula = timestamp ~ action, fun.aggregate = sum)
+  names(data)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
+  interim <- reshape2::dcast(data, formula = date ~ action, fun.aggregate = sum)
   interim[is.na(interim)] <- 0
   desktop_dygraph_set <<- interim
   desktop_dygraph_means <<- round(colMeans(desktop_dygraph_set[,2:5]))
-  desktop_load_data <<- polloi::read_dataset("search/desktop_load_times.tsv")
+  interim <- polloi::read_dataset("search/desktop_load_times.tsv")
+  names(interim)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
+  desktop_load_data <<- interim
 }
 
 read_web <- function() {
   data <- polloi::read_dataset("search/mobile_event_counts.tsv")
-  interim <- reshape2::dcast(data, formula = timestamp ~ action, fun.aggregate = sum)
+  names(data)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
+  interim <- reshape2::dcast(data, formula = date ~ action, fun.aggregate = sum)
   interim[is.na(interim)] <- 0
   mobile_dygraph_set <<- interim
   mobile_dygraph_means <<- round(colMeans(mobile_dygraph_set[,2:4]))
-  mobile_load_data <<- polloi::read_dataset("search/mobile_load_times.tsv")
+  interim <- polloi::read_dataset("search/mobile_load_times.tsv")
+  names(interim)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
+  mobile_load_data <<- interim
 }
 
 read_apps <- function() {
 
   data <- polloi::read_dataset("search/app_event_counts.tsv")
-
-  ios <- reshape2::dcast(data[data$platform == "iOS",], formula = timestamp ~ action, fun.aggregate = sum)
-  android <- reshape2::dcast(data[data$platform == "Android",], formula = timestamp ~ action, fun.aggregate = sum)
+  names(data)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
+  ios <- reshape2::dcast(data[data$platform == "iOS",], formula = date ~ action, fun.aggregate = sum)
+  android <- reshape2::dcast(data[data$platform == "Android",], formula = date ~ action, fun.aggregate = sum)
   ios_dygraph_set <<- ios
   ios_dygraph_means <<- round(colMeans(ios[,2:4]))
 
@@ -39,6 +45,7 @@ read_apps <- function() {
   android_dygraph_means <<- round(colMeans(android[,2:4]))
 
   app_load_data <- polloi::read_dataset("search/app_load_times.tsv")
+  names(app_load_data)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
   ios_load_data <<- app_load_data[app_load_data$platform == "iOS", names(app_load_data) != "platform"]
   android_load_data <<- app_load_data[app_load_data$platform == "Android", names(app_load_data) != "platform"]
 
@@ -46,6 +53,7 @@ read_apps <- function() {
 
 read_api <- function(){
   data <- polloi::read_dataset("search/search_api_aggregates.tsv")
+  names(data)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
   data <- data[order(data$event_type),]
   split_dataset <<- split(data, f = data$event_type)
 }

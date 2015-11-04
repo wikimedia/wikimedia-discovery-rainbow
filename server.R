@@ -250,7 +250,7 @@ shinyServer(function(input, output) {
     date_range <- input$kpi_summary_date_range_selector
     switch(date_range,
            daily = {
-             temp <- polloi::safe_tail(desktop_load_data, 2)$timestamp %>% {
+             temp <- polloi::safe_tail(desktop_load_data, 2)$date %>% {
                paste0(as.character(., "%A, %b "),
                       sub("([a-z]{2})", "<sup>\\1</sup>",
                           sapply(as.numeric(as.character(., "%e")), toOrdinal)))
@@ -258,7 +258,7 @@ shinyServer(function(input, output) {
            },
            weekly = {
              date_range_index <- c(1, 7, 8, 14)
-             temp <- polloi::safe_tail(desktop_load_data, date_range_index[4])$timestamp %>% {
+             temp <- polloi::safe_tail(desktop_load_data, date_range_index[4])$date %>% {
                paste0(as.character(.[date_range_index], "%b "),
                       sub("([a-z]{2})", "<sup>\\1</sup>",
                           sapply(as.numeric(as.character(.[date_range_index], "%e")), toOrdinal)))
@@ -268,7 +268,7 @@ shinyServer(function(input, output) {
            },
            monthly = {
              date_range_index <- c(1, 31, 31, 60)
-             temp <- polloi::safe_tail(desktop_load_data, date_range_index[4])$timestamp %>% {
+             temp <- polloi::safe_tail(desktop_load_data, date_range_index[4])$date %>% {
                paste0(as.character(.[date_range_index], "%b "),
                       sub("([a-z]{2})", "<sup>\\1</sup>",
                           sapply(as.numeric(as.character(.[date_range_index], "%e")), toOrdinal)))
@@ -278,7 +278,7 @@ shinyServer(function(input, output) {
            },
            quarterly = {
              date_range_index <- c(1, 90)
-             temp <- polloi::safe_tail(desktop_load_data, date_range_index[2])$timestamp %>% {
+             temp <- polloi::safe_tail(desktop_load_data, date_range_index[2])$date %>% {
                paste0(as.character(.[date_range_index], "%B "),
                       sub("([a-z]{2})", "<sup>\\1</sup>",
                           sapply(as.numeric(as.character(.[date_range_index], "%e")), toOrdinal)))
@@ -402,7 +402,7 @@ shinyServer(function(input, output) {
         Median = apply(., 1, median)
         cbind(Median = Median, .)
       } %>%
-      cbind(timestamp = polloi::safe_tail(desktop_load_data, num_of_days_in_common)$timestamp, .) %>%
+      cbind(date = polloi::safe_tail(desktop_load_data, num_of_days_in_common)$date, .) %>%
       polloi::smoother(smooth_level = ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE) %>%
       { xts::xts(.[, -1], order.by = .[, 1]) }
     return(dygraph(load_times,
@@ -449,7 +449,7 @@ shinyServer(function(input, output) {
   })
   output$kpi_api_usage_series <- renderDygraph({
     smooth_level <- input$smoothing_kpi_api_usage
-    api_usage <- cbind(timestamp = split_dataset$cirrus$timestamp, as.data.frame(lapply(split_dataset, function(x) x$events)))
+    api_usage <- cbind(date = split_dataset$cirrus$date, as.data.frame(lapply(split_dataset, function(x) x$events)))
     if ( input$kpi_api_usage_series_include_open ) {
       api_usage <- transform(api_usage, all = cirrus + geo + language + open + prefix)
     } else {
