@@ -41,8 +41,7 @@ sidebar <- dashboardSidebar(
     menuItem(text = "Page Visit Times", tabName = "survival",
              badgeLabel = "new", badgeColor = "fuchsia"),
     selectInput(inputId = "smoothing_global", label = "Smoothing (Global Setting)", selectize = TRUE, selected = "day",
-                choices = c("No Smoothing" = "day", "Moving Average" = "moving_avg",
-                            "Weekly Median" = "week", "Monthly Median" = "month"))
+                choices = c("No Smoothing" = "day", "Weekly Median" = "week", "Monthly Median" = "month"))
   )
 )
 
@@ -50,8 +49,7 @@ sidebar <- dashboardSidebar(
 smooth_select <- function(input_id, label = "Smoothing") {
   return(selectInput(inputId = input_id, label = label, selectize = TRUE,
                      selected = "global", choices = c("Use Global Setting" = "global",
-                     "No Smoothing" = "day", "Moving Average" = "moving_avg",
-                     "Weekly Median" = "week", "Monthly Median" = "month")))
+                     "No Smoothing" = "day", "Weekly Median" = "week", "Monthly Median" = "month")))
 }
 
 #Body elements for the search visualisations.
