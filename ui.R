@@ -6,6 +6,24 @@ options(scipen = 500)
 #Header elements for the visualisation
 header <- dashboardHeader(title = "Search Metrics", disable = FALSE)
 
+# Standardised input selector for smoothing
+smooth_select <- function(input_id, label = "Smoothing") {
+  return(selectInput(inputId = input_id, label = label, selectize = TRUE,
+                     selected = "global", choices = c("Use Global Setting" = "global",
+                                                      "No Smoothing" = "day", "Weekly Median" = "week", "Monthly Median" = "month")))
+}
+# Standardized selectors for time frame
+timeframe_select <- function(input_id, label = "Time Frame") {
+  return(selectInput(inputId = input_id, label = label, selectize = TRUE, selected = "global",
+                     choices = c("Use Global Setting" = "global", "Last 7 days" = "week",
+                                 "Last 30 days" = "month", "Last 90 days" = "quarter", "Custom" = "custom")))
+}
+timeframe_daterange <- function(select_input_id, label = "Custom Date Range") {
+  return(conditionalPanel(paste0("input.", select_input_id," == 'custom'"),
+                          dateRangeInput(paste(select_input_id, "daterange", sep = "_"), label = label,
+                                         start = Sys.Date()-11, end = Sys.Date()-1, min = "2015-04-14")))
+}
+
 #Sidebar elements for the search visualisations.
 sidebar <- dashboardSidebar(
   tags$head(
@@ -14,11 +32,17 @@ sidebar <- dashboardSidebar(
   ),
   sidebarMenu(
     menuItem(text = "KPIs",
+             div(selectInput("kpi_summary_date_range_selector",
+                             label = "KPI data range", multiple = FALSE, selected = "weekly",
+                             choices = list("Yesterday" = "daily", "Last 7 days" = "weekly",
+                                            "Last 30 days" = "monthly", "Last 90 days" = "quarterly")),
+                 style = "margin-bottom:-10px;"),
              menuSubItem(text = "Summary", tabName = "kpis_summary"),
              menuSubItem(text = "Load times", tabName = "kpi_load_time"),
              menuSubItem(text = "Zero results", tabName = "kpi_zero_results"),
              menuSubItem(text = "API usage", tabName = "kpi_api_usage"),
-             menuSubItem(text = "Augmented Clickthrough", tabName = "kpi_augmented_clickthroughs")),
+             menuSubItem(text = "Augmented Clickthrough", tabName = "kpi_augmented_clickthroughs"),
+             icon = icon("star", lib = "glyphicon")),
     menuItem(text = "Desktop",
              menuSubItem(text = "Events", tabName = "desktop_events"),
              menuSubItem(text = "Load times", tabName = "desktop_load")),
@@ -38,37 +62,36 @@ sidebar <- dashboardSidebar(
              menuSubItem(text = "Summary", tabName = "failure_rate"),
              menuSubItem(text = "Search Type Breakdown", tabName = "failure_breakdown"),
              menuSubItem(text = "Search Suggestions", tabName = "failure_suggestions")),
-    menuItem(text = "Page Visit Times", tabName = "survival",
-             badgeLabel = "new", badgeColor = "fuchsia"),
-    selectInput(inputId = "smoothing_global", label = "Smoothing (Global Setting)", selectize = TRUE, selected = "day",
-                choices = c("No Smoothing" = "day", "Weekly Median" = "week", "Monthly Median" = "month"))
+    menuItem(text = "Page Visit Times", tabName = "survival"),
+    menuItem(text = "Global Settings",
+             selectInput(inputId = "smoothing_global", label = "Smoothing", selectize = TRUE, selected = "day",
+                         choices = c("No Smoothing" = "day", "Weekly Median" = "week", "Monthly Median" = "month")),
+             selectInput(inputId = "timeframe_global", label = "Time Frame", selectize = TRUE, selected = "",
+                         choices = c("All available data" = "all", "Last 7 days" = "week", "Last 30 days" = "month",
+                                     "Last 90 days" = "quarter", "Custom" = "custom")),
+             conditionalPanel("input.timeframe_global == 'custom'",
+                              dateRangeInput("daterange_global", label = "Custom Date Range",
+                                             start = Sys.Date()-11, end = Sys.Date()-1, min = "2015-04-14")),
+             icon = icon("cog", lib = "glyphicon"))
   )
 )
-
-# Standardised input selector for smoothing
-smooth_select <- function(input_id, label = "Smoothing") {
-  return(selectInput(inputId = input_id, label = label, selectize = TRUE,
-                     selected = "global", choices = c("Use Global Setting" = "global",
-                     "No Smoothing" = "day", "Weekly Median" = "week", "Monthly Median" = "month")))
-}
 
 #Body elements for the search visualisations.
 body <- dashboardBody(
   tabItems(
     tabItem(tabName = "kpis_summary",
-            selectInput("kpi_summary_date_range_selector", label = "Data range", multiple = FALSE, selected = "weekly",
-                        choices = list("Yesterday" = "daily", "Last 7 days" = "weekly",
-                                       "Last 30 days" = "monthly", "Last 90 days" = "quarterly")),
             htmlOutput("kpi_summary_date_range"),
             fluidRow(valueBoxOutput("kpi_summary_box_load_time", width = 3),
                      valueBoxOutput("kpi_summary_box_zero_results", width = 3),
                      valueBoxOutput("kpi_summary_box_api_usage", width = 3),
                      valueBoxOutput("kpi_summary_box_augmented_clickthroughs", width = 3)),
             plotOutput("kpi_summary_api_usage_proportions", height = "30px"),
-            includeMarkdown("./tab_documentation/kpis_summary.md")
-            ),
+            includeMarkdown("./tab_documentation/kpis_summary.md")),
     tabItem(tabName = "kpi_load_time",
-            smooth_select("smoothing_kpi_load_time"),
+            fluidRow(
+              column(smooth_select("smoothing_kpi_load_time"), width = 4),
+              column(div(id = "kpi_load_time_series_legend"), width = 8)
+            ),
             dygraphOutput("kpi_load_time_series"),
             includeMarkdown("./tab_documentation/kpi_load_time.md")),
     tabItem(tabName = "kpi_zero_results",
@@ -103,27 +126,37 @@ body <- dashboardBody(
             fluidRow(
               valueBoxOutput("desktop_event_searches"),
               valueBoxOutput("desktop_event_resultsets"),
-              valueBoxOutput("desktop_event_clickthroughs")
-            ),
-            smooth_select("smoothing_desktop_event"),
+              valueBoxOutput("desktop_event_clickthroughs")),
+            fluidRow(
+              column(smooth_select("smoothing_desktop_event"), width = 4),
+              column(timeframe_select("desktop_event_timeframe"), width = 4),
+              column(timeframe_daterange("desktop_event_timeframe"), width = 4)),
             dygraphOutput("desktop_event_plot"),
             includeMarkdown("./tab_documentation/desktop_events.md")),
     tabItem(tabName = "desktop_load",
-            smooth_select("smoothing_desktop_load"),
+            fluidRow(
+              column(smooth_select("smoothing_desktop_load"), width = 4),
+              column(timeframe_select("desktop_load_timeframe"), width = 4),
+              column(timeframe_daterange("desktop_load_timeframe"), width = 4)),
             dygraphOutput("desktop_load_plot"),
             includeMarkdown("./tab_documentation/desktop_load.md")),
     tabItem(tabName = "mobile_events",
             fluidRow(
               valueBoxOutput("mobile_event_searches"),
               valueBoxOutput("mobile_event_resultsets"),
-              valueBoxOutput("mobile_event_clickthroughs")
-            ),
-            smooth_select("smoothing_mobile_event"),
+              valueBoxOutput("mobile_event_clickthroughs")),
+            fluidRow(
+              column(smooth_select("smoothing_mobile_event"), width = 4),
+              column(timeframe_select("mobile_event_timeframe"), width = 4),
+              column(timeframe_daterange("mobile_event_timeframe"), width = 4)),
             dygraphOutput("mobile_event_plot"),
             includeMarkdown("./tab_documentation/mobile_events.md")
     ),
     tabItem(tabName = "mobile_load",
-            smooth_select("smoothing_mobile_load"),
+            fluidRow(
+              column(smooth_select("smoothing_mobile_load"), width = 4),
+              column(timeframe_select("mobile_load_timeframe"), width = 4),
+              column(timeframe_daterange("mobile_load_timeframe"), width = 4)),
             dygraphOutput("mobile_load_plot"),
             includeMarkdown("./tab_documentation/mobile_load.md")
     ),
@@ -131,65 +164,95 @@ body <- dashboardBody(
             fluidRow(
               valueBoxOutput("app_event_searches"),
               valueBoxOutput("app_event_resultsets"),
-              valueBoxOutput("app_event_clickthroughs")
-            ),
-            smooth_select("smoothing_app_event"),
+              valueBoxOutput("app_event_clickthroughs")),
+            fluidRow(
+              column(smooth_select("smoothing_app_event"), width = 4),
+              column(timeframe_select("app_event_timeframe"), width = 4),
+              column(timeframe_daterange("app_event_timeframe"), width = 4)),
             dygraphOutput("android_event_plot"),
             dygraphOutput("ios_event_plot"),
             includeMarkdown("./tab_documentation/app_events.md")
     ),
     tabItem(tabName = "app_load",
-            smooth_select("smoothing_app_load"),
+            fluidRow(
+              column(smooth_select("smoothing_app_load"), width = 4),
+              column(timeframe_select("app_load_timeframe"), width = 4),
+              column(timeframe_daterange("app_load_timeframe"), width = 4)),
             dygraphOutput("android_load_plot"),
             dygraphOutput("ios_load_plot"),
             includeMarkdown("./tab_documentation/app_load.md")
     ),
     tabItem(tabName = "fulltext_search",
-            smooth_select("smoothing_fulltext_search"),
+            fluidRow(
+              column(smooth_select("smoothing_fulltext_search"), width = 4),
+              column(timeframe_select("fulltext_search_timeframe"), width = 4),
+              column(timeframe_daterange("fulltext_search_timeframe"), width = 4)),
             dygraphOutput("cirrus_aggregate"),
             includeMarkdown("./tab_documentation/fulltext_basic.md")
     ),
     tabItem(tabName = "open_search",
-            smooth_select("smoothing_open_search"),
+            fluidRow(
+              column(smooth_select("smoothing_open_search"), width = 4),
+              column(timeframe_select("open_search_timeframe"), width = 4),
+              column(timeframe_daterange("open_search_timeframe"), width = 4)),
             dygraphOutput("open_aggregate"),
             includeMarkdown("./tab_documentation/open_basic.md")
     ),
     tabItem(tabName = "geo_search",
-            smooth_select("smoothing_geo_search"),
+            fluidRow(
+              column(smooth_select("smoothing_geo_search"), width = 4),
+              column(timeframe_select("geo_search_timeframe"), width = 4),
+              column(timeframe_daterange("geo_search_timeframe"), width = 4)),
             dygraphOutput("geo_aggregate"),
             includeMarkdown("./tab_documentation/geo_basic.md")
     ),
     tabItem(tabName = "prefix_search",
-            smooth_select("smoothing_prefix_search"),
+            fluidRow(
+              column(smooth_select("smoothing_prefix_search"), width = 4),
+              column(timeframe_select("prefix_search_timeframe"), width = 4),
+              column(timeframe_daterange("prefix_search_timeframe"), width = 4)),
             dygraphOutput("prefix_aggregate"),
             includeMarkdown("./tab_documentation/prefix_basic.md")
     ),
     tabItem(tabName = "language_search",
-            smooth_select("smoothing_language_search"),
+            fluidRow(
+              column(smooth_select("smoothing_language_search"), width = 4),
+              column(timeframe_select("language_search_timeframe"), width = 4),
+              column(timeframe_daterange("language_search_timeframe"), width = 4)),
             dygraphOutput("language_aggregate"),
             includeMarkdown("./tab_documentation/language_basic.md")
     ),
     tabItem(tabName = "failure_rate",
-            smooth_select("smoothing_failure_rate"),
+            fluidRow(
+              column(smooth_select("smoothing_failure_rate"), width = 4),
+              column(timeframe_select("failure_rate_timeframe"), width = 4),
+              column(timeframe_daterange("failure_rate_timeframe"), width = 4)),
             dygraphOutput("failure_rate_plot"),
             dygraphOutput("failure_rate_change_plot"),
             includeMarkdown("./tab_documentation/failure_rate.md")
     ),
     tabItem(tabName = "failure_breakdown",
-            smooth_select("smoothing_failure_breakdown"),
+            fluidRow(
+              column(smooth_select("smoothing_failure_breakdown"), width = 4),
+              column(timeframe_select("failure_breakdown_timeframe"), width = 4),
+              column(timeframe_daterange("failure_breakdown_timeframe"), width = 4)),
             dygraphOutput("failure_breakdown_plot"),
             includeMarkdown("./tab_documentation/failure_breakdown.md")
     ),
     tabItem(tabName = "failure_suggestions",
-            smooth_select("smoothing_failure_suggestions"),
+            fluidRow(
+              column(smooth_select("smoothing_failure_suggestions"), width = 4),
+              column(timeframe_select("failure_suggestions_timeframe"), width = 4),
+              column(timeframe_daterange("failure_suggestions_timeframe"), width = 4)),
             dygraphOutput("suggestion_dygraph_plot"),
             includeMarkdown("./tab_documentation/failure_suggests.md")
     ),
     tabItem(tabName = "survival",
             fluidRow(
               column(smooth_select("smoothing_lethal_dose_plot"), width = 4),
-              column(div(id = "lethal_dose_plot_legend"), width = 8)
-            ),
+              column(timeframe_select("lethal_dose_timeframe"), width = 4),
+              column(timeframe_daterange("lethal_dose_timeframe"), width = 4)),
+            div(id = "lethal_dose_plot_legend"),
             dygraphOutput("lethal_dose_plot"),
             includeMarkdown("./tab_documentation/survival.md")
     )

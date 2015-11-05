@@ -6,10 +6,10 @@ Key Performance Indicators
 - **API usage** We want people, both within our movement and outside it, to be able to easily access our information.
 - **User Engagement** (not quite **[User Satisfaction](https://meta.wikimedia.org/wiki/Research:Measuring_User_Search_Satisfaction)**) This is an augmented version of clickthrough rate. In it we are including the proportion of users' sessions exceeding a pre-specified threshold. **Note** that we deployed v2.0 of the satisfaction schema on 9/2/2015. You may see **NA** if we do not have enough data available at the time.
 
-Outages and inaccuracies
+Additional information
 ------
 
-* None so far!
+In the case of a data outage, the medians will be computed from non-missing data. When this is the case, the value displayed will be approximate and will have a '~'.
 
 Questions, bug reports, and feature suggestions
 ------

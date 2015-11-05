@@ -128,8 +128,22 @@ gg_prop_bar <- function(data, cols) {
                   x = 1))
 }
 
-date_range_switch <- function(date_range, daily = 2, weekly = 14, monthly = 60, quarterly = 90) {
-  return(switch(date_range, daily = daily, weekly = weekly, monthly = monthly, quarterly = quarterly))
+# This is used in subsetting data for KPIs.
+start_date <- function(date_range) {
+  return(Sys.Date() - (switch(date_range, daily = 2, weekly = 14, monthly = 60, quarterly = 90) + 1))
+}
+
+# Usage: date_range %>% name(c('start', 'end'))
+name <- function(x, labels) {
+  names(x) <- labels
+  return(x)
+}
+
+# From: http://r.789695.n4.nabble.com/How-to-join-matrices-of-different-row-length-from-a-list-td3177212.html
+cbind_fill <- function(...) {
+  nm <- lapply(list(...), as.matrix)
+  n <- max(sapply(nm, nrow))
+  do.call(cbind, lapply(nm, function (x) rbind(x, matrix(, n-nrow(x), ncol(x)))))
 }
 
 CustomAxisFormatter <- 'function (d, gran) {
