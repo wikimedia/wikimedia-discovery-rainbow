@@ -15,8 +15,9 @@ smooth_select <- function(input_id, label = "Smoothing") {
 # Standardized selectors for time frame
 timeframe_select <- function(input_id, label = "Time Frame") {
   return(selectInput(inputId = input_id, label = label, selectize = TRUE, selected = "global",
-                     choices = c("Use Global Setting" = "global", "Last 7 days" = "week",
-                                 "Last 30 days" = "month", "Last 90 days" = "quarter", "Custom" = "custom")))
+                     choices = c("Use Global Setting" = "global", "All available data" = "all",
+                                 "Last 7 days" = "week", "Last 30 days" = "month",
+                                 "Last 90 days" = "quarter", "Custom" = "custom")))
 }
 timeframe_daterange <- function(select_input_id, label = "Custom Date Range") {
   return(conditionalPanel(paste0("input.", select_input_id," == 'custom'"),
