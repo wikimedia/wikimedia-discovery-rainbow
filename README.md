@@ -1,6 +1,6 @@
 # Search Metrics Dashboard
 
-This project is part of the [Discovery Dashboards](http://searchdata.wmflabs.org/) project.
+This project is part of the [Discovery Dashboards](http://discovery.wmflabs.org/) project.
 
 ## Quick start
 
@@ -8,7 +8,7 @@ Install the dependencies:
 
 ```
 $ R
-R> install.packages(c('reshape2', 'ggplot2', 'toOrdinal', 'devtools'))
+R> install.packages(c('reshape2', 'ggplot2', 'toOrdinal', 'devtools', 'magrittr', 'xts'))
 R> devtools::install_git('https://gerrit.wikimedia.org/r/wikimedia/discovery/polloi')
 ```
 

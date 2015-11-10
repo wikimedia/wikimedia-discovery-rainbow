@@ -1,6 +1,10 @@
 # Change Log (Patch Notes)
 All notable changes to this project will be documented in this file.
 
+## 2015/11/10
+- Updated the readme
+- Moved certain code blocks to **polloi** for use in other dashboards
+
 ## 2015/11/05
 - Added time frame selection
 - Fixed KPI date range selection (more robust, correct)

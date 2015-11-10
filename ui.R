@@ -1,29 +1,10 @@
 library(shiny)
 library(shinydashboard)
 library(dygraphs)
-options(scipen = 500)
 
 #Header elements for the visualisation
 header <- dashboardHeader(title = "Search Metrics", disable = FALSE)
 
-# Standardised input selector for smoothing
-smooth_select <- function(input_id, label = "Smoothing") {
-  return(selectInput(inputId = input_id, label = label, selectize = TRUE,
-                     selected = "global", choices = c("Use Global Setting" = "global",
-                                                      "No Smoothing" = "day", "Weekly Median" = "week", "Monthly Median" = "month")))
-}
-# Standardized selectors for time frame
-timeframe_select <- function(input_id, label = "Time Frame") {
-  return(selectInput(inputId = input_id, label = label, selectize = TRUE, selected = "global",
-                     choices = c("Use Global Setting" = "global", "All available data" = "all",
-                                 "Last 7 days" = "week", "Last 30 days" = "month",
-                                 "Last 90 days" = "quarter", "Custom" = "custom")))
-}
-timeframe_daterange <- function(select_input_id, label = "Custom Date Range") {
-  return(conditionalPanel(paste0("input.", select_input_id," == 'custom'"),
-                          dateRangeInput(paste(select_input_id, "daterange", sep = "_"), label = label,
-                                         start = Sys.Date()-11, end = Sys.Date()-1, min = "2015-04-14")))
-}
 
 #Sidebar elements for the search visualisations.
 sidebar <- dashboardSidebar(
@@ -90,13 +71,13 @@ body <- dashboardBody(
             includeMarkdown("./tab_documentation/kpis_summary.md")),
     tabItem(tabName = "kpi_load_time",
             fluidRow(
-              column(smooth_select("smoothing_kpi_load_time"), width = 4),
+              column(polloi::smooth_select("smoothing_kpi_load_time"), width = 4),
               column(div(id = "kpi_load_time_series_legend"), width = 8)
             ),
             dygraphOutput("kpi_load_time_series"),
             includeMarkdown("./tab_documentation/kpi_load_time.md")),
     tabItem(tabName = "kpi_zero_results",
-            smooth_select("smoothing_kpi_zero_results"),
+            polloi::smooth_select("smoothing_kpi_zero_results"),
             dygraphOutput("kpi_zero_results_series"),
             includeMarkdown("./tab_documentation/kpi_zero_results.md")),
     tabItem(tabName = "kpi_api_usage",
@@ -114,12 +95,12 @@ body <- dashboardBody(
                                           label = "Include OpenSearch in total",
                                           value = TRUE),
                             width = 3),
-                     column(smooth_select("smoothing_kpi_api_usage"), width = 3)),
+                     column(polloi::smooth_select("smoothing_kpi_api_usage"), width = 3)),
             dygraphOutput("kpi_api_usage_series"),
             includeMarkdown("./tab_documentation/kpi_api_usage.md")),
     tabItem(tabName = "kpi_augmented_clickthroughs",
             fluidRow(
-              column(smooth_select("smoothing_augmented_clickthroughs"), width = 4),
+              column(polloi::smooth_select("smoothing_augmented_clickthroughs"), width = 4),
               column(div(id = "kpi_augmented_clickthroughs_series_legend"), width = 8)),
             dygraphOutput("kpi_augmented_clickthroughs_series"),
             includeMarkdown("./tab_documentation/kpi_augmented_clickthroughs.md")),
@@ -129,16 +110,16 @@ body <- dashboardBody(
               valueBoxOutput("desktop_event_resultsets"),
               valueBoxOutput("desktop_event_clickthroughs")),
             fluidRow(
-              column(smooth_select("smoothing_desktop_event"), width = 4),
-              column(timeframe_select("desktop_event_timeframe"), width = 4),
-              column(timeframe_daterange("desktop_event_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_desktop_event"), width = 4),
+              column(polloi::timeframe_select("desktop_event_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("desktop_event_timeframe"), width = 4)),
             dygraphOutput("desktop_event_plot"),
             includeMarkdown("./tab_documentation/desktop_events.md")),
     tabItem(tabName = "desktop_load",
             fluidRow(
-              column(smooth_select("smoothing_desktop_load"), width = 4),
-              column(timeframe_select("desktop_load_timeframe"), width = 4),
-              column(timeframe_daterange("desktop_load_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_desktop_load"), width = 4),
+              column(polloi::timeframe_select("desktop_load_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("desktop_load_timeframe"), width = 4)),
             dygraphOutput("desktop_load_plot"),
             includeMarkdown("./tab_documentation/desktop_load.md")),
     tabItem(tabName = "mobile_events",
@@ -147,17 +128,17 @@ body <- dashboardBody(
               valueBoxOutput("mobile_event_resultsets"),
               valueBoxOutput("mobile_event_clickthroughs")),
             fluidRow(
-              column(smooth_select("smoothing_mobile_event"), width = 4),
-              column(timeframe_select("mobile_event_timeframe"), width = 4),
-              column(timeframe_daterange("mobile_event_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_mobile_event"), width = 4),
+              column(polloi::timeframe_select("mobile_event_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("mobile_event_timeframe"), width = 4)),
             dygraphOutput("mobile_event_plot"),
             includeMarkdown("./tab_documentation/mobile_events.md")
     ),
     tabItem(tabName = "mobile_load",
             fluidRow(
-              column(smooth_select("smoothing_mobile_load"), width = 4),
-              column(timeframe_select("mobile_load_timeframe"), width = 4),
-              column(timeframe_daterange("mobile_load_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_mobile_load"), width = 4),
+              column(polloi::timeframe_select("mobile_load_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("mobile_load_timeframe"), width = 4)),
             dygraphOutput("mobile_load_plot"),
             includeMarkdown("./tab_documentation/mobile_load.md")
     ),
@@ -167,92 +148,92 @@ body <- dashboardBody(
               valueBoxOutput("app_event_resultsets"),
               valueBoxOutput("app_event_clickthroughs")),
             fluidRow(
-              column(smooth_select("smoothing_app_event"), width = 4),
-              column(timeframe_select("app_event_timeframe"), width = 4),
-              column(timeframe_daterange("app_event_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_app_event"), width = 4),
+              column(polloi::timeframe_select("app_event_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("app_event_timeframe"), width = 4)),
             dygraphOutput("android_event_plot"),
             dygraphOutput("ios_event_plot"),
             includeMarkdown("./tab_documentation/app_events.md")
     ),
     tabItem(tabName = "app_load",
             fluidRow(
-              column(smooth_select("smoothing_app_load"), width = 4),
-              column(timeframe_select("app_load_timeframe"), width = 4),
-              column(timeframe_daterange("app_load_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_app_load"), width = 4),
+              column(polloi::timeframe_select("app_load_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("app_load_timeframe"), width = 4)),
             dygraphOutput("android_load_plot"),
             dygraphOutput("ios_load_plot"),
             includeMarkdown("./tab_documentation/app_load.md")
     ),
     tabItem(tabName = "fulltext_search",
             fluidRow(
-              column(smooth_select("smoothing_fulltext_search"), width = 4),
-              column(timeframe_select("fulltext_search_timeframe"), width = 4),
-              column(timeframe_daterange("fulltext_search_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_fulltext_search"), width = 4),
+              column(polloi::timeframe_select("fulltext_search_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("fulltext_search_timeframe"), width = 4)),
             dygraphOutput("cirrus_aggregate"),
             includeMarkdown("./tab_documentation/fulltext_basic.md")
     ),
     tabItem(tabName = "open_search",
             fluidRow(
-              column(smooth_select("smoothing_open_search"), width = 4),
-              column(timeframe_select("open_search_timeframe"), width = 4),
-              column(timeframe_daterange("open_search_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_open_search"), width = 4),
+              column(polloi::timeframe_select("open_search_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("open_search_timeframe"), width = 4)),
             dygraphOutput("open_aggregate"),
             includeMarkdown("./tab_documentation/open_basic.md")
     ),
     tabItem(tabName = "geo_search",
             fluidRow(
-              column(smooth_select("smoothing_geo_search"), width = 4),
-              column(timeframe_select("geo_search_timeframe"), width = 4),
-              column(timeframe_daterange("geo_search_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_geo_search"), width = 4),
+              column(polloi::timeframe_select("geo_search_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("geo_search_timeframe"), width = 4)),
             dygraphOutput("geo_aggregate"),
             includeMarkdown("./tab_documentation/geo_basic.md")
     ),
     tabItem(tabName = "prefix_search",
             fluidRow(
-              column(smooth_select("smoothing_prefix_search"), width = 4),
-              column(timeframe_select("prefix_search_timeframe"), width = 4),
-              column(timeframe_daterange("prefix_search_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_prefix_search"), width = 4),
+              column(polloi::timeframe_select("prefix_search_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("prefix_search_timeframe"), width = 4)),
             dygraphOutput("prefix_aggregate"),
             includeMarkdown("./tab_documentation/prefix_basic.md")
     ),
     tabItem(tabName = "language_search",
             fluidRow(
-              column(smooth_select("smoothing_language_search"), width = 4),
-              column(timeframe_select("language_search_timeframe"), width = 4),
-              column(timeframe_daterange("language_search_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_language_search"), width = 4),
+              column(polloi::timeframe_select("language_search_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("language_search_timeframe"), width = 4)),
             dygraphOutput("language_aggregate"),
             includeMarkdown("./tab_documentation/language_basic.md")
     ),
     tabItem(tabName = "failure_rate",
             fluidRow(
-              column(smooth_select("smoothing_failure_rate"), width = 4),
-              column(timeframe_select("failure_rate_timeframe"), width = 4),
-              column(timeframe_daterange("failure_rate_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_failure_rate"), width = 4),
+              column(polloi::timeframe_select("failure_rate_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("failure_rate_timeframe"), width = 4)),
             dygraphOutput("failure_rate_plot"),
             dygraphOutput("failure_rate_change_plot"),
             includeMarkdown("./tab_documentation/failure_rate.md")
     ),
     tabItem(tabName = "failure_breakdown",
             fluidRow(
-              column(smooth_select("smoothing_failure_breakdown"), width = 4),
-              column(timeframe_select("failure_breakdown_timeframe"), width = 4),
-              column(timeframe_daterange("failure_breakdown_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_failure_breakdown"), width = 4),
+              column(polloi::timeframe_select("failure_breakdown_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("failure_breakdown_timeframe"), width = 4)),
             dygraphOutput("failure_breakdown_plot"),
             includeMarkdown("./tab_documentation/failure_breakdown.md")
     ),
     tabItem(tabName = "failure_suggestions",
             fluidRow(
-              column(smooth_select("smoothing_failure_suggestions"), width = 4),
-              column(timeframe_select("failure_suggestions_timeframe"), width = 4),
-              column(timeframe_daterange("failure_suggestions_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_failure_suggestions"), width = 4),
+              column(polloi::timeframe_select("failure_suggestions_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("failure_suggestions_timeframe"), width = 4)),
             dygraphOutput("suggestion_dygraph_plot"),
             includeMarkdown("./tab_documentation/failure_suggests.md")
     ),
     tabItem(tabName = "survival",
             fluidRow(
-              column(smooth_select("smoothing_lethal_dose_plot"), width = 4),
-              column(timeframe_select("lethal_dose_timeframe"), width = 4),
-              column(timeframe_daterange("lethal_dose_timeframe"), width = 4)),
+              column(polloi::smooth_select("smoothing_lethal_dose_plot"), width = 4),
+              column(polloi::timeframe_select("lethal_dose_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("lethal_dose_timeframe"), width = 4)),
             div(id = "lethal_dose_plot_legend"),
             dygraphOutput("lethal_dose_plot"),
             includeMarkdown("./tab_documentation/survival.md")
