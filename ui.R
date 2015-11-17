@@ -3,8 +3,7 @@ library(shinydashboard)
 library(dygraphs)
 
 #Header elements for the visualisation
-header <- dashboardHeader(title = "Search Metrics", disable = FALSE)
-
+header <- dashboardHeader(title = "Search Metrics", dropdownMenuOutput("message_menu"), disable = FALSE)
 
 #Sidebar elements for the search visualisations.
 sidebar <- dashboardSidebar(

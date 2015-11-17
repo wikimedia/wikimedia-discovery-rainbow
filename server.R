@@ -514,4 +514,29 @@ shinyServer(function(input, output) {
       dyLegend(labelsDiv = "kpi_augmented_clickthroughs_series_legend")
   })
 
+  # Check datasets for missing data and notify user which datasets are missing data (if any)
+  output$message_menu <- renderMenu({
+    notifications <- list(
+      polloi::check_yesterday(desktop_dygraph_set, "Desktop events"),
+      polloi::check_past_week(desktop_load_data, "Desktop load times"),
+      polloi::check_yesterday(mobile_dygraph_set, "Mobile Web events"),
+      polloi::check_past_week(mobile_load_data, "Mobile Web load times"),
+      polloi::check_yesterday(android_dygraph_set, "Android events"),
+      polloi::check_past_week(android_load_data, "Android load times"),
+      polloi::check_yesterday(ios_dygraph_set, "iOS events"),
+      polloi::check_past_week(ios_load_data, "iOS load times"),
+      polloi::check_yesterday(dplyr::bind_rows(split_dataset), "API usage data"),
+      polloi::check_past_week(dplyr::bind_rows(split_dataset), "API usage data"),
+      polloi::check_yesterday(failure_dygraph_set, "zero results data"),
+      polloi::check_past_week(failure_dygraph_set, "zero results data"),
+      polloi::check_yesterday(suggestion_dygraph_set, "suggestions data"),
+      polloi::check_past_week(suggestion_dygraph_set, "suggestions data"),
+      polloi::check_yesterday(augmented_clickthroughs, "engagement % data"),
+      polloi::check_past_week(augmented_clickthroughs, "engagement % data"),
+      polloi::check_yesterday(user_page_visit_dataset, "survival times"),
+      polloi::check_past_week(user_page_visit_dataset, "survival times"))
+    notifications <- notifications[!sapply(notifications, is.null)]
+    return(dropdownMenu(type = "notifications", .list = notifications))
+  })
+
 })
