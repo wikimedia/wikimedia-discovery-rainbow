@@ -14,7 +14,7 @@ sidebar <- dashboardSidebar(
   sidebarMenu(
     menuItem(text = "KPIs",
              div(selectInput("kpi_summary_date_range_selector",
-                             label = "KPI data range", multiple = FALSE, selected = "weekly",
+                             label = "KPI data range", multiple = FALSE, selected = "monthly",
                              choices = list("Yesterday" = "daily", "Last 7 days" = "weekly",
                                             "Last 30 days" = "monthly", "Last 90 days" = "quarterly")),
                  style = "margin-bottom:-10px;"),
