@@ -201,28 +201,29 @@ shinyServer(function(input, output) {
 
   # Failure plots
   output$failure_rate_plot <- renderDygraph({
-    failure_dygraph_set %>%
+    polloi::data_select(input$failure_rate_automata, failure_data_with_automata, failure_data_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_rate)) %>%
       polloi::subset_by_date_range(time_frame_range(input$failure_rate_timeframe, input$failure_rate_timeframe_daterange)) %>%
-      polloi::make_dygraph(xlab = "Date", ylab = "Queries", title = "Search Queries with Zero Results, by day")
+      polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero Results Rate, by day",
+                           legend_name = "ZRR")
   })
 
   output$failure_rate_change_plot <- renderDygraph({
-    failure_roc_dygraph_set[, c(1, 3)] %>%
+    polloi::data_select(input$failure_rate_automata, failure_roc_with_automata, failure_roc_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_rate)) %>%
       polloi::subset_by_date_range(time_frame_range(input$failure_rate_timeframe, input$failure_rate_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Change (%)", title = "Zero Results rate change, by day", legend_name = "Change")
   })
 
   output$failure_breakdown_plot <- renderDygraph({
-    failure_breakdown_dygraph_set %>%
+    polloi::data_select(input$failure_breakdown_automata, failure_breakdown_with_automata, failure_breakdown_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_breakdown)) %>%
       polloi::subset_by_date_range(time_frame_range(input$failure_breakdown_timeframe, input$failure_breakdown_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero result rate by search type")
   })
 
   output$suggestion_dygraph_plot <- renderDygraph({
-    suggestion_dygraph_set %>%
+    polloi::data_select(input$failure_suggestions_automata, suggestion_with_automata, suggestion_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_suggestions)) %>%
       polloi::subset_by_date_range(time_frame_range(input$failure_suggestions_timeframe, input$failure_suggestions_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero Result Rates with Search Suggestions")
@@ -310,22 +311,22 @@ shinyServer(function(input, output) {
   })
   output$kpi_summary_box_zero_results <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
-    x <- polloi::subset_by_date_range(failure_dygraph_set, from = start_date(date_range), to = Sys.Date() - 1)
-    x <- transform(x, Rate = `Zero Result Queries` / `Search Queries`)$Rate
+    x <- polloi::subset_by_date_range(failure_data_with_automata, from = start_date(date_range), to = Sys.Date() - 1)
+    x <- transform(x, Rate = rate)$Rate
     if (date_range == "quarterly") {
       return(valueBox(subtitle = "Zero results rate", color = "orange",
-                      value = sprintf("%.1f%%", median(100 * x))))
+                      value = sprintf("%.1f%%", median(x))))
     }
-    y1 <- median(polloi::half(x)); y2 <- median(polloi::half(x, FALSE)); z <- 100 * (y2 - y1)/y1
+    y1 <- median(polloi::half(x)); y2 <- median(polloi::half(x, FALSE)); z <- (y2 - y1)/y1
     if (abs(z) > 0) {
       return(valueBox(
         subtitle = sprintf("Zero results rate (%.1f%%)", z),
-        value = sprintf("%.1f%%", 100 * y2),
+        value = sprintf("%.1f%%", y2),
         icon = cond_icon(z > 0), color = polloi::cond_color(z > 0, "red")
       ))
     }
     return(valueBox(subtitle = "Zero results rate (no change)",
-                    value = sprintf("%.1f%%", 100 * y2), color = "orange"))
+                    value = sprintf("%.1f%%", y2), color = "orange"))
   })
   output$kpi_summary_box_api_usage <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
@@ -426,9 +427,9 @@ shinyServer(function(input, output) {
   output$kpi_zero_results_series <- renderDygraph({
     smooth_level <- input$smoothing_kpi_zero_results
     start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector, daily = 1, weekly = 8, monthly = 31, quarterly = 91)
-    zrr <- failure_dygraph_set %>%
+    zrr <- failure_data_with_automata %>%
       polloi::subset_by_date_range(from = start_date, to = Sys.Date()) %>%
-      transform(`Rate` = 100 * `Zero Result Queries` / `Search Queries`)
+      transform(`Rate` = rate)
     zrr_change <- 100 * (zrr$Rate[2:nrow(zrr)] - zrr$Rate[1:(nrow(zrr)-1)])/zrr$Rate[1:(nrow(zrr)-1)]
     zrr <- cbind(zrr[, c('date', 'Rate')], Change = c(NA, zrr_change)) %>%
       polloi::smoother(ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE)
@@ -527,10 +528,10 @@ shinyServer(function(input, output) {
       polloi::check_past_week(ios_load_data, "iOS load times"),
       polloi::check_yesterday(dplyr::bind_rows(split_dataset), "API usage data"),
       polloi::check_past_week(dplyr::bind_rows(split_dataset), "API usage data"),
-      polloi::check_yesterday(failure_dygraph_set, "zero results data"),
-      polloi::check_past_week(failure_dygraph_set, "zero results data"),
-      polloi::check_yesterday(suggestion_dygraph_set, "suggestions data"),
-      polloi::check_past_week(suggestion_dygraph_set, "suggestions data"),
+      polloi::check_yesterday(failure_data_with_automata, "zero results data"),
+      polloi::check_past_week(failure_data_with_automata, "zero results data"),
+      polloi::check_yesterday(suggestion_with_automata, "suggestions data"),
+      polloi::check_past_week(suggestion_with_automata, "suggestions data"),
       polloi::check_yesterday(augmented_clickthroughs, "engagement % data"),
       polloi::check_past_week(augmented_clickthroughs, "engagement % data"),
       polloi::check_yesterday(user_page_visit_dataset, "survival times"),

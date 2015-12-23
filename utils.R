@@ -60,31 +60,53 @@ read_api <- function(){
 
 read_failures <- function(date) {
 
-  data <- polloi::read_dataset("search/cirrus_query_aggregates.tsv")
-  interim_data <- reshape2::dcast(data, formula = date ~ variable, fun.aggregate = sum)
-  failure_dygraph_set <<- interim_data
+  interim <- polloi::read_dataset("search/cirrus_query_aggregates_with_automata.tsv")
+  interim$rate <- interim$rate*100
+  failure_data_with_automata <<- interim
 
-  interim_vector <- interim_data$`Zero Result Queries`/interim_data$`Search Queries`
-  output_vector <- (interim_vector[2:nrow(interim_data)] - interim_vector[1:(nrow(interim_data)-1)]) / interim_vector[1:(nrow(interim_data)-1)]
+  interim <- polloi::read_dataset("search/cirrus_query_aggregates_no_automata.tsv")
+  interim$rate <- interim$rate*100
+  failure_data_no_automata <<- interim
 
-  failure_roc_dygraph_set <<- data.frame(date = interim_data$date[2:nrow(interim_data)],
-                                         variable = "failure ROC",
-                                         daily_change = output_vector*100,
-                                         stringsAsFactors = FALSE)
+  interim <- {failure_data_with_automata$rate[1:nrow(failure_data_with_automata)-1] /
+              failure_data_with_automata$rate[2:nrow(failure_data_with_automata)]}
 
-  interim_breakdown_data <- polloi::read_dataset("search/cirrus_query_breakdowns.tsv")
-  interim_breakdown_data$value <- interim_breakdown_data$value*100
-  failure_breakdown_dygraph_set <<- reshape2::dcast(interim_breakdown_data,
-                                                    formula = date ~ variable, fun.aggregate = sum)
+  failure_roc_with_automata <<- data.frame(date = failure_data_with_automata$date[2:nrow(failure_data_with_automata)],
+                                           daily_change = interim,
+                                           stringsAsFactors = FALSE)
 
-  suggestion_data <- polloi::read_dataset("search/cirrus_suggestion_breakdown.tsv")
-  suggestion_data$variable <- "Full-Text with Suggestions"
-  suggestion_data$value <- suggestion_data$value*100
-  suggestion_data <- rbind(suggestion_data,
-                           interim_breakdown_data[interim_breakdown_data$date %in% suggestion_data$date
-                                                  & interim_breakdown_data$variable == "Full-Text Search",])
-  suggestion_dygraph_set <<- reshape2::dcast(suggestion_data,
-                                             formula = date ~ variable, fun.aggregate = sum)
+  interim <- {failure_data_no_automata$rate[1:nrow(failure_data_no_automata)-1] /
+      failure_data_no_automata$rate[2:nrow(failure_data_no_automata)]}
+
+  failure_roc_no_automata <<- data.frame(date = failure_data_no_automata$date[2:nrow(failure_data_no_automata)],
+                                           daily_change = interim,
+                                           stringsAsFactors = FALSE)
+
+  interim_breakdown_with_automata <- polloi::read_dataset("search/cirrus_query_breakdowns_with_automata.tsv")
+  interim_breakdown_with_automata$rate <- interim_breakdown_with_automata$rate*100
+  failure_breakdown_with_automata <<- reshape2::dcast(interim_breakdown_with_automata,
+                                                      formula = date ~ query_type, fun.aggregate = sum)
+
+  interim_breakdown_no_automata <- polloi::read_dataset("search/cirrus_query_breakdowns_no_automata.tsv")
+  interim_breakdown_no_automata$rate <- interim_breakdown_no_automata$rate*100
+  failure_breakdown_no_automata <<- reshape2::dcast(interim_breakdown_no_automata,
+                                                    formula = date ~ query_type, fun.aggregate = sum)
+
+  interim <- polloi::read_dataset("search/cirrus_suggestion_breakdown_with_automata.tsv")
+  interim$rate <- interim$rate*100
+  interim$query_type <- "Full-Text with Suggestions"
+  interim <- rbind(interim[,c("date", "query_type", "rate")],
+                   interim_breakdown_with_automata[interim_breakdown_with_automata$date %in% interim$date
+                                                   & interim_breakdown_with_automata$query_type == "Full-Text Search",])
+  suggestion_with_automata <<- reshape2::dcast(interim, formula = date ~ query_type, fun.aggregate = sum)
+
+  interim <- polloi::read_dataset("search/cirrus_suggestion_breakdown_no_automata.tsv")
+  interim$rate <- interim$rate*100
+  interim$query_type <- "Full-Text with Suggestions"
+  interim <- rbind(interim[,c("date", "query_type", "rate")],
+                   interim_breakdown_no_automata[interim_breakdown_no_automata$date %in% interim$date
+                                                 & interim_breakdown_no_automata$query_type == "Full-Text Search",])
+  suggestion_no_automata <<- reshape2::dcast(interim, formula = date ~ query_type, fun.aggregate = sum)
 
 }
 

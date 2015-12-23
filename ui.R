@@ -208,6 +208,7 @@ body <- dashboardBody(
               column(polloi::smooth_select("smoothing_failure_rate"), width = 4),
               column(polloi::timeframe_select("failure_rate_timeframe"), width = 4),
               column(polloi::timeframe_daterange("failure_rate_timeframe"), width = 4)),
+            polloi::automata_select(input_id = "failure_rate_automata"),
             dygraphOutput("failure_rate_plot"),
             dygraphOutput("failure_rate_change_plot"),
             includeMarkdown("./tab_documentation/failure_rate.md")
@@ -217,6 +218,7 @@ body <- dashboardBody(
               column(polloi::smooth_select("smoothing_failure_breakdown"), width = 4),
               column(polloi::timeframe_select("failure_breakdown_timeframe"), width = 4),
               column(polloi::timeframe_daterange("failure_breakdown_timeframe"), width = 4)),
+            polloi::automata_select(input_id = "failure_breakdown_automata"),
             dygraphOutput("failure_breakdown_plot"),
             includeMarkdown("./tab_documentation/failure_breakdown.md")
     ),
@@ -225,6 +227,7 @@ body <- dashboardBody(
               column(polloi::smooth_select("smoothing_failure_suggestions"), width = 4),
               column(polloi::timeframe_select("failure_suggestions_timeframe"), width = 4),
               column(polloi::timeframe_daterange("failure_suggestions_timeframe"), width = 4)),
+            polloi::automata_select(input_id = "failure_suggestions_automata"),
             dygraphOutput("suggestion_dygraph_plot"),
             includeMarkdown("./tab_documentation/failure_suggests.md")
     ),
