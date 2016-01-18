@@ -302,12 +302,15 @@ shinyServer(function(input, output) {
     missing_values <- any(is.na(do.call(polloi::cbind_fill, x)))
     x %<>% do.call(polloi::cbind_fill, .) %>% apply(MARGIN = 1, FUN = median, na.rm = TRUE)
     y1 <- median(polloi::half(x)); y2 <- median(polloi::half(x, FALSE)); z <- 100 * (y2 - y1) / y1
-    if (abs(z) > 0) {
-      return(valueBox(subtitle = sprintf("Load time (%s%.1f%%)", ifelse(missing_values, "~", ""), z),
-                      value = sprintf("%s%.0fms", ifelse(missing_values, "~", ""), y2),
-                      color = polloi::cond_color(z > 0, "red"), icon = polloi::cond_icon(z > 0)))
+    if (!is.na(z)) {
+      if (abs(z) > 0) {
+        return(valueBox(subtitle = sprintf("Load time (%s%.1f%%)", ifelse(missing_values, "~", ""), z),
+                        value = sprintf("%s%.0fms", ifelse(missing_values, "~", ""), y2),
+                        color = polloi::cond_color(z > 0, "red"), icon = polloi::cond_icon(z > 0)))
+      }
+      return(valueBox(subtitle = "Load time (no change)", value = sprintf("%.0fms", y2), color = "orange"))
     }
-    return(valueBox(subtitle = "Load time (no change)", value = sprintf("%.0fms", y2), color = "orange"))
+    return(polloi::na_box("Load time (data problem)"))
   })
   output$kpi_summary_box_zero_results <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
@@ -318,15 +321,18 @@ shinyServer(function(input, output) {
                       value = sprintf("%.1f%%", median(x))))
     }
     y1 <- median(polloi::half(x)); y2 <- median(polloi::half(x, FALSE)); z <- (y2 - y1)/y1
-    if (abs(z) > 0) {
-      return(valueBox(
-        subtitle = sprintf("Zero results rate (%.1f%%)", z),
-        value = sprintf("%.1f%%", y2),
-        icon = cond_icon(z > 0), color = polloi::cond_color(z > 0, "red")
-      ))
+    if (!is.na(z)) {
+      if (abs(z) > 0) {
+        return(valueBox(
+          subtitle = sprintf("Zero results rate (%.1f%%)", z),
+          value = sprintf("%.1f%%", y2),
+          icon = cond_icon(z > 0), color = polloi::cond_color(z > 0, "red")
+        ))
+      }
+      return(valueBox(subtitle = "Zero results rate (no change)",
+                      value = sprintf("%.1f%%", y2), color = "orange"))
     }
-    return(valueBox(subtitle = "Zero results rate (no change)",
-                    value = sprintf("%.1f%%", y2), color = "orange"))
+    return(polloi::na_box("Zero results rate (data problem)"))
   })
   output$kpi_summary_box_api_usage <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
@@ -342,11 +348,14 @@ shinyServer(function(input, output) {
     y1 <- median(polloi::half(x, TRUE))
     y2 <- median(polloi::half(x, FALSE))
     z <- 100 * (y2 - y1) / y1 # % change from t-1 to t
-    if (abs(z) > 0) {
-      return(valueBox(subtitle = sprintf("API usage (%.1f%%)", z),
-                      value = polloi::compress(y2, 0), color = polloi::cond_color(z > 0), icon = polloi::cond_icon(z > 0)))
+    if (!is.na(z)) {
+      if (abs(z) > 0) {
+        return(valueBox(subtitle = sprintf("API usage (%.1f%%)", z),
+                        value = polloi::compress(y2, 0), color = polloi::cond_color(z > 0), icon = polloi::cond_icon(z > 0)))
+      }
+      return(valueBox(subtitle = "API usage (no change)", value = polloi::compress(y2, 0), color = "orange"))
     }
-    return(valueBox(subtitle = "API usage (no change)", value = polloi::compress(y2, 0), color = "orange"))
+    return(polloi::na_box("API usage (data problem)"))
   })
   output$kpi_summary_box_augmented_clickthroughs <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
@@ -363,15 +372,18 @@ shinyServer(function(input, output) {
     y1 <- median(polloi::half(x$user_engagement))
     y2 <- median(polloi::half(x$user_engagement, FALSE))
     z <- 100 * (y2 - y1)/y1
-    if (abs(z) > 0) {
-      return(valueBox(
-        subtitle = sprintf("User engagement (%.1f%%)", z),
-        value = sprintf("%.1f%%", y2),
-        icon = cond_icon(z > 0), color = polloi::cond_color(z > 0, "green")
-      ))
+    if (!is.na(z)) {
+      if (abs(z) > 0) {
+        return(valueBox(
+          subtitle = sprintf("User engagement (%.1f%%)", z),
+          value = sprintf("%.1f%%", y2),
+          icon = cond_icon(z > 0), color = polloi::cond_color(z > 0, "green")
+        ))
+      }
+      return(valueBox(subtitle = "User engagement (no change)",
+                      value = sprintf("%.1f%%", y2), color = "orange"))
     }
-    return(valueBox(subtitle = "User engagement (no change)",
-                    value = sprintf("%.1f%%", y2), color = "orange"))
+    return(polloi::na_box("User engagement (data problem)"))
   })
   output$kpi_summary_api_usage_proportions <- renderPlot({
     start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector,
