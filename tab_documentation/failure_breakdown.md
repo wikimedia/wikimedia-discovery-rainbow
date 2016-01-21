@@ -11,7 +11,8 @@ General trends
 
 Outages and inaccuracies
 ------
-* On 15 July 2015 we updated our heuristics to avoid counting maintenance tasks as search requests. The historic data on the dashboards is being backfilled to reflect this - until it's done, the dashboards may look somewhat strange.
+* On 15 July 2015 we updated our heuristics to avoid counting maintenance tasks as search requests.
+* On 15 January 2016 there was an [issue](https://phabricator.wikimedia.org/T123541) with Avro serialization that prevented data from entering the Hadoop cluster. A [patch](https://gerrit.wikimedia.org/r/#/c/264989/) was deployed on 19 January 2016. As a result, there are no recorded zero results rates for 01/15-01/18. The values you may see on those dates are estimates computed with statistical models.
 
 Questions, bug reports, and feature suggestions
 ------
