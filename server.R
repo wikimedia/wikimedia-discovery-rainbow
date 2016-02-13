@@ -229,6 +229,65 @@ shinyServer(function(input, output) {
       polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero Result Rates with Search Suggestions")
   })
 
+  output$language_selector_container <- renderUI({
+    if (input$language_order == "alphabet") {
+      languages_to_display <- as.list(sort(available_languages$language))
+      names(languages_to_display) <- available_languages$label[order(available_languages$language)]
+    } else {
+      languages_to_display <- available_languages$language
+      names(languages_to_display) <- available_languages$label
+    }
+
+    # e.g. if user sorts projects alphabetically and the selected project is "10th Anniversary of Wikipeda"
+    #      then automatically select the language "(None)" to avoid giving user an error. This also works if
+    #      the user selects a project that is not multilingual, so this automatically chooses the "(None)"
+    #      option for the user.
+    if (any(input$project_selector %in% projects_db$project[!projects_db$multilingual])) {
+      if (any(input$project_selector %in% projects_db$project[projects_db$multilingual])) {
+        if (!is.null(input$language_selector)) {
+          selected_language <- union("(None)", input$language_selector)
+        } else {
+          selected_language <- c("(None)", languages_to_display[[1]])
+        }
+      } else {
+        selected_language <- "(None)"
+      }
+    } else {
+      if (!is.null(input$language_selector)) {
+        selected_language <- input$language_selector
+      } else {
+        selected_language <- languages_to_display[[1]]
+      }
+    }
+
+    return(selectInput("language_selector", "Language", multiple = TRUE,selectize = FALSE, size = 19,
+                       choices = languages_to_display, selected = selected_language))
+  })
+
+  output$project_selector_container <- renderUI({
+    if (input$project_order == "alphabet") {
+      projects_to_display <- as.list(sort(available_projects$project))
+      names(projects_to_display) <- available_projects$label[order(available_projects$project)]
+    } else {
+      projects_to_display <- available_projects$project
+      names(projects_to_display) <- available_projects$label
+    }
+
+    return(selectInput("project_selector", "Project", multiple = TRUE,selectize = FALSE, size = 19,
+                       choices = projects_to_display, selected = projects_to_display[[1]]))
+  })
+
+  output$failure_langproj_plot <- renderDygraph({
+    polloi::data_select(input$failure_langproj_automata, langproj_with_automata, langproj_no_automata) %>%
+      aggregate_wikis(input$language_selector, input$project_selector) %>%
+      polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_langproj)) %>%
+      polloi::subset_by_date_range(time_frame_range(input$failure_langproj_timeframe, input$failure_langproj_timeframe_daterange)) %>%
+      polloi::make_dygraph(xlab = "", ylab = "Zero Results Rate (%)", title = "Zero result rate by language and project") %>%
+      dyLegend(show = "always", width = 400, labelsDiv = "failure_langproj_legend") %>%
+      dyAxis("x", axisLabelFormatter = polloi::custom_axis_formatter)
+  })
+
+  # Survival
   output$lethal_dose_plot <- renderDygraph({
     user_page_visit_dataset %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_lethal_dose_plot)) %>%

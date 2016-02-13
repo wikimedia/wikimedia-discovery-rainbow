@@ -5,6 +5,8 @@ library(toOrdinal)
 library(magrittr)
 library(polloi)
 library(xts)
+library(dplyr)
+library(tidyr)
 
 ## Read in desktop data and generate means for the value boxes, along with a time-series appropriate form for
 ## dygraphs.
@@ -108,6 +110,29 @@ read_failures <- function(date) {
                                                  & interim_breakdown_no_automata$query_type == "Full-Text Search",])
   suggestion_no_automata <<- reshape2::dcast(interim, formula = date ~ query_type, fun.aggregate = sum)
 
+  interim <<- polloi::read_dataset("search/cirrus_langproj_breakdown_with_automata.tsv",
+                                                  na = "~", col_types = "Dccii")
+  interim$language %<>% sub("NA", "(None)", .)
+  langproj_with_automata <<- interim
+  interim <<- polloi::read_dataset("search/cirrus_langproj_breakdown_no_automata.tsv",
+                                                na = "~", col_types = "Dccii")
+  interim$language %<>% sub("NA", "(None)", .)
+  langproj_no_automata <<- interim
+  available_languages <<- langproj_with_automata %>%
+    group_by(language) %>%
+    summarize(volume = sum(as.numeric(total))) %>%
+    dplyr::filter(volume > 0) %>%
+    arrange(desc(volume)) %>%
+    dplyr::mutate(prop = volume/sum(volume),
+                  label = sprintf("%s (%.3f%%)", language, 100*prop))
+  available_projects <<- langproj_with_automata %>%
+    group_by(project) %>%
+    summarize(volume = sum(as.numeric(total))) %>%
+    dplyr::filter(volume > 0) %>%
+    arrange(desc(volume)) %>%
+    dplyr::mutate(prop = volume/sum(volume),
+                  label = sprintf("%s (%.3f%%)", project, 100*prop))
+  projects_db <<- readr::read_csv(system.file("extdata/projects.csv", package = "polloi"))[, c('project', 'multilingual')]
 }
 
 read_augmented_clickthrough <- function() {
@@ -126,6 +151,30 @@ read_lethal_dose <- function() {
   intermediary_dataset <- polloi::read_dataset("search/sample_page_visit_ld.tsv")
   colnames(intermediary_dataset) <- c("date", "10%", "25%", "50%", "75%", "90%", "95%", "99%")
   user_page_visit_dataset <<- intermediary_dataset
+}
+
+aggregate_wikis <- function(data, languages, projects) {
+  languages <- sub(" \\([0-9]{1,2}\\.[0-9]{1,3}%\\)", "", languages)
+  projects <- sub(" \\([0-9]{1,2}\\.[0-9]{1,3}%\\)", "", projects)
+  if (length(languages) == 1 && languages[1] == "(None)") {
+    temp <- data %>%
+      dplyr::filter_(~project %in% projects) %>%
+      dplyr::rename(wiki = project) %>%
+      dplyr::group_by(date, wiki) %>%
+      dplyr::summarize(zero_results = sum(as.numeric(zero_results)),
+                       total = sum(as.numeric(total))) %>%
+      dplyr::ungroup()
+  } else {
+    temp <- data %>%
+      dplyr::filter_(~language %in% languages & project %in% projects) %>%
+      tidyr::unite(wiki, language, project, sep = " ") %>%
+      dplyr::mutate(wiki = sub("(None) ", "", wiki, fixed = TRUE))
+  }
+  temp %<>%
+    dplyr::mutate(zrr = round(100 * as.numeric(zero_results) / as.numeric(total), 2)) %>%
+    dplyr::select(-c(total, zero_results)) %>%
+    tidyr::spread(wiki, zrr)
+  return(temp)
 }
 
 # Uses ggplot2 to create a pie chart in bar form. (Will look up actual name)
