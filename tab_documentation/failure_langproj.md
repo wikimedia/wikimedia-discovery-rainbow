@@ -2,13 +2,16 @@ Usage and Zero Results Rate by Languages and Projects
 =======
 
 Sometimes, searches return zero results. What we're visualising here is the percentage of the time
-a search query returns zero results, split out by language (e.g. English vs Russian) and project (e.g. Wikipedia vs Wiktionary). For each arbitrary combination, the zero results rate is the overall rate (full-text AND prefix, web AND api). Due to the high number of language-project combinations, we have restricted ourselves to only storing the last 30 days of data.
+a search query returns zero results, split out by language (e.g. English vs Russian) and project (e.g. Wikipedia vs Wiktionary).
 
 Notes/Tips
 ------
 * The percentages next to the language and project names represent the proportion of the total volume.
+* You can select multiple projects and multiple languages to compare simultaneously. (Hold down Ctrl on Windows or Command on Mac.)
+* For each arbitrary combination, the zero results rate is the overall rate (full-text AND prefix, web AND api).
 * The language picker will automatically choose "(None)" if you select a non-multilingual project such as Wikidata.
 * If you're interested in the overall ZRR for a multilingual project such as Wikipedia, make sure only "(None)" is selected in the languages picker.
+* Due to the high number of language-project combinations, we have restricted ourselves to only storing the last 30 days of data.
 
 Outages and inaccuracies
 ------
