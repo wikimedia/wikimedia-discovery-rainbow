@@ -110,11 +110,11 @@ read_failures <- function(date) {
                                                  & interim_breakdown_no_automata$query_type == "Full-Text Search",])
   suggestion_no_automata <<- reshape2::dcast(interim, formula = date ~ query_type, fun.aggregate = sum)
 
-  interim <<- polloi::read_dataset("search/cirrus_langproj_breakdown_with_automata.tsv",
+  interim <- polloi::read_dataset("search/cirrus_langproj_breakdown_with_automata.tsv",
                                                   na = "~", col_types = "Dccii")
   interim$language %<>% sub("NA", "(None)", .)
   langproj_with_automata <<- interim
-  interim <<- polloi::read_dataset("search/cirrus_langproj_breakdown_no_automata.tsv",
+  interim <- polloi::read_dataset("search/cirrus_langproj_breakdown_no_automata.tsv",
                                                 na = "~", col_types = "Dccii")
   interim$language %<>% sub("NA", "(None)", .)
   langproj_no_automata <<- interim
