@@ -70,29 +70,46 @@ read_failures <- function(date) {
   interim$rate <- interim$rate*100
   failure_data_no_automata <<- interim
 
-  interim <- {failure_data_with_automata$rate[1:nrow(failure_data_with_automata)-1] /
-              failure_data_with_automata$rate[2:nrow(failure_data_with_automata)]}
+  interim_new <- failure_data_with_automata$rate[2:nrow(failure_data_with_automata)]
+  interim_old <- failure_data_with_automata$rate[1:(nrow(failure_data_with_automata)-1)]
+  interim <- 100 * (interim_new - interim_old)/interim_old
 
   failure_roc_with_automata <<- data.frame(date = failure_data_with_automata$date[2:nrow(failure_data_with_automata)],
                                            daily_change = interim,
                                            stringsAsFactors = FALSE)
 
-  interim <- {failure_data_no_automata$rate[1:nrow(failure_data_no_automata)-1] /
-      failure_data_no_automata$rate[2:nrow(failure_data_no_automata)]}
+  interim_new <- failure_data_no_automata$rate[2:nrow(failure_data_no_automata)]
+  interim_old <- failure_data_no_automata$rate[1:(nrow(failure_data_no_automata)-1)]
+  interim <- 100 * (interim_new - interim_old)/interim_old
 
   failure_roc_no_automata <<- data.frame(date = failure_data_no_automata$date[2:nrow(failure_data_no_automata)],
-                                           daily_change = interim,
-                                           stringsAsFactors = FALSE)
+                                         daily_change = interim,
+                                         stringsAsFactors = FALSE)
 
   interim_breakdown_with_automata <- polloi::read_dataset("search/cirrus_query_breakdowns_with_automata.tsv")
   interim_breakdown_with_automata$rate <- interim_breakdown_with_automata$rate*100
+  interim_breakdown_with_automata$query_type <- as.character(factor(interim_breakdown_with_automata$query_type,
+    levels = c("Full-Text Search", "Prefix Search", "full_text", "prefix", "comp_suggest", "more_like", "regex", "GeoData_spatial_search"),
+    labels = c("Full-Text Search", "Prefix Search", "Full-Text", "Prefix", "Completion Suggester", "More Like", "Regex", "Geospatial")))
   failure_breakdown_with_automata <<- reshape2::dcast(interim_breakdown_with_automata,
-                                                      formula = date ~ query_type, fun.aggregate = sum)
+                                                      formula = date ~ query_type, fun.aggregate = sum,
+                                                      fill = as.double(NA))
 
   interim_breakdown_no_automata <- polloi::read_dataset("search/cirrus_query_breakdowns_no_automata.tsv")
   interim_breakdown_no_automata$rate <- interim_breakdown_no_automata$rate*100
+  interim_breakdown_no_automata$query_type <- as.character(factor(interim_breakdown_no_automata$query_type,
+    levels = c("Full-Text Search", "Prefix Search", "full_text", "prefix", "comp_suggest", "more_like", "regex", "GeoData_spatial_search"),
+    labels = c("Full-Text Search", "Prefix Search", "Full-Text", "Prefix", "Completion Suggester", "More Like", "Regex", "Geospatial")))
   failure_breakdown_no_automata <<- reshape2::dcast(interim_breakdown_no_automata,
-                                                    formula = date ~ query_type, fun.aggregate = sum)
+                                                    formula = date ~ query_type, fun.aggregate = sum,
+                                                    fill = as.double(NA))
+
+  # Fix to make the suggestion dataset compatible with ZRR data format switch:
+  interim_breakdown_with_automata$query_type[interim_breakdown_with_automata$query_type == "Full-Text"] <- "Full-Text Search"
+  interim_breakdown_no_automata$query_type[interim_breakdown_no_automata$query_type == "Full-Text"] <- "Full-Text Search"
+  # Correction for 31 January 2016 when "Full Text" appears twice (once as "Full-Text Search" and once as "Full-Text"):
+  interim_breakdown_with_automata <- interim_breakdown_with_automata[!duplicated(interim_breakdown_with_automata[, c('date', 'query_type')]), ]
+  interim_breakdown_no_automata <- interim_breakdown_no_automata[!duplicated(interim_breakdown_no_automata[, c('date', 'query_type')]), ]
 
   interim <- polloi::read_dataset("search/cirrus_suggestion_breakdown_with_automata.tsv")
   interim$rate <- interim$rate*100
@@ -100,7 +117,8 @@ read_failures <- function(date) {
   interim <- rbind(interim[,c("date", "query_type", "rate")],
                    interim_breakdown_with_automata[interim_breakdown_with_automata$date %in% interim$date
                                                    & interim_breakdown_with_automata$query_type == "Full-Text Search",])
-  suggestion_with_automata <<- reshape2::dcast(interim, formula = date ~ query_type, fun.aggregate = sum)
+  suggestion_with_automata <<- reshape2::dcast(interim, formula = date ~ query_type, fun.aggregate = sum,
+                                               fill = as.double(NA))
 
   interim <- polloi::read_dataset("search/cirrus_suggestion_breakdown_no_automata.tsv")
   interim$rate <- interim$rate*100
@@ -108,7 +126,8 @@ read_failures <- function(date) {
   interim <- rbind(interim[,c("date", "query_type", "rate")],
                    interim_breakdown_no_automata[interim_breakdown_no_automata$date %in% interim$date
                                                  & interim_breakdown_no_automata$query_type == "Full-Text Search",])
-  suggestion_no_automata <<- reshape2::dcast(interim, formula = date ~ query_type, fun.aggregate = sum)
+  suggestion_no_automata <<- reshape2::dcast(interim, formula = date ~ query_type, fun.aggregate = sum,
+                                             fill = as.double(NA))
 
   interim <- polloi::read_dataset("search/cirrus_langproj_breakdown_with_automata.tsv",
                                                   na = "~", col_types = "Dccii")

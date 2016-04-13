@@ -205,7 +205,8 @@ shinyServer(function(input, output) {
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_rate)) %>%
       polloi::subset_by_date_range(time_frame_range(input$failure_rate_timeframe, input$failure_rate_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero Results Rate, by day",
-                           legend_name = "ZRR")
+                           legend_name = "ZRR") %>%
+      dyAnnotation(as.Date("2016-02-01"), text = "A", tooltip = "Format Switch")
   })
 
   output$failure_rate_change_plot <- renderDygraph({
@@ -216,17 +217,40 @@ shinyServer(function(input, output) {
   })
 
   output$failure_breakdown_plot <- renderDygraph({
-    polloi::data_select(input$failure_breakdown_automata, failure_breakdown_with_automata, failure_breakdown_no_automata) %>%
+    xts_data <- input$failure_breakdown_automata %>%
+      polloi::data_select(failure_breakdown_with_automata, failure_breakdown_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_breakdown)) %>%
       polloi::subset_by_date_range(time_frame_range(input$failure_breakdown_timeframe, input$failure_breakdown_timeframe_daterange)) %>%
-      polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero result rate by search type")
+      { xts(.[, -1], order.by = .$date) }
+    xts_data %>% dygraph(xlab = "Date", ylab = "Zero Results Rate (%)",
+                         main = "Zero result rate by search type") %>%
+      dyLegend(width = 600, show = "always", labelsDiv = "failure_breakdown_plot_legend") %>%
+      dyOptions(strokeWidth = 2, drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE, includeZero = TRUE) %>%
+      dyCSS(css = system.file("custom.css", package = "polloi")) %>%
+      # We use grep(colnames(xts_data), value = TRUE) because smoothing appends "(... median)" to colnames.
+      # Customize the full_text and prefix series colors so they match "Full-Text Search" and "Prefix Search":
+      dySeries(grep("Full-Text Search", colnames(xts_data), value = TRUE, fixed = TRUE),
+               color = "#377EB8", strokeWidth = 3) %>%
+      dySeries(grep("Full-Text", colnames(xts_data), value = TRUE)[1], color = "#377EB8") %>%
+      dySeries(grep("Prefix Search", colnames(xts_data), value = TRUE, fixed = TRUE),
+               color = "#E41A1C", strokeWidth = 3) %>%
+      dySeries(grep("Prefix", colnames(xts_data), value = TRUE)[1], color = "#E41A1C") %>%
+      # Specify the colors for other query types here:
+      dySeries(grep("Completion Suggester", colnames(xts_data), value = TRUE), color = "#4DAF4A") %>%
+      dySeries(grep("More Like", colnames(xts_data), value = TRUE), color = "#984EA3") %>%
+      dySeries(grep("Geospatial", colnames(xts_data), value = TRUE), color = "#A65628") %>%
+      dySeries(grep("Regex", colnames(xts_data), value = TRUE), color = "#FF7f00") %>%
+      # Remember to update the tab documentation with details about the annotations!
+      dyAnnotation(as.Date("2016-02-01"), text = "A", tooltip = "Format Switch",
+                   series = grep("Prefix", colnames(xts_data), value = TRUE)[1])
   })
 
   output$suggestion_dygraph_plot <- renderDygraph({
     polloi::data_select(input$failure_suggestions_automata, suggestion_with_automata, suggestion_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_suggestions)) %>%
       polloi::subset_by_date_range(time_frame_range(input$failure_suggestions_timeframe, input$failure_suggestions_timeframe_daterange)) %>%
-      polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero Result Rates with Search Suggestions")
+      polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero Result Rates with Search Suggestions") %>%
+      dyAnnotation(as.Date("2016-02-01"), text = "A", tooltip = "Format Switch")
   })
 
   output$language_selector_container <- renderUI({
@@ -523,7 +547,8 @@ shinyServer(function(input, output) {
              dyOptions(strokeWidth = 3, colors = RColorBrewer::brewer.pal(3, "Set2"),
                        drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
                        includeZero = TRUE) %>%
-             dyCSS(css = system.file("custom.css", package = "polloi")))
+             dyCSS(css = system.file("custom.css", package = "polloi")) %>%
+             dyAnnotation(as.Date("2016-02-01"), text = "A", tooltip = "Format Switch"))
   })
   output$kpi_api_usage_series <- renderDygraph({
     smooth_level <- input$smoothing_kpi_api_usage

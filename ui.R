@@ -47,7 +47,8 @@ sidebar <- dashboardSidebar(
     menuItem(text = "Page Visit Times", tabName = "survival"),
     menuItem(text = "Global Settings",
              selectInput(inputId = "smoothing_global", label = "Smoothing", selectize = TRUE, selected = "day",
-                         choices = c("No Smoothing" = "day", "Weekly Median" = "week", "Monthly Median" = "month")),
+                         choices = c("No Smoothing" = "day", "Weekly Median" = "week",
+                                     "Monthly Median" = "month", "Splines" = "gam")),
              selectInput(inputId = "timeframe_global", label = "Time Frame", selectize = TRUE, selected = "",
                          choices = c("All available data" = "all", "Last 7 days" = "week", "Last 30 days" = "month",
                                      "Last 90 days" = "quarter", "Custom" = "custom")),
@@ -221,6 +222,7 @@ body <- dashboardBody(
               column(polloi::timeframe_daterange("failure_breakdown_timeframe"), width = 4)),
             polloi::automata_select(input_id = "failure_breakdown_automata"),
             dygraphOutput("failure_breakdown_plot"),
+            div(id = "failure_breakdown_plot_legend"),
             includeMarkdown("./tab_documentation/failure_breakdown.md")
     ),
     tabItem(tabName = "failure_suggestions",
