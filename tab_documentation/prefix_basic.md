@@ -8,10 +8,9 @@ General trends
 
 Prefix Search isn't tremendously used, which makes sense; for external services, the cost of making the call to us is too high to provide seamless dropdowns in the fashion we can on Wikipedia proper.
 
-Outages and inaccuracies
+Notes
 ------
-
-  * None so far!
+* After learning of a change to the search API call, we patched the Analytics Hive UDF refinery (see [287264](https://gerrit.wikimedia.org/r/#/c/287264/)) to check for generator=prefixsearch as well, not just list=prefixsearch. The data was backfilled from 20 March 2016 using the updated Prefix API detection.
 
 Questions, bug reports, and feature suggestions
 ------
