@@ -56,7 +56,8 @@ sidebar <- dashboardSidebar(
                               dateRangeInput("daterange_global", label = "Custom Date Range",
                                              start = Sys.Date()-11, end = Sys.Date()-1, min = "2015-04-14")),
              icon = icon("cog", lib = "glyphicon"))
-  )
+  ),
+  div(icon("info-sign", lib = "glyphicon"), HTML("<strong>Tip</strong>: you can drag on the graphs with your mouse to zoom in on a particular date range."), style = "padding: 10px; color: white;")
 )
 
 #Body elements for the search visualisations.
