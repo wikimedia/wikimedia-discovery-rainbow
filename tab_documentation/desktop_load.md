@@ -1,4 +1,4 @@
-Desktop result load times
+Desktop full-text result load times
 =======
 
 When a user types in a search query, it's sent off to the servers which identify and rank probable articles and then return them in a list. In an ideal world this would be instantaneous, but realistically, even with all the caching in the world it's going to take *some* time.
@@ -17,6 +17,7 @@ There are occasionally going to be outages that will affect the accuracy of data
 * Between 2 October 2015 and 28 October 2015 we were not logging any events from the Search schema. There was a change in core that broke the code being inserted into pages. Those pages were cached into varnish so an alternate solution had to be taken. that was delayed because of deployment freezes. The change in core only broke it because the way the code was added from our side was technically wrong, but happened to work anyways.
 * Between 5 May and 6 May 2015, approximately 40% of incoming EventLogging data was lost due to a wider EventLogging outage. You can read more about the outage [here](https://wikitech.wikimedia.org/wiki/Incident_documentation/20150506-EventLogging).
 * Data in late September/early October 2015 is unavailable due to another bug in EventLogging as a whole, which impacted data collection.
+* __A__: we switched to using data from [Schema:TestSearchSatisfaction2](https://meta.wikimedia.org/wiki/Schema:TestSearchSatisfaction2) instead of [Schema:Search](https://meta.wikimedia.org/wiki/Schema:Search) for Desktop event counts and load times on 12 July 2016.
 
 Questions, bug reports, and feature suggestions
 ------

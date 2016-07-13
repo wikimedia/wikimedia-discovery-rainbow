@@ -53,14 +53,16 @@ shinyServer(function(input, output) {
     desktop_dygraph_set %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_desktop_event)) %>%
       polloi::subset_by_date_range(time_frame_range(input$desktop_event_timeframe, input$desktop_event_timeframe_daterange)) %>%
-      polloi::make_dygraph(xlab = "Date", ylab = "Events", title = "Desktop search events, by day")
+      polloi::make_dygraph(xlab = "Date", ylab = "Events", title = "Desktop search events, by day") %>%
+      dygraphs::dyAnnotation(as.Date("2016-07-12"), "A", "Schema switch")
   })
 
   output$desktop_load_plot <- renderDygraph({
     desktop_load_data %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_desktop_load)) %>%
       polloi::subset_by_date_range(time_frame_range(input$desktop_load_timeframe, input$desktop_load_timeframe_daterange)) %>%
-      polloi::make_dygraph(xlab = "Date", ylab = "Load time (ms)", title = "Desktop load times, by day", use_si = FALSE)
+      polloi::make_dygraph(xlab = "Date", ylab = "Load time (ms)", title = "Desktop load times, by day", use_si = FALSE) %>%
+      dygraphs::dyAnnotation(as.Date("2016-07-12"), "A", "Schema switch")
   })
 
   ## Mobile value boxes
