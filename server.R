@@ -9,14 +9,25 @@ existing_date <- Sys.Date() - 1
 shinyServer(function(input, output) {
 
   if (Sys.Date() != existing_date) {
+    # Create a Progress object
+    progress <- shiny::Progress$new()
+    progress$set(message = "Downloading desktop data", value = 0)
     read_desktop()
+    progress$set(message = "Downloading apps data", value = 0.1)
     read_apps()
+    progress$set(message = "Downloading mobile web data", value = 0.3)
     read_web()
+    progress$set(message = "Downloading API usage data", value = 0.4)
     read_api()
+    progress$set(message = "Downloading zero results data", value = 0.5)
     read_failures(existing_date)
+    progress$set(message = "Downloading engagement data", value = 0.8)
     read_augmented_clickthrough()
+    progress$set(message = "Downloading survival data", value = 0.9)
     read_lethal_dose()
+    progress$set(message = "Finished downloading datasets", value = 1)
     existing_date <<- Sys.Date()
+    progress$close()
   }
 
   # Wrap time_frame_range to provide global settings
@@ -309,7 +320,6 @@ shinyServer(function(input, output) {
         selected_language <- languages_to_display[[1]]
       }
     }
-
     return(selectInput("language_selector", "Language", multiple = TRUE,selectize = FALSE, size = 19,
                        choices = languages_to_display, selected = selected_language))
   })
@@ -322,7 +332,6 @@ shinyServer(function(input, output) {
       projects_to_display <- available_projects$project
       names(projects_to_display) <- available_projects$label
     }
-
     return(selectInput("project_selector", "Project", multiple = TRUE,selectize = FALSE, size = 19,
                        choices = projects_to_display, selected = projects_to_display[[1]]))
   })
@@ -644,6 +653,83 @@ shinyServer(function(input, output) {
       dyLegend(labelsDiv = "kpi_augmented_clickthroughs_series_legend") %>%
       dyRangeSelector(fillColor = "", strokeColor = "") %>%
       dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom")
+  })
+
+  ## Monthly metrics
+  output$monthly_metrics_tbl <- renderTable({
+    temp <- data.frame(
+      KPI = c("Load time", "Zero results rate", "API Usage", "User engagement"),
+      Units = c("ms", "%", "", "%")
+    )
+
+    prev_month <- as.Date(sprintf("%.0f-%02.0f-01", lubridate::year(existing_date), lubridate::month(existing_date)-1))
+    prev_prev_month <- as.Date(sprintf("%.0f-%02.0f-01", lubridate::year(existing_date), lubridate::month(existing_date)-2))
+    prev_year <- as.Date(sprintf("%.0f-%02.0f-01", lubridate::year(existing_date)-1, lubridate::month(existing_date)-1))
+
+    smoothed_load_times <- list(Desktop = desktop_load_data,
+                                Mobile = mobile_load_data,
+                                Android = android_load_data,
+                                iOS = ios_load_data) %>%
+      lapply(function(platform_load_data) {
+        platform_load_data[, c("date", "Median")]
+      }) %>%
+      dplyr::bind_rows(.id = "platform") %>%
+      dplyr::group_by(date) %>%
+      dplyr::summarize(Median = median(Median)) %>%
+      polloi::smoother("month", rename = FALSE)
+    smoothed_zrr <- polloi::smoother(failure_data_with_automata, "month", rename = FALSE)
+    smoothed_api <- split_dataset %>%
+      lapply(function(platform_load_data) {
+        platform_load_data[, c("date", "events")]
+      }) %>%
+      dplyr::bind_rows(.id = "api") %>%
+      dplyr::group_by(date) %>%
+      dplyr::summarize(total = sum(events)) %>%
+      polloi::smoother("month", rename = FALSE)
+    smoothed_engagement <- augmented_clickthroughs[, c("date", "user_engagement")] %>%
+      polloi::smoother("month", rename = FALSE)
+
+    temp$Current <- c(
+      smoothed_load_times$Median[smoothed_load_times$date == prev_month],
+      smoothed_zrr$rate[smoothed_zrr$date == prev_month],
+      smoothed_api$total[smoothed_api$date == prev_month],
+      smoothed_engagement$user_engagement[smoothed_engagement$date == prev_month]
+    )
+    temp$Previous_month <- c(
+      smoothed_load_times$Median[smoothed_load_times$date == prev_prev_month],
+      smoothed_zrr$rate[smoothed_zrr$date == prev_prev_month],
+      smoothed_api$total[smoothed_api$date == prev_prev_month],
+      smoothed_engagement$user_engagement[smoothed_engagement$date == prev_prev_month]
+    )
+    temp$Previous_year <- c(
+      smoothed_load_times$Median[smoothed_load_times$date == prev_year],
+      smoothed_zrr$rate[smoothed_zrr$date == prev_year],
+      smoothed_api$total[smoothed_api$date == prev_year],
+      ifelse(sum(smoothed_engagement$date == prev_year) == 0, NA, smoothed_engagement$user_engagement[smoothed_engagement$date == prev_year])
+    )
+
+    # Compute month-over-month changes:
+    temp$MoM <- c(
+      100 * (temp$Current - temp$Previous_month)/temp$Previous_month
+    )
+    # Compute year-over-year changes:
+    temp$YoY <- c(
+      100 * (temp$Current - temp$Previous_year)/temp$Previous_year
+    )
+    # Affix units:
+    temp$Current <- paste0(temp$Current, temp$Units)
+    temp$Previous_month <- paste0(temp$Previous_month, temp$Units)
+    temp$Previous_year <- paste0(temp$Previous_year, temp$Units)
+    temp$MoM <- sprintf("%s%.2f%%", ifelse(temp$MoM > 0, "+", ""), temp$MoM)
+    temp$YoY <- sprintf("%s%.2f%%", ifelse(temp$YoY > 0, "+", ""), temp$YoY)
+    # API Usage units (K/M/B/T):
+    temp[3, c("Current", "Previous_month", "Previous_year")] <- polloi::compress(as.numeric(temp[3, c("Current", "Previous_month", "Previous_year")]))
+    # Rename columns to use month & year:
+    names(temp) <- c("KPI", "Units", as.character(prev_month, "%B %Y"), as.character(prev_prev_month, "%B %Y"), as.character(prev_year, "%B %Y"), "MoM", "YoY")
+    # Sanitize:
+    temp[temp == "NA%" | temp == "NANA%"] <- "--"
+    rownames(temp) <- temp$KPI
+    temp[, c(5, 4, 3, 6, 7)]
   })
 
   # Check datasets for missing data and notify user which datasets are missing data (if any)

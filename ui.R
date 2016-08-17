@@ -19,6 +19,7 @@ sidebar <- dashboardSidebar(
                                             "Last 30 days" = "monthly", "Last 90 days" = "quarterly")),
                  style = "margin-bottom:-10px;"),
              menuSubItem(text = "Summary", tabName = "kpis_summary"),
+             menuSubItem(text = "Monthly Metrics", tabName = "monthly_metrics"),
              menuSubItem(text = "Load times", tabName = "kpi_load_time"),
              menuSubItem(text = "Zero results", tabName = "kpi_zero_results"),
              menuSubItem(text = "API usage", tabName = "kpi_api_usage"),
@@ -71,6 +72,9 @@ body <- dashboardBody(
                      valueBoxOutput("kpi_summary_box_augmented_clickthroughs", width = 3)),
             plotOutput("kpi_summary_api_usage_proportions", height = "30px"),
             includeMarkdown("./tab_documentation/kpis_summary.md")),
+    tabItem(tabName = "monthly_metrics",
+            tableOutput("monthly_metrics_tbl"),
+            includeMarkdown("./tab_documentation/monthly_metrics.md")),
     tabItem(tabName = "kpi_load_time",
             fluidRow(
               column(polloi::smooth_select("smoothing_kpi_load_time"), width = 4),
