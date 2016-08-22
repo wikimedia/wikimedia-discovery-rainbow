@@ -70,10 +70,28 @@ body <- dashboardBody(
                      valueBoxOutput("kpi_summary_box_zero_results", width = 3),
                      valueBoxOutput("kpi_summary_box_api_usage", width = 3),
                      valueBoxOutput("kpi_summary_box_augmented_clickthroughs", width = 3)),
-            plotOutput("kpi_summary_api_usage_proportions", height = "30px"),
             includeMarkdown("./tab_documentation/kpis_summary.md")),
     tabItem(tabName = "monthly_metrics",
-            tableOutput("monthly_metrics_tbl"),
+            fluidRow(
+              column(fluidRow(
+                column(selectInput("monthy_metrics_month", "Month",
+                                   choices = month.name,
+                                   selected = month.name[lubridate::month(Sys.Date() - 1 - months(1))],
+                                   selectize = FALSE),
+                       width = 6),
+                column(selectInput("monthy_metrics_year", "Year",
+                                   choices = lubridate::year(seq(lubridate::floor_date(as.Date("2016-01-01"), "year"), Sys.Date() - 1 - months(1), "year")),
+                                   selected = lubridate::year(Sys.Date() - 1 - months(1)),
+                                   selectize = FALSE),
+                       width = 6)
+              ),
+              checkboxInput("monthly_metrics_prev_month",
+                            "Show previous month", TRUE),
+              checkboxInput("monthly_metrics_prev_year",
+                            "Show previous year", TRUE),
+              width = 4),
+              column(tableOutput("monthly_metrics_tbl"), width = 8)
+            ),
             includeMarkdown("./tab_documentation/monthly_metrics.md")),
     tabItem(tabName = "kpi_load_time",
             fluidRow(

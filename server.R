@@ -6,11 +6,11 @@ source("utils.R")
 
 existing_date <- Sys.Date() - 1
 
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
 
   if (Sys.Date() != existing_date) {
     # Create a Progress object
-    progress <- shiny::Progress$new()
+    progress <- shiny::Progress$new(session, min = 0, max = 1)
     progress$set(message = "Downloading desktop data", value = 0)
     read_desktop()
     progress$set(message = "Downloading apps data", value = 0.1)
@@ -381,7 +381,7 @@ shinyServer(function(input, output) {
                sub("([a-z]{2})", "<sup>\\1</sup>", .) %>%
                paste0(as.character(dates, "%b "), .) %>%
                {
-                 c(paste(.[1:2], collapse = "-"), paste(.[3:4], collapse = "-"))
+                 c(paste(.[2:1], collapse = "-"), paste(.[4:3], collapse = "-"))
                }
            },
            monthly = {
@@ -393,7 +393,7 @@ shinyServer(function(input, output) {
                sub("([a-z]{2})", "<sup>\\1</sup>", .) %>%
                paste0(as.character(dates, "%b "), .) %>%
                {
-                 c(paste(.[1:2], collapse = "-"), paste(.[3:4], collapse = "-"))
+                 c(paste(.[2:1], collapse = "-"), paste(.[4:3], collapse = "-"))
                }
            },
            quarterly = {
@@ -405,9 +405,9 @@ shinyServer(function(input, output) {
                       sub("([a-z]{2})", "<sup>\\1</sup>", .) %>%
                       paste0(as.character(dates, "%B "), .) %>%
                       paste0(collapse = "-") %>%
-                      HTML("<h3 class='kpi_date'>KPI summary for ", ., ":</h3>"))
+                      HTML("<h3 class='kpi_date'>KPI summary for", ., "</h3>"))
            })
-    return(HTML("<h3 class='kpi_date'>KPI summary for ", temp[2], ", and % change from ", temp[1], ":</h3>"))
+    return(HTML("<h3 class='kpi_date'>KPI summary for", temp[1], ", and % change from", temp[2], "</h3>"))
   })
 
   output$kpi_summary_box_load_time <- renderValueBox({
@@ -504,26 +504,6 @@ shinyServer(function(input, output) {
                       value = sprintf("%.1f%%", y2), color = "orange"))
     }
     return(polloi::na_box("User engagement (data problem)"))
-  })
-  output$kpi_summary_api_usage_proportions <- renderPlot({
-    start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector,
-                                      daily = 1, weekly = 8, monthly = 31, quarterly = 91)
-    api_latest <- cbind("Full-text via API" = polloi::subset_by_date_range(split_dataset$cirrus, from = start_date, to = Sys.Date() - 1)$events,
-                        "Geo Search" = polloi::subset_by_date_range(split_dataset$geo, from = start_date, to = Sys.Date() - 1)$events,
-                        "OpenSearch" = polloi::subset_by_date_range(split_dataset$open, from = start_date, to = Sys.Date() - 1)$events,
-                        "Language" = polloi::subset_by_date_range(split_dataset$language, from = start_date, to = Sys.Date() - 1)$events,
-                        "Prefix" = polloi::subset_by_date_range(split_dataset$prefix, from = start_date, to = Sys.Date() - 1)$events) %>%
-      apply(2, median) %>% round
-    api_latest <- data.frame(API = names(api_latest),
-                             Events = api_latest,
-                             Prop = api_latest/sum(api_latest))
-    api_latest <- api_latest[api_latest$Prop > 0.01, ]
-    api_latest$Label <- sprintf("%s (%.0f%%)", api_latest$API, 100*api_latest$Prop)
-    i <- which(api_latest$Prop > 0.5) # Majority API usage type gets additional text (for clarity)
-    if ( length(i) == 1 )
-      api_latest$Label[i] <- sprintf("%s (%.0f%% of total API usage)", api_latest$API[i], 100*api_latest$Prop[i])
-    rm(i)
-    gg_prop_bar(api_latest, cols = list(item = "API", prop = "Prop", label = "Label"))
   })
 
   ## KPI Modules
@@ -662,9 +642,9 @@ shinyServer(function(input, output) {
       Units = c("ms", "%", "", "%")
     )
 
-    prev_month <- as.Date(sprintf("%.0f-%02.0f-01", lubridate::year(existing_date), lubridate::month(existing_date)-1))
-    prev_prev_month <- as.Date(sprintf("%.0f-%02.0f-01", lubridate::year(existing_date), lubridate::month(existing_date)-2))
-    prev_year <- as.Date(sprintf("%.0f-%02.0f-01", lubridate::year(existing_date)-1, lubridate::month(existing_date)-1))
+    prev_month <- as.Date(paste(input$monthy_metrics_year, which(month.name == input$monthy_metrics_month), "1", sep = "-"))
+    prev_prev_month <- prev_month - months(1)
+    prev_year <- prev_month - months(12)
 
     smoothed_load_times <- list(Desktop = desktop_load_data,
                                 Mobile = mobile_load_data,
@@ -702,9 +682,9 @@ shinyServer(function(input, output) {
       smoothed_engagement$user_engagement[smoothed_engagement$date == prev_prev_month]
     )
     temp$Previous_year <- c(
-      smoothed_load_times$Median[smoothed_load_times$date == prev_year],
-      smoothed_zrr$rate[smoothed_zrr$date == prev_year],
-      smoothed_api$total[smoothed_api$date == prev_year],
+      ifelse(sum(smoothed_load_times$date == prev_year) == 0, NA, smoothed_load_times$Median[smoothed_load_times$date == prev_year]),
+      ifelse(sum(smoothed_zrr$date == prev_year) == 0, NA, smoothed_zrr$rate[smoothed_zrr$date == prev_year]),
+      ifelse(sum(smoothed_api$date == prev_year) == 0, NA, smoothed_api$total[smoothed_api$date == prev_year]),
       ifelse(sum(smoothed_engagement$date == prev_year) == 0, NA, smoothed_engagement$user_engagement[smoothed_engagement$date == prev_year])
     )
 
@@ -727,9 +707,16 @@ shinyServer(function(input, output) {
     # Rename columns to use month & year:
     names(temp) <- c("KPI", "Units", as.character(prev_month, "%B %Y"), as.character(prev_prev_month, "%B %Y"), as.character(prev_year, "%B %Y"), "MoM", "YoY")
     # Sanitize:
-    temp[temp == "NA%" | temp == "NANA%"] <- "--"
+    temp[temp == "NA%" | temp == "NANA%" | temp == "NANA"] <- "--"
     rownames(temp) <- temp$KPI
-    temp[, c(5, 4, 3, 6, 7)]
+    cols_to_keep <- c(5, 4, 3, 6, 7)
+    if (!input$monthly_metrics_prev_month) {
+      cols_to_keep <- base::setdiff(cols_to_keep, 4)
+    }
+    if (!input$monthly_metrics_prev_year) {
+      cols_to_keep <- base::setdiff(cols_to_keep, 5)
+    }
+    temp[, cols_to_keep]
   })
 
   # Check datasets for missing data and notify user which datasets are missing data (if any)
