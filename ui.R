@@ -33,7 +33,10 @@ sidebar <- dashboardSidebar(
              menuSubItem(text = "Load times", tabName = "mobile_load")),
     menuItem(text = "Mobile Apps",
              menuSubItem(text = "Events", tabName = "app_events"),
-             menuSubItem(text = "Load times", tabName = "app_load")),
+             menuSubItem(text = "Load times", tabName = "app_load"),
+			 menuSubItem(text = "Click Position", tabName = "app_click_position"),
+			 menuSubItem(text = "Invoke Source", tabName = "app_invoke_source")
+			 ),
     menuItem(text = "API",
              menuSubItem(text = "Full-text via API", tabName = "fulltext_search"),
              menuSubItem(text = "Open Search", tabName = "open_search"),
@@ -187,6 +190,24 @@ body <- dashboardBody(
             dygraphOutput("android_load_plot"),
             dygraphOutput("ios_load_plot"),
             includeMarkdown("./tab_documentation/app_load.md")
+    ),
+    tabItem(tabName = "app_click_position",
+            fluidRow(
+              column(polloi::smooth_select("smoothing_app_click_position"), width = 4),
+              column(polloi::timeframe_select("app_click_position_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("app_click_position_timeframe"), width = 4)),
+            div(id = "app_click_position_legend"),
+            dygraphOutput("click_position_plot"),
+            includeMarkdown("./tab_documentation/click_position.md")
+    ),
+    tabItem(tabName = "app_invoke_source",
+            fluidRow(
+              column(polloi::smooth_select("smoothing_app_invoke_source"), width = 4),
+              column(polloi::timeframe_select("app_invoke_source_timeframe"), width = 4),
+              column(polloi::timeframe_daterange("app_invoke_source_timeframe"), width = 4)),
+            div(id = "app_invoke_source_legend"),
+            dygraphOutput("invoke_source_plot"),
+            includeMarkdown("./tab_documentation/invoke_source.md")
     ),
     tabItem(tabName = "fulltext_search",
             fluidRow(

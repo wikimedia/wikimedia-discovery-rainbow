@@ -50,7 +50,20 @@ read_apps <- function() {
   names(app_load_data)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
   ios_load_data <<- app_load_data[app_load_data$platform == "iOS", names(app_load_data) != "platform"]
   android_load_data <<- app_load_data[app_load_data$platform == "Android", names(app_load_data) != "platform"]
-
+  
+  position_prop <- polloi::read_dataset("search/click_position_counts.tsv", col_types = "Dci") %>%
+                group_by(date) %>%
+                mutate(prop=round(events/sum(events)*100, 2)) %>%
+                ungroup %>%
+                select(-events) %>%
+				reshape2::dcast(formula = date ~ click_position, fun.aggregate = sum)
+  position_prop <<- position_prop[,c("date","1","2","3","4","5","6","7","8","9","10-19","20-100","100+")]
+  source_prop <<- polloi::read_dataset("search/invoke_source_counts.tsv", col_types = "Dci") %>%
+              group_by(date) %>%
+              mutate(prop=round(events/sum(events)*100, 2)) %>%
+              ungroup %>%
+              select(-events) %>%
+			  reshape2::dcast(formula = date ~ invoke_source, fun.aggregate = sum)
 }
 
 read_api <- function(){
