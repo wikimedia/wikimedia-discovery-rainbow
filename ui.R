@@ -196,7 +196,7 @@ body <- dashboardBody(
               column(polloi::smooth_select("smoothing_app_click_position"), width = 4),
               column(polloi::timeframe_select("app_click_position_timeframe"), width = 4),
               column(polloi::timeframe_daterange("app_click_position_timeframe"), width = 4)),
-            div(id = "app_click_position_legend"),
+            div(id = "app_click_position_legend", class = "large"),
             dygraphOutput("click_position_plot"),
             includeMarkdown("./tab_documentation/click_position.md")
     ),

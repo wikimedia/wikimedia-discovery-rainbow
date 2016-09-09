@@ -187,22 +187,22 @@ shinyServer(function(input, output, session) {
       polloi::make_dygraph(xlab = "Date", ylab = "Load time (ms)", title = "iOS result load times, by day", use_si = FALSE) %>%
       dyRangeSelector
   })
-  
+
   output$click_position_plot <- renderDygraph({
     position_prop %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_click_position)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$app_click_position_timeframe, input$app_click_position_timeframe)) %>%
+      polloi::subset_by_date_range(time_frame_range(input$app_click_position_timeframe, input$app_click_position_daterange)) %>%
       polloi::make_dygraph(xlab = "", ylab = "Proportion of Clicks (%)", title = "Proportion of Clicks on Nth Result") %>%
       dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
              axisLabelWidth = 100, pixelsPerLabel = 80) %>%
       dyLegend(labelsDiv = "app_click_position_legend") %>%
       dyRangeSelector(fillColor = "", strokeColor = "")
   })
-  
+
   output$invoke_source_plot <- renderDygraph({
     source_prop %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_invoke_source)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$app_invoke_source_timeframe, input$app_invoke_source_timeframe)) %>%
+      polloi::subset_by_date_range(time_frame_range(input$app_invoke_source_timeframe, input$app_invoke_source_daterange)) %>%
       polloi::make_dygraph(xlab = "", ylab = "Proportion of Search Sessions (%)", title = "Proportion of Search Sessions, by Invoke Source") %>%
       dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
              axisLabelWidth = 100, pixelsPerLabel = 80) %>%
