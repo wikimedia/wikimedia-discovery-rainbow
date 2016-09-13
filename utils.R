@@ -188,6 +188,12 @@ read_lethal_dose <- function() {
   user_page_visit_dataset <<- intermediary_dataset
 }
 
+read_paul_score <- function() {
+  data <- polloi::read_dataset("search/paulscore_approximations.tsv")
+  paulscore_autocomplete <<- data[data$event_source == "autocomplete", -2]
+  paulscore_fulltext <<- data[data$event_source == "fulltext", -2]
+}
+
 aggregate_wikis <- function(data, languages, projects) {
   languages <- sub(" \\([0-9]{1,2}\\.[0-9]{1,3}%\\)", "", languages)
   projects <- sub(" \\([0-9]{1,2}\\.[0-9]{1,3}%\\)", "", projects)

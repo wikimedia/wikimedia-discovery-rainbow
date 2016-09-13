@@ -21,10 +21,12 @@ shinyServer(function(input, output, session) {
     read_api()
     progress$set(message = "Downloading zero results data", value = 0.5)
     read_failures(existing_date)
-    progress$set(message = "Downloading engagement data", value = 0.8)
+    progress$set(message = "Downloading engagement data", value = 0.7)
     read_augmented_clickthrough()
-    progress$set(message = "Downloading survival data", value = 0.9)
+    progress$set(message = "Downloading survival data", value = 0.8)
     read_lethal_dose()
+    progress$set(message = "Downloading PaulScore data", value = 0.9)
+    read_paul_score()
     progress$set(message = "Finished downloading datasets", value = 1)
     existing_date <<- Sys.Date()
     progress$close()
@@ -80,6 +82,24 @@ shinyServer(function(input, output, session) {
       polloi::make_dygraph(xlab = "Date", ylab = "Load time (ms)", title = "Desktop load times, by day", use_si = FALSE) %>%
       dyRangeSelector %>%
       dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom")
+  })
+
+  output$paulscore_approx_plot_fulltext <- renderDygraph({
+    paulscore_fulltext %>%
+      polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_paulscore_approx)) %>%
+      polloi::subset_by_date_range(time_frame_range(input$paulscore_approx_timeframe, input$paulscore_approx_timeframe_daterange)) %>%
+      polloi::make_dygraph(xlab = "Date", ylab = "PaulScore", title = "PaulScore for fulltext searches, by day", use_si = FALSE, group = "paulscore_approx") %>%
+      dyRangeSelector %>%
+      dyLegend(labelsDiv = "paulscore_approx_legend", show = "always")
+  })
+
+  output$paulscore_approx_plot_autocomplete <- renderDygraph({
+    paulscore_autocomplete %>%
+      polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_paulscore_approx)) %>%
+      polloi::subset_by_date_range(time_frame_range(input$paulscore_approx_timeframe, input$paulscore_approx_timeframe_daterange)) %>%
+      polloi::make_dygraph(xlab = "Date", ylab = "PaulScore", title = "PaulScore for autocomplete searches, by day", use_si = FALSE, group = "paulscore_approx") %>%
+      dyRangeSelector %>%
+      dyLegend(labelsDiv = "paulscore_approx_legend", show = "always")
   })
 
   ## Mobile value boxes
