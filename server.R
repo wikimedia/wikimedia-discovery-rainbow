@@ -6,11 +6,11 @@ source("utils.R")
 
 existing_date <- Sys.Date() - 1
 
-shinyServer(function(input, output, session) {
+function(input, output, session) {
 
   if (Sys.Date() != existing_date) {
     # Create a Progress object
-    progress <- shiny::Progress$new(session, min = 0, max = 1)
+    progress <- shiny::Progress$new()
     progress$set(message = "Downloading desktop data", value = 0)
     read_desktop()
     progress$set(message = "Downloading apps data", value = 0.1)
@@ -30,11 +30,6 @@ shinyServer(function(input, output, session) {
     progress$set(message = "Finished downloading datasets", value = 1)
     existing_date <<- Sys.Date()
     progress$close()
-  }
-
-  # Wrap time_frame_range to provide global settings
-  time_frame_range <- function(input_local_timeframe, input_local_daterange) {
-    return(polloi::time_frame_range(input_local_timeframe, input_local_daterange, input$timeframe_global, input$daterange_global))
   }
 
   ## Desktop value boxes
@@ -69,7 +64,6 @@ shinyServer(function(input, output, session) {
   output$desktop_event_plot <- renderDygraph({
     desktop_dygraph_set %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_desktop_event)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$desktop_event_timeframe, input$desktop_event_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Events", title = "Desktop search events, by day") %>%
       dyRangeSelector %>%
       dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom")
@@ -78,7 +72,6 @@ shinyServer(function(input, output, session) {
   output$desktop_load_plot <- renderDygraph({
     desktop_load_data %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_desktop_load)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$desktop_load_timeframe, input$desktop_load_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Load time (ms)", title = "Desktop load times, by day", use_si = FALSE) %>%
       dyRangeSelector %>%
       dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom")
@@ -87,7 +80,6 @@ shinyServer(function(input, output, session) {
   output$paulscore_approx_plot_fulltext <- renderDygraph({
     paulscore_fulltext %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_paulscore_approx)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$paulscore_approx_timeframe, input$paulscore_approx_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "PaulScore", title = "PaulScore for fulltext searches, by day", use_si = FALSE, group = "paulscore_approx") %>%
       dyRangeSelector %>%
       dyLegend(labelsDiv = "paulscore_approx_legend", show = "always")
@@ -96,7 +88,6 @@ shinyServer(function(input, output, session) {
   output$paulscore_approx_plot_autocomplete <- renderDygraph({
     paulscore_autocomplete %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_paulscore_approx)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$paulscore_approx_timeframe, input$paulscore_approx_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "PaulScore", title = "PaulScore for autocomplete searches, by day", use_si = FALSE, group = "paulscore_approx") %>%
       dyRangeSelector %>%
       dyLegend(labelsDiv = "paulscore_approx_legend", show = "always")
@@ -134,7 +125,6 @@ shinyServer(function(input, output, session) {
   output$mobile_event_plot <- renderDygraph({
     mobile_dygraph_set %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_mobile_event)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$mobile_event_timeframe, input$mobile_event_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Events", title = "Mobile search events, by day") %>%
       dyRangeSelector
   })
@@ -142,7 +132,6 @@ shinyServer(function(input, output, session) {
   output$mobile_load_plot <- renderDygraph({
     mobile_load_data %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_mobile_load)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$mobile_load_timeframe, input$mobile_load_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Load time (ms)", title = "Mobile search events, by day", use_si = FALSE) %>%
       dyRangeSelector
   })
@@ -179,7 +168,6 @@ shinyServer(function(input, output, session) {
   output$android_event_plot <- renderDygraph({
     android_dygraph_set %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_event)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$app_event_timeframe, input$app_event_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Events", title = "Android mobile app search events, by day") %>%
       dyRangeSelector
   })
@@ -187,7 +175,6 @@ shinyServer(function(input, output, session) {
   output$android_load_plot <- renderDygraph({
     android_load_data %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_load)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$app_load_timeframe, input$app_load_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Load time (ms)", title = "Android result load times, by day", use_si = FALSE) %>%
       dyRangeSelector
   })
@@ -195,7 +182,6 @@ shinyServer(function(input, output, session) {
   output$ios_event_plot <- renderDygraph({
     ios_dygraph_set %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_event)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$app_event_timeframe, input$app_event_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Events", title = "iOS mobile app search events, by day") %>%
       dyRangeSelector
   })
@@ -203,7 +189,6 @@ shinyServer(function(input, output, session) {
   output$ios_load_plot <- renderDygraph({
     ios_load_data %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_load)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$app_load_timeframe, input$app_load_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Load time (ms)", title = "iOS result load times, by day", use_si = FALSE) %>%
       dyRangeSelector
   })
@@ -211,7 +196,6 @@ shinyServer(function(input, output, session) {
   output$click_position_plot <- renderDygraph({
     position_prop %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_click_position)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$app_click_position_timeframe, input$app_click_position_daterange)) %>%
       polloi::make_dygraph(xlab = "", ylab = "Proportion of Clicks (%)", title = "Proportion of Clicks on Nth Result") %>%
       dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
              axisLabelWidth = 100, pixelsPerLabel = 80) %>%
@@ -222,7 +206,6 @@ shinyServer(function(input, output, session) {
   output$invoke_source_plot <- renderDygraph({
     source_prop %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_invoke_source)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$app_invoke_source_timeframe, input$app_invoke_source_daterange)) %>%
       polloi::make_dygraph(xlab = "", ylab = "Proportion of Search Sessions (%)", title = "Proportion of Search Sessions, by Invoke Source") %>%
       dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
              axisLabelWidth = 100, pixelsPerLabel = 80) %>%
@@ -234,7 +217,7 @@ shinyServer(function(input, output, session) {
   output$cirrus_aggregate <- renderDygraph({
     split_dataset$cirrus[, c(1, 3)] %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_fulltext_search)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$fulltext_search_timeframe, input$fulltext_search_timeframe_daterange)) %>%
+
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Full-text via API usage by day", legend_name = "Searches") %>%
       dyRangeSelector
   })
@@ -242,7 +225,6 @@ shinyServer(function(input, output, session) {
   output$open_aggregate <- renderDygraph({
     split_dataset$open[, c(1, 3)] %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_open_search)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$open_search_timeframe, input$open_search_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "OpenSearch API usage by day", legend_name = "Searches") %>%
       dyRangeSelector
   })
@@ -250,7 +232,6 @@ shinyServer(function(input, output, session) {
   output$geo_aggregate <- renderDygraph({
     split_dataset$geo[, c(1, 3)] %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_geo_search)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$geo_search_timeframe, input$geo_search_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Geo Search API usage by day", legend_name = "Searches") %>%
       dyRangeSelector
   })
@@ -258,7 +239,6 @@ shinyServer(function(input, output, session) {
   output$language_aggregate <- renderDygraph({
     split_dataset$language[, c(1, 3)] %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_language_search)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$language_search_timeframe, input$language_search_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Language Search API usage by day", legend_name = "Searches") %>%
       dyRangeSelector
   })
@@ -266,7 +246,6 @@ shinyServer(function(input, output, session) {
   output$prefix_aggregate <- renderDygraph({
     split_dataset$prefix[, c(1, 3)] %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_prefix_search)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$prefix_search_timeframe, input$prefix_search_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Prefix Search API usage by day", legend_name = "Searches") %>%
       dyRangeSelector
   })
@@ -275,7 +254,6 @@ shinyServer(function(input, output, session) {
   output$failure_rate_plot <- renderDygraph({
     polloi::data_select(input$failure_rate_automata, failure_data_with_automata, failure_data_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_rate)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$failure_rate_timeframe, input$failure_rate_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero Results Rate, by day",
                            legend_name = "ZRR") %>%
       dyRangeSelector(fillColor = "") %>%
@@ -286,7 +264,6 @@ shinyServer(function(input, output, session) {
   output$failure_rate_change_plot <- renderDygraph({
     polloi::data_select(input$failure_rate_automata, failure_roc_with_automata, failure_roc_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_rate)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$failure_rate_timeframe, input$failure_rate_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Change (%)", title = "Zero Results rate change, by day", legend_name = "Change") %>%
       dyRangeSelector(fillColor = "", strokeColor = "") %>%
       dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom")
@@ -296,7 +273,7 @@ shinyServer(function(input, output, session) {
     xts_data <- input$failure_breakdown_automata %>%
       polloi::data_select(failure_breakdown_with_automata, failure_breakdown_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_breakdown)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$failure_breakdown_timeframe, input$failure_breakdown_timeframe_daterange)) %>%
+
       { xts(.[, -1], order.by = .$date) }
     xts_data %>% dygraph(xlab = "Date", ylab = "Zero Results Rate (%)",
                          main = "Zero result rate by search type") %>%
@@ -325,7 +302,6 @@ shinyServer(function(input, output, session) {
   output$suggestion_dygraph_plot <- renderDygraph({
     polloi::data_select(input$failure_suggestions_automata, suggestion_with_automata, suggestion_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_suggestions)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$failure_suggestions_timeframe, input$failure_suggestions_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero Result Rates with Search Suggestions") %>%
       dyRangeSelector(fillColor = "") %>%
       dyEvent(as.Date("2016-02-01"), "A (format switch)", labelLoc = "bottom") %>%
@@ -382,7 +358,6 @@ shinyServer(function(input, output, session) {
     polloi::data_select(input$failure_langproj_automata, langproj_with_automata, langproj_no_automata) %>%
       aggregate_wikis(input$language_selector, input$project_selector) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_langproj)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$failure_langproj_timeframe, input$failure_langproj_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "", ylab = "Zero Results Rate (%)", title = "Zero result rate by language and project") %>%
       dyLegend(show = "always", width = 400, labelsDiv = "failure_langproj_legend") %>%
       dyAxis("x", axisLabelFormatter = polloi::custom_axis_formatter) %>%
@@ -393,7 +368,6 @@ shinyServer(function(input, output, session) {
   output$lethal_dose_plot <- renderDygraph({
     user_page_visit_dataset %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_lethal_dose_plot)) %>%
-      polloi::subset_by_date_range(time_frame_range(input$lethal_dose_timeframe, input$lethal_dose_timeframe_daterange)) %>%
       polloi::make_dygraph(xlab = "", ylab = "Time (s)", title = "Time at which we have lost N% of the users") %>%
       dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
              axisLabelWidth = 100, pixelsPerLabel = 80) %>%
@@ -786,4 +760,4 @@ shinyServer(function(input, output, session) {
     return(dropdownMenu(type = "notifications", .list = notifications))
   })
 
-})
+}
