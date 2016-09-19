@@ -189,9 +189,9 @@ read_lethal_dose <- function() {
 }
 
 read_paul_score <- function() {
-  data <- polloi::read_dataset("search/paulscore_approximations.tsv")
-  paulscore_autocomplete <<- data[data$event_source == "autocomplete", -2]
-  paulscore_fulltext <<- data[data$event_source == "fulltext", -2]
+  data <- polloi::read_dataset("search/paulscore_approximations.tsv")[, c("date", "event_source", "pow_1", "pow_5", "pow_9")]
+  paulscore_autocomplete <<- data[data$event_source == "autocomplete", -2] %>% set_names(c("date", "F = 0.1", "F = 0.5", "F = 0.9"))
+  paulscore_fulltext <<- data[data$event_source == "fulltext", -2] %>% set_names(c("date", "F = 0.1", "F = 0.5", "F = 0.9"))
 }
 
 aggregate_wikis <- function(data, languages, projects) {

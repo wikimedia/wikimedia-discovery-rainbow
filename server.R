@@ -78,19 +78,39 @@ function(input, output, session) {
   })
 
   output$paulscore_approx_plot_fulltext <- renderDygraph({
-    paulscore_fulltext %>%
+    temp <- paulscore_fulltext
+    if (input$paulscore_relative) {
+      temp$`F = 0.1` <- temp$`F = 0.1` / (1/(1-0.1))
+      temp$`F = 0.5` <- temp$`F = 0.5` / (1/(1-0.5))
+      temp$`F = 0.9` <- temp$`F = 0.9` / (1/(1-0.9))
+    }
+    dyOut <- temp %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_paulscore_approx)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "PaulScore", title = "PaulScore for fulltext searches, by day", use_si = FALSE, group = "paulscore_approx") %>%
       dyRangeSelector %>%
       dyLegend(labelsDiv = "paulscore_approx_legend", show = "always")
+    if (input$paulscore_relative) {
+      dyOut <- dyAxis(dyOut, "y", axisLabelFormatter = "function(x) { return Math.round(100*x, 2) + '%'; }", valueFormatter = "function(x) { return Math.round(100*x, 2) + '%'; }")
+    }
+    return(dyOut)
   })
 
   output$paulscore_approx_plot_autocomplete <- renderDygraph({
-    paulscore_autocomplete %>%
+    temp <- paulscore_autocomplete
+    if (input$paulscore_relative) {
+      temp$`F = 0.1` <- temp$`F = 0.1` / (1/(1-0.1))
+      temp$`F = 0.5` <- temp$`F = 0.5` / (1/(1-0.5))
+      temp$`F = 0.9` <- temp$`F = 0.9` / (1/(1-0.9))
+    }
+    dyOut <- temp %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_paulscore_approx)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "PaulScore", title = "PaulScore for autocomplete searches, by day", use_si = FALSE, group = "paulscore_approx") %>%
       dyRangeSelector %>%
       dyLegend(labelsDiv = "paulscore_approx_legend", show = "always")
+    if (input$paulscore_relative) {
+      dyOut <- dyAxis(dyOut, "y", axisLabelFormatter = "function(x) { return Math.round(100*x, 2) + '%'; }", valueFormatter = "function(x) { return Math.round(100*x, 2) + '%'; }")
+    }
+    return(dyOut)
   })
 
   ## Mobile value boxes
@@ -197,6 +217,7 @@ function(input, output, session) {
     position_prop %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_click_position)) %>%
       polloi::make_dygraph(xlab = "", ylab = "Proportion of Clicks (%)", title = "Proportion of Clicks on Nth Result") %>%
+      dyAxis("y", axisLabelFormatter = "function(x) { return x + '%'; }", valueFormatter = "function(x) { return x + '%'; }") %>%
       dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
              axisLabelWidth = 100, pixelsPerLabel = 80) %>%
       dyLegend(labelsDiv = "app_click_position_legend") %>%
@@ -207,6 +228,7 @@ function(input, output, session) {
     source_prop %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_invoke_source)) %>%
       polloi::make_dygraph(xlab = "", ylab = "Proportion of Search Sessions (%)", title = "Proportion of Search Sessions, by Invoke Source") %>%
+      dyAxis("y", axisLabelFormatter = "function(x) { return x + '%'; }", valueFormatter = "function(x) { return x + '%'; }") %>%
       dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
              axisLabelWidth = 100, pixelsPerLabel = 80) %>%
       dyLegend(labelsDiv = "app_invoke_source_legend") %>%
@@ -256,6 +278,7 @@ function(input, output, session) {
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_rate)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero Results Rate, by day",
                            legend_name = "ZRR") %>%
+      dyAxis("y", axisLabelFormatter = "function(x) { return x + '%'; }", valueFormatter = "function(x) { return x + '%'; }") %>%
       dyRangeSelector(fillColor = "") %>%
       dyEvent(as.Date("2016-02-01"), "A (format switch)", labelLoc = "bottom") %>%
       dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom")
@@ -264,7 +287,8 @@ function(input, output, session) {
   output$failure_rate_change_plot <- renderDygraph({
     polloi::data_select(input$failure_rate_automata, failure_roc_with_automata, failure_roc_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_rate)) %>%
-      polloi::make_dygraph(xlab = "Date", ylab = "Change (%)", title = "Zero Results rate change, by day", legend_name = "Change") %>%
+      polloi::make_dygraph(xlab = "Date", ylab = "Change", title = "Zero Results rate change, by day", legend_name = "Change") %>%
+      dyAxis("y", axisLabelFormatter = "function(x) { return x + '%'; }", valueFormatter = "function(x) { return Math.round(x, 3) + '%'; }") %>%
       dyRangeSelector(fillColor = "", strokeColor = "") %>%
       dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom")
   })
@@ -275,11 +299,12 @@ function(input, output, session) {
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_breakdown)) %>%
 
       { xts(.[, -1], order.by = .$date) }
-    xts_data %>% dygraph(xlab = "Date", ylab = "Zero Results Rate (%)",
+    xts_data %>% dygraph(xlab = "Date", ylab = "Zero Results Rate",
                          main = "Zero result rate by search type") %>%
       dyLegend(width = 600, show = "always", labelsDiv = "failure_breakdown_plot_legend") %>%
       dyOptions(strokeWidth = 2, drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE, includeZero = TRUE) %>%
       dyCSS(css = system.file("custom.css", package = "polloi")) %>%
+      dyAxis("y", axisLabelFormatter = "function(x) { return x + '%'; }", valueFormatter = "function(x) { return x + '%'; }") %>%
       # We use grep(colnames(xts_data), value = TRUE) because smoothing appends "(... median)" to colnames.
       # Customize the full_text and prefix series colors so they match "Full-Text Search" and "Prefix Search":
       dySeries(grep("Full-Text Search", colnames(xts_data), value = TRUE, fixed = TRUE),
@@ -302,7 +327,8 @@ function(input, output, session) {
   output$suggestion_dygraph_plot <- renderDygraph({
     polloi::data_select(input$failure_suggestions_automata, suggestion_with_automata, suggestion_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_suggestions)) %>%
-      polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero Result Rates with Search Suggestions") %>%
+      polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate", title = "Zero Result Rates with Search Suggestions") %>%
+      dyAxis("y", axisLabelFormatter = "function(x) { return x + '%'; }", valueFormatter = "function(x) { return x + '%'; }") %>%
       dyRangeSelector(fillColor = "") %>%
       dyEvent(as.Date("2016-02-01"), "A (format switch)", labelLoc = "bottom") %>%
       dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom")
@@ -358,7 +384,8 @@ function(input, output, session) {
     polloi::data_select(input$failure_langproj_automata, langproj_with_automata, langproj_no_automata) %>%
       aggregate_wikis(input$language_selector, input$project_selector) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_langproj)) %>%
-      polloi::make_dygraph(xlab = "", ylab = "Zero Results Rate (%)", title = "Zero result rate by language and project") %>%
+      polloi::make_dygraph(xlab = "", ylab = "Zero Results Rate", title = "Zero result rate by language and project") %>%
+      dyAxis("y", axisLabelFormatter = "function(x) { return x + '%'; }", valueFormatter = "function(x) { return x + '%'; }") %>%
       dyLegend(show = "always", width = 400, labelsDiv = "failure_langproj_legend") %>%
       dyAxis("x", axisLabelFormatter = polloi::custom_axis_formatter) %>%
       dyRangeSelector(fillColor = "")
@@ -572,10 +599,14 @@ function(input, output, session) {
                     valueRange = c(-1, 1) * max(max(abs(as.numeric(zrr$Change)), na.rm = TRUE), 10),
                     axisLineColor = RColorBrewer::brewer.pal(3, "Set2")[2],
                     axisLabelColor = RColorBrewer::brewer.pal(3, "Set2")[2],
-                    independentTicks = TRUE, drawGrid = FALSE) %>%
+                    independentTicks = TRUE, drawGrid = FALSE,
+                    axisLabelFormatter = "function(x) { return x + '%'; }",
+                    valueFormatter = "function(x) { return Math.round(x, 3) + '%'; }") %>%
              dyAxis("y", drawGrid = FALSE,
                     axisLineColor = RColorBrewer::brewer.pal(3, "Set2")[1],
-                    axisLabelColor = RColorBrewer::brewer.pal(3, "Set2")[1]) %>%
+                    axisLabelColor = RColorBrewer::brewer.pal(3, "Set2")[1],
+                    axisLabelFormatter = "function(x) { return x + '%'; }",
+                    valueFormatter = "function(x) { return x + '%'; }") %>%
              dyLimit(limit = 0, color = RColorBrewer::brewer.pal(3, "Set2")[2], strokePattern = "dashed") %>%
              dyLegend(width = 400, show = "always") %>%
              dyOptions(strokeWidth = 3, colors = RColorBrewer::brewer.pal(3, "Set2"),
@@ -733,7 +764,7 @@ function(input, output, session) {
       cols_to_keep <- base::setdiff(cols_to_keep, 5)
     }
     temp[, cols_to_keep]
-  })
+  }, rownames = TRUE, striped = TRUE)
 
   # Check datasets for missing data and notify user which datasets are missing data (if any)
   output$message_menu <- renderMenu({

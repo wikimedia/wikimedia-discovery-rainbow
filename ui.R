@@ -140,11 +140,22 @@ function(request) {
                 dygraphOutput("desktop_load_plot"),
                 includeMarkdown("./tab_documentation/desktop_load.md")),
         tabItem(tabName = "paulscore_approx",
-                polloi::smooth_select("smoothing_paulscore_approx"),
+                fluidRow(
+                  column(polloi::smooth_select("smoothing_paulscore_approx"), width = 6),
+                  column(checkboxInput("paulscore_relative", "Use relative PaulScores", FALSE),
+                         helpText("Divides PaulScore by the maximum possible score for each F"), width = 6)
+                ),
                 dygraphOutput("paulscore_approx_plot_fulltext"),
                 div(id = "paulscore_approx_legend", style = "text-align: center;"),
                 dygraphOutput("paulscore_approx_plot_autocomplete"),
-                includeMarkdown("./tab_documentation/paulscore_approx.md")),
+                withMathJax(),
+                tags$div(HTML("<!-- Additional MathJax configuration -->
+                  <script type='text/x-mathjax-config'>
+                    MathJax.Hub.Config({
+                      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+                    });
+                  </script>")),
+                includeHTML("./tab_documentation/paulscore_approx.html")),
         tabItem(tabName = "mobile_events",
                 fluidRow(
                   valueBoxOutput("mobile_event_searches"),

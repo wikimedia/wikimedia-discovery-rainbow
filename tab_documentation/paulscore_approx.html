@@ -1,0 +1,34 @@
+<h1>PaulScore Approximations</h1>
+
+<div>
+<div style = "float: left; width: 47%; padding: 0 3% 0 1%;">
+<p>"PaulScore" is the name we've given to a metric proposed by Paul Nelson in a talk he gave at <a href = "https://www.youtube.com/watch?v=YJ_amC9gZmk&t=16m38s" title = "Paul Nelson's talk at Elasticon">Elasticon</a>. We use PaulScore to evaluate the quality of results provided by CirrusSearch or proposed modifications to CirrusSearch, based on historical click data. A big advantage of the PaulScore is that it relies on user click history to award points, so it is easy to compute.</p>
+<p>This dashboard shows the PaulScore approximation for 3 values of $F$: 0.1, 0.5, and 0.9. The maximum score possible for each value of $F$ is $1/(1-F)$, so the dashboard has the option of looking at relative PaulScores, which is the computed value divided by maximum possible value for given $F$.</p>
+<p>For auto-completion suggestions, we expect a much lower score since most queries get no clicks -- i.e., while typing many results are shown and ignored -- and most users will only click on one results, whereas full-text searchers can more easily go back to the results page or open multiple results in other windows.</p>
+<p>For more details, please see <a href = "https://www.mediawiki.org/wiki/Wikimedia_Discovery/Search/Glossary#PaulScore" title = "Definition of PaulScore">Discovery's Search glossary</a>.</p>
+</div>
+<div style = "float: left; width: 46%; padding: 0 1% 0 3%;">
+<p>PaulScore is computed via the following steps:</p>
+<ol>
+<li>Pick scoring factor $0 < F < 1$.</li>
+<li>For $i$-th search session $S_i$ $(i = 1, \ldots, n)$ containing $m$ queries $Q_1, \ldots, Q_m$ and search result sets $\mathbf{R}_1, \ldots, \mathbf{R}_m$: <ol>
+    <li>For each $j$-th search query $Q_j$ with result set $\mathbf{R}_j$, let $\nu_j$ be the query score: $$\nu_j = \sum_{k~\in~\{\text{0-based positions of clicked results in}~\mathbf{R}_j\}} F^k.$$</li>
+    <li>Let user's average query score $\bar{\nu}_{(i)}$ be $$\bar{\nu}_{(i)} = \frac{1}{m} \sum_{j = 1}^m \nu_j.$$</li>
+  </ol></li>
+<li>Then the PaulScore is the average of all users' average query scores: $$\text{PaulScore}~=~\frac{1}{n} \sum_{i = 1}^n \bar{\nu}_{(i)}.$$</li>
+</ol>
+</div>
+</div>
+<div style = "clear: both;"></div>
+
+<h2>Questions, bug reports, and feature suggestions</h2>
+
+<p>For technical, non-bug questions, <a href = "mailto:mpopov@wikimedia.org?subject=Dashboard%20Question">email Mikhail</a>. If you experience a bug or notice something wrong or have a suggestion, <a href = "https://phabricator.wikimedia.org/maniphest/task/create/?projects=Discovery">open a ticket in Phabricator</a> in the Discovery board or <a href = "mailto:deb@wikimedia.org?subject=Dashboard%20Question">email Deb</a>.</p>
+
+<hr style="border-color: gray;">
+<p style="font-size: small; color: gray;">
+  <strong>Link to this dashboard:</strong>
+  <a href="http://discovery.wmflabs.org/metrics/#paulscore_approx">
+    http://discovery.wmflabs.org/metrics/#paulscore_approx
+  </a>
+</p>
