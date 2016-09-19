@@ -2,6 +2,17 @@ library(shiny)
 library(shinydashboard)
 library(dygraphs)
 
+with_wikimedia_mathjax <- function() {
+  # Modified version of withMathJax() Keeping this
+  # here for now. If another dashboard needs to
+  # render LaTeX, we'll have to put this in polloi.
+  return(tagList(
+    tags$script(src = "https://tools-static.wmflabs.org/cdnjs/ajax/libs/mathjax/2.6.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML", type = "text/javascript"),
+    tags$script(HTML("if (window.MathJax) MathJax.Hub.Queue([\"Typeset\", MathJax.Hub]);")),
+    tags$script(HTML("MathJax.Hub.Config({ tex2jax: {inlineMath: [['$','$']]} });"), type = "text/x-mathjax-config")
+  ))
+}
+
 function(request) {
   dashboardPage(
 
@@ -10,7 +21,8 @@ function(request) {
     dashboardSidebar(
       tags$head(
         tags$link(rel = "stylesheet", type = "text/css", href = "stylesheet.css"),
-        tags$script(src = "custom.js")
+        tags$script(src = "custom.js"),
+        with_wikimedia_mathjax()
       ),
       sidebarMenu(id = "tabs",
                   menuItem(text = "KPIs",
@@ -148,13 +160,6 @@ function(request) {
                 dygraphOutput("paulscore_approx_plot_fulltext"),
                 div(id = "paulscore_approx_legend", style = "text-align: center;"),
                 dygraphOutput("paulscore_approx_plot_autocomplete"),
-                withMathJax(),
-                tags$div(HTML("<!-- Additional MathJax configuration -->
-                  <script type='text/x-mathjax-config'>
-                    MathJax.Hub.Config({
-                      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
-                    });
-                  </script>")),
                 includeHTML("./tab_documentation/paulscore_approx.html")),
         tabItem(tabName = "mobile_events",
                 fluidRow(
