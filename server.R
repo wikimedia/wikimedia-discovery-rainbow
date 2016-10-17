@@ -406,6 +406,9 @@ function(input, output, session) {
   output$kpi_summary_date_range <- renderUI({
     date_range <- input$kpi_summary_date_range_selector
     switch(date_range,
+           all = {
+             return(NULL)
+           },
            daily = {
              dates <- Sys.Date() - c(1, 2)
              temp <- dates %>%
@@ -455,6 +458,9 @@ function(input, output, session) {
 
   output$kpi_summary_box_load_time <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
+    if (date_range == "all") {
+      return(valueBox(subtitle = "Load time", value = "N/A", color = "black"))
+    }
     x <- list(desktop_load_data, mobile_load_data, android_load_data, ios_load_data) %>%
       lapply(polloi::subset_by_date_range, from = start_date(date_range), to = Sys.Date() - 1) %>%
       lapply(function(data_tail) return(data_tail$Median))
@@ -477,6 +483,9 @@ function(input, output, session) {
   })
   output$kpi_summary_box_zero_results <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
+    if (date_range == "all") {
+      return(valueBox(subtitle = "Zero results rate", value = "N/A", color = "black"))
+    }
     x <- polloi::subset_by_date_range(failure_data_with_automata, from = start_date(date_range), to = Sys.Date() - 1)
     x <- transform(x, Rate = rate)$Rate
     if (date_range == "quarterly") {
@@ -499,6 +508,9 @@ function(input, output, session) {
   })
   output$kpi_summary_box_api_usage <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
+    if (date_range == "all") {
+      return(valueBox(subtitle = "API usage", value = "N/A", color = "black"))
+    }
     x <- split_dataset %>%
       lapply(polloi::subset_by_date_range, from = start_date(date_range), to = Sys.Date() - 1) %>%
       lapply(function(x) return(x$events)) %>%
@@ -522,11 +534,9 @@ function(input, output, session) {
   })
   output$kpi_summary_box_augmented_clickthroughs <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
-    #========= We can delete this block after we get 90 days of data =========
-    if ( (date_range == "monthly" && (Sys.Date()-1)-60 < as.Date("2015-09-02")) || date_range == "quarterly" && (Sys.Date()-1)-90 < as.Date("2015-09-02") ) {
-      return(valueBox(subtitle = "User engagement", color = "black", value = "NA"))
+    if (date_range == "all") {
+      return(valueBox(subtitle = "User engagement", value = "N/A", color = "black"))
     }
-    #=========================================================================
     x <- polloi::subset_by_date_range(augmented_clickthroughs, from = start_date(date_range), to = Sys.Date() - 1)
     if (date_range == "quarterly") {
       return(valueBox(subtitle = "User engagement", color = "orange",
@@ -554,9 +564,17 @@ function(input, output, session) {
     smooth_level <- input$smoothing_kpi_load_time
     date_range <- input$kpi_summary_date_range_selector
     start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector,
-                                      daily = 1, weekly = 8, monthly = 31, quarterly = 91)
+                                      all = NA, daily = 1, weekly = 8, monthly = 31, quarterly = 91)
     load_times <- list(desktop_load_data, mobile_load_data, android_load_data, ios_load_data) %>%
-      lapply(polloi::subset_by_date_range, from = start_date, to = Sys.Date() - 1) %>%
+      {
+        if (is.na(start_date)) {
+          lapply(., function(dataset) {
+            return(dataset[!duplicated(dataset$date, dataset$event_type, fromLast = TRUE), ])
+          })
+        } else {
+          lapply(., polloi::subset_by_date_range, from = start_date, to = Sys.Date() - 1)
+        }
+      } %>%
       lapply(function(data_tail) return(data_tail[, c('date', 'Median')])) %>%
       { names(.) <- c("Desktop", "Mobile Web", "Android", "iOS"); . } %>%
       dplyr::bind_rows(.id = "Platform") %>%
@@ -582,9 +600,15 @@ function(input, output, session) {
   })
   output$kpi_zero_results_series <- renderDygraph({
     smooth_level <- input$smoothing_kpi_zero_results
-    start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector, daily = 1, weekly = 8, monthly = 31, quarterly = 91)
+    start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector, all = NA, daily = 1, weekly = 8, monthly = 31, quarterly = 91)
     zrr <- failure_data_with_automata %>%
-      polloi::subset_by_date_range(from = start_date, to = Sys.Date()) %>%
+      {
+        if (is.na(start_date)) {
+          .
+        } else {
+          polloi::subset_by_date_range(., from = start_date, to = Sys.Date())
+        }
+      } %>%
       transform(`Rate` = rate)
     zrr_change <- 100 * (zrr$Rate[2:nrow(zrr)] - zrr$Rate[1:(nrow(zrr)-1)])/zrr$Rate[1:(nrow(zrr)-1)]
     zrr <- cbind(zrr[, c('date', 'Rate')], Change = c(NA, zrr_change)) %>%
@@ -619,9 +643,17 @@ function(input, output, session) {
   })
   output$kpi_api_usage_series <- renderDygraph({
     smooth_level <- input$smoothing_kpi_api_usage
-    start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector, daily = 1, weekly = 8, monthly = 31, quarterly = 91)
+    start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector, all = NA, daily = 1, weekly = 8, monthly = 31, quarterly = 91)
     api_usage <- split_dataset %>%
-      lapply(polloi::subset_by_date_range, from = start_date, to = Sys.Date() - 1) %>%
+      {
+        if (is.na(start_date)) {
+          lapply(., function(dataset) {
+            return(dataset[!duplicated(dataset$date, dataset$event_type, fromLast = TRUE), ])
+          })
+        } else {
+          lapply(., polloi::subset_by_date_range, from = start_date, to = Sys.Date() - 1)
+        }
+      } %>%
       dplyr::bind_rows() %>%
       tidyr::spread("event_type", "events") %>%
       as.data.frame
@@ -670,9 +702,15 @@ function(input, output, session) {
              dyRangeSelector)
   })
   output$kpi_augmented_clickthroughs_series <- renderDygraph({
-    start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector, daily = 1, weekly = 8, monthly = 31, quarterly = 91)
+    start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector, all = NA, daily = 1, weekly = 8, monthly = 31, quarterly = 91)
     smoothed_data <- augmented_clickthroughs %>%
-      polloi::subset_by_date_range(from = start_date, to = Sys.Date() - 1) %>%
+      {
+        if (is.na(start_date)) {
+          .
+        } else {
+          polloi::subset_by_date_range(., from = start_date, to = Sys.Date())
+        }
+      } %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_augmented_clickthroughs))
     polloi::make_dygraph(data = smoothed_data, xlab = "Date", ylab = "Rates", "User engagement (augmented clickthroughs) by day") %>%
       dySeries(name = colnames(smoothed_data)[2], strokeWidth = 1.5, strokePattern = "dashed") %>%
