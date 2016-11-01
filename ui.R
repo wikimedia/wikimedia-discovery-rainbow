@@ -14,9 +14,10 @@ with_wikimedia_mathjax <- function() {
   ))
 }
 
-subtract_months <- function(x, n) {
-  return(as.Date(as.POSIXct(x) - lubridate:::months.numeric(n)))
-}
+## Disabling for now because the MM module is breaking the whole dashboard :/ (T149735)
+# subtract_months <- function(x, n) {
+#   return(as.Date(as.POSIXct(x) - lubridate:::months.numeric(n)))
+# }
 
 function(request) {
   dashboardPage(
@@ -38,7 +39,8 @@ function(request) {
                                                           "All available data" = "all")),
                                style = "margin-bottom:-10px;"),
                            menuSubItem(text = "Summary", tabName = "kpis_summary"),
-                           menuSubItem(text = "Monthly Metrics", tabName = "monthly_metrics"),
+                           ## Disabling for now because the MM module is breaking the whole dashboard :/ (T149735)
+                           # menuSubItem(text = "Monthly Metrics", tabName = "monthly_metrics"),
                            menuSubItem(text = "Load times", tabName = "kpi_load_time"),
                            menuSubItem(text = "Zero results", tabName = "kpi_zero_results"),
                            menuSubItem(text = "API usage", tabName = "kpi_api_usage"),
@@ -88,32 +90,33 @@ function(request) {
                          valueBoxOutput("kpi_summary_box_api_usage", width = 3),
                          valueBoxOutput("kpi_summary_box_augmented_clickthroughs", width = 3)),
                 includeMarkdown("./tab_documentation/kpis_summary.md")),
-        tabItem(tabName = "monthly_metrics",
-                fluidRow(
-                  column(fluidRow(
-                    column(selectInput("monthy_metrics_month", "Month",
-                                       choices = month.name,
-                                       selected = month.name[lubridate::month(subtract_months(Sys.Date() - 1, 1))],
-                                       selectize = FALSE),
-                           width = 6),
-                    column(selectInput("monthy_metrics_year", "Year",
-                                       choices = year(seq(
-                                         floor_date(as.Date("2016-01-01"), "year"),
-                                         subtract_months(Sys.Date() - 1, 1),
-                                         "year"
-                                       )),
-                                       selected = year(subtract_months(Sys.Date() - 1, 1)),
-                                       selectize = FALSE),
-                           width = 6)
-                  ),
-                  checkboxInput("monthly_metrics_prev_month",
-                                "Show previous month", TRUE),
-                  checkboxInput("monthly_metrics_prev_year",
-                                "Show previous year", TRUE),
-                  width = 4),
-                  column(htmlOutput("monthly_metrics_tbl"), width = 8)
-                ),
-                includeMarkdown("./tab_documentation/monthly_metrics.md")),
+        ## Disabling for now because the MM module is breaking the whole dashboard :/ (T149735)
+        # tabItem(tabName = "monthly_metrics",
+        #         fluidRow(
+        #           column(fluidRow(
+        #             column(selectInput("monthy_metrics_month", "Month",
+        #                                choices = month.name,
+        #                                selected = month.name[lubridate::month(subtract_months(Sys.Date() - 1, 1))],
+        #                                selectize = FALSE),
+        #                    width = 6),
+        #             column(selectInput("monthy_metrics_year", "Year",
+        #                                choices = year(seq(
+        #                                  floor_date(as.Date("2016-01-01"), "year"),
+        #                                  subtract_months(Sys.Date() - 1, 1),
+        #                                  "year"
+        #                                )),
+        #                                selected = year(subtract_months(Sys.Date() - 1, 1)),
+        #                                selectize = FALSE),
+        #                    width = 6)
+        #           ),
+        #           checkboxInput("monthly_metrics_prev_month",
+        #                         "Show previous month", TRUE),
+        #           checkboxInput("monthly_metrics_prev_year",
+        #                         "Show previous year", TRUE),
+        #           width = 4),
+        #           column(htmlOutput("monthly_metrics_tbl"), width = 8)
+        #         ),
+        #         includeMarkdown("./tab_documentation/monthly_metrics.md")),
         tabItem(tabName = "kpi_load_time",
                 fluidRow(
                   column(polloi::smooth_select("smoothing_kpi_load_time"), width = 4),

@@ -722,102 +722,102 @@ function(input, output, session) {
       dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom")
   })
 
-  ## Monthly metrics
-  output$monthly_metrics_tbl <- renderUI({
-    temp <- data.frame(
-      KPI = c("Load time", "Zero results rate", "API Usage", "User engagement"),
-      Units = c("ms", "%", "", "%")
-    )
-
-    prev_month <- as.Date(paste(input$monthy_metrics_year, which(month.name == input$monthy_metrics_month), "1", sep = "-"))
-    prev_prev_month <- prev_month - months(1)
-    prev_year <- prev_month - months(12)
-
-    smoothed_load_times <- list(Desktop = desktop_load_data,
-                                Mobile = mobile_load_data,
-                                Android = android_load_data,
-                                iOS = ios_load_data) %>%
-      lapply(function(platform_load_data) {
-        platform_load_data[, c("date", "Median")]
-      }) %>%
-      dplyr::bind_rows(.id = "platform") %>%
-      dplyr::group_by(date) %>%
-      dplyr::summarize(Median = median(Median)) %>%
-      polloi::smoother("month", rename = FALSE)
-    smoothed_zrr <- polloi::smoother(failure_data_with_automata, "month", rename = FALSE)
-    smoothed_api <- split_dataset %>%
-      lapply(function(platform_load_data) {
-        platform_load_data[, c("date", "events")]
-      }) %>%
-      dplyr::bind_rows(.id = "api") %>%
-      dplyr::group_by(date) %>%
-      dplyr::summarize(total = sum(events)) %>%
-      polloi::smoother("month", rename = FALSE)
-    smoothed_engagement <- augmented_clickthroughs[, c("date", "user_engagement")] %>%
-      polloi::smoother("month", rename = FALSE)
-    temp$Current <- c(
-      smoothed_load_times$Median[smoothed_load_times$date == prev_month],
-      smoothed_zrr$rate[smoothed_zrr$date == prev_month],
-      smoothed_api$total[smoothed_api$date == prev_month],
-      smoothed_engagement$user_engagement[smoothed_engagement$date == prev_month]
-    )
-    temp$Previous_month <- c(
-      smoothed_load_times$Median[smoothed_load_times$date == prev_prev_month],
-      smoothed_zrr$rate[smoothed_zrr$date == prev_prev_month],
-      smoothed_api$total[smoothed_api$date == prev_prev_month],
-      smoothed_engagement$user_engagement[smoothed_engagement$date == prev_prev_month]
-    )
-    temp$Previous_year <- c(
-      ifelse(sum(smoothed_load_times$date == prev_year) == 0, NA, smoothed_load_times$Median[smoothed_load_times$date == prev_year]),
-      ifelse(sum(smoothed_zrr$date == prev_year) == 0, NA, smoothed_zrr$rate[smoothed_zrr$date == prev_year]),
-      ifelse(sum(smoothed_api$date == prev_year) == 0, NA, smoothed_api$total[smoothed_api$date == prev_year]),
-      ifelse(sum(smoothed_engagement$date == prev_year) == 0, NA, smoothed_engagement$user_engagement[smoothed_engagement$date == prev_year])
-    )
-    temp$Anchors <- c("kpi_load_time", "kpi_zero_results", "kpi_api_usage", "kpi_augmented_clickthroughs")
-
-    # Compute month-over-month changes:
-    temp$MoM <- c(
-      100 * (temp$Current - temp$Previous_month)/temp$Previous_month
-    )
-    # Compute year-over-year changes:
-    temp$YoY <- c(
-      100 * (temp$Current - temp$Previous_year)/temp$Previous_year
-    )
-    # Affix units:
-    temp$Current <- paste0(temp$Current, temp$Units)
-    temp$Previous_month <- paste0(temp$Previous_month, temp$Units)
-    temp$Previous_year <- paste0(temp$Previous_year, temp$Units)
-    temp$MoM <- sprintf("%s%.2f%%", ifelse(temp$MoM > 0, "+", ""), temp$MoM)
-    temp$YoY <- sprintf("%s%.2f%%", ifelse(temp$YoY > 0, "+", ""), temp$YoY)
-    # API Usage units (K/M/B/T):
-    temp[3, c("Current", "Previous_month", "Previous_year")] <- polloi::compress(as.numeric(temp[3, c("Current", "Previous_month", "Previous_year")]))
-    # Rename columns to use month & year:
-    names(temp) <- c("KPI", "Units", as.character(prev_month, "%B %Y"), as.character(prev_prev_month, "%B %Y"), as.character(prev_year, "%B %Y"), "Anchors", "MoM", "YoY")
-    # Sanitize:
-    temp[temp == "NA%" | temp == "NANA%" | temp == "NANA"] <- "--"
-    temp$KPI <- paste0('<a id="mm_', temp$Anchors, '">', temp$KPI, '</a>')
-    cols_to_keep <- c(1, 5, 4, 3, 7, 8)
-    if (!input$monthly_metrics_prev_month) {
-      cols_to_keep <- base::setdiff(cols_to_keep, 4)
-    }
-    if (!input$monthly_metrics_prev_year) {
-      cols_to_keep <- base::setdiff(cols_to_keep, 5)
-    }
-    return(HTML(
-      knitr::kable(temp[, cols_to_keep], format = "html", table.attr = "class=\"table table-striped spacing-s\"", escape = FALSE),
-      "<!-- JS for clicking on the KPIs in the table -->
-      <script type = 'text/javascript'>
-      // Enables clicking on a kpi in the monthly metrics table:
-      $('a[id^=mm_kpi_]').click(function(){
-        var target = $(this).attr('id').replace('mm_', '');
-        $('a[data-value=\"'+target+'\"]').click();
-      });
-      // Visual feedback that the kpi in the monthly metrics table is clickable:
-      $('a[id^=mm_kpi_]').hover(function() {
-        $(this).css('cursor','pointer');
-      });</script>"
-    ))
-  })
+  ## Monthly metrics | Disabling for now because the MM module is breaking the whole dashboard :/ (T149735)
+  # output$monthly_metrics_tbl <- renderUI({
+  #   temp <- data.frame(
+  #     KPI = c("Load time", "Zero results rate", "API Usage", "User engagement"),
+  #     Units = c("ms", "%", "", "%")
+  #   )
+  #
+  #   prev_month <- as.Date(paste(input$monthy_metrics_year, which(month.name == input$monthy_metrics_month), "1", sep = "-"))
+  #   prev_prev_month <- prev_month - months(1)
+  #   prev_year <- prev_month - months(12)
+  #
+  #   smoothed_load_times <- list(Desktop = desktop_load_data,
+  #                               Mobile = mobile_load_data,
+  #                               Android = android_load_data,
+  #                               iOS = ios_load_data) %>%
+  #     lapply(function(platform_load_data) {
+  #       platform_load_data[, c("date", "Median")]
+  #     }) %>%
+  #     dplyr::bind_rows(.id = "platform") %>%
+  #     dplyr::group_by(date) %>%
+  #     dplyr::summarize(Median = median(Median)) %>%
+  #     polloi::smoother("month", rename = FALSE)
+  #   smoothed_zrr <- polloi::smoother(failure_data_with_automata, "month", rename = FALSE)
+  #   smoothed_api <- split_dataset %>%
+  #     lapply(function(platform_load_data) {
+  #       platform_load_data[, c("date", "events")]
+  #     }) %>%
+  #     dplyr::bind_rows(.id = "api") %>%
+  #     dplyr::group_by(date) %>%
+  #     dplyr::summarize(total = sum(events)) %>%
+  #     polloi::smoother("month", rename = FALSE)
+  #   smoothed_engagement <- augmented_clickthroughs[, c("date", "user_engagement")] %>%
+  #     polloi::smoother("month", rename = FALSE)
+  #   temp$Current <- c(
+  #     smoothed_load_times$Median[smoothed_load_times$date == prev_month],
+  #     smoothed_zrr$rate[smoothed_zrr$date == prev_month],
+  #     smoothed_api$total[smoothed_api$date == prev_month],
+  #     smoothed_engagement$user_engagement[smoothed_engagement$date == prev_month]
+  #   )
+  #   temp$Previous_month <- c(
+  #     smoothed_load_times$Median[smoothed_load_times$date == prev_prev_month],
+  #     smoothed_zrr$rate[smoothed_zrr$date == prev_prev_month],
+  #     smoothed_api$total[smoothed_api$date == prev_prev_month],
+  #     smoothed_engagement$user_engagement[smoothed_engagement$date == prev_prev_month]
+  #   )
+  #   temp$Previous_year <- c(
+  #     ifelse(sum(smoothed_load_times$date == prev_year) == 0, NA, smoothed_load_times$Median[smoothed_load_times$date == prev_year]),
+  #     ifelse(sum(smoothed_zrr$date == prev_year) == 0, NA, smoothed_zrr$rate[smoothed_zrr$date == prev_year]),
+  #     ifelse(sum(smoothed_api$date == prev_year) == 0, NA, smoothed_api$total[smoothed_api$date == prev_year]),
+  #     ifelse(sum(smoothed_engagement$date == prev_year) == 0, NA, smoothed_engagement$user_engagement[smoothed_engagement$date == prev_year])
+  #   )
+  #   temp$Anchors <- c("kpi_load_time", "kpi_zero_results", "kpi_api_usage", "kpi_augmented_clickthroughs")
+  #
+  #   # Compute month-over-month changes:
+  #   temp$MoM <- c(
+  #     100 * (temp$Current - temp$Previous_month)/temp$Previous_month
+  #   )
+  #   # Compute year-over-year changes:
+  #   temp$YoY <- c(
+  #     100 * (temp$Current - temp$Previous_year)/temp$Previous_year
+  #   )
+  #   # Affix units:
+  #   temp$Current <- paste0(temp$Current, temp$Units)
+  #   temp$Previous_month <- paste0(temp$Previous_month, temp$Units)
+  #   temp$Previous_year <- paste0(temp$Previous_year, temp$Units)
+  #   temp$MoM <- sprintf("%s%.2f%%", ifelse(temp$MoM > 0, "+", ""), temp$MoM)
+  #   temp$YoY <- sprintf("%s%.2f%%", ifelse(temp$YoY > 0, "+", ""), temp$YoY)
+  #   # API Usage units (K/M/B/T):
+  #   temp[3, c("Current", "Previous_month", "Previous_year")] <- polloi::compress(as.numeric(temp[3, c("Current", "Previous_month", "Previous_year")]))
+  #   # Rename columns to use month & year:
+  #   names(temp) <- c("KPI", "Units", as.character(prev_month, "%B %Y"), as.character(prev_prev_month, "%B %Y"), as.character(prev_year, "%B %Y"), "Anchors", "MoM", "YoY")
+  #   # Sanitize:
+  #   temp[temp == "NA%" | temp == "NANA%" | temp == "NANA"] <- "--"
+  #   temp$KPI <- paste0('<a id="mm_', temp$Anchors, '">', temp$KPI, '</a>')
+  #   cols_to_keep <- c(1, 5, 4, 3, 7, 8)
+  #   if (!input$monthly_metrics_prev_month) {
+  #     cols_to_keep <- base::setdiff(cols_to_keep, 4)
+  #   }
+  #   if (!input$monthly_metrics_prev_year) {
+  #     cols_to_keep <- base::setdiff(cols_to_keep, 5)
+  #   }
+  #   return(HTML(
+  #     knitr::kable(temp[, cols_to_keep], format = "html", table.attr = "class=\"table table-striped spacing-s\"", escape = FALSE),
+  #     "<!-- JS for clicking on the KPIs in the table -->
+  #     <script type = 'text/javascript'>
+  #     // Enables clicking on a kpi in the monthly metrics table:
+  #     $('a[id^=mm_kpi_]').click(function(){
+  #       var target = $(this).attr('id').replace('mm_', '');
+  #       $('a[data-value=\"'+target+'\"]').click();
+  #     });
+  #     // Visual feedback that the kpi in the monthly metrics table is clickable:
+  #     $('a[id^=mm_kpi_]').hover(function() {
+  #       $(this).css('cursor','pointer');
+  #     });</script>"
+  #   ))
+  # })
 
   # Check datasets for missing data and notify user which datasets are missing data (if any)
   output$message_menu <- renderMenu({
