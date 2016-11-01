@@ -596,7 +596,8 @@ function(input, output, session) {
                        drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
                        includeZero = TRUE) %>%
              dyCSS(css = system.file("custom.css", package = "polloi")) %>%
-             dyRangeSelector)
+             dyRangeSelector %>%
+             dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom"))
   })
   output$kpi_zero_results_series <- renderDygraph({
     smooth_level <- input$smoothing_kpi_zero_results
@@ -717,11 +718,12 @@ function(input, output, session) {
       dySeries(name = colnames(smoothed_data)[3], strokeWidth = 1.5, strokePattern = "dashed") %>%
       dyLegend(labelsDiv = "kpi_augmented_clickthroughs_series_legend") %>%
       dyRangeSelector(fillColor = "", strokeColor = "") %>%
-      dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom")
+      dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom") %>%
+      dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom")
   })
 
   ## Monthly metrics
-  output$monthly_metrics_tbl <- renderTable({
+  output$monthly_metrics_tbl <- renderUI({
     temp <- data.frame(
       KPI = c("Load time", "Zero results rate", "API Usage", "User engagement"),
       Units = c("ms", "%", "", "%")
@@ -753,7 +755,6 @@ function(input, output, session) {
       polloi::smoother("month", rename = FALSE)
     smoothed_engagement <- augmented_clickthroughs[, c("date", "user_engagement")] %>%
       polloi::smoother("month", rename = FALSE)
-
     temp$Current <- c(
       smoothed_load_times$Median[smoothed_load_times$date == prev_month],
       smoothed_zrr$rate[smoothed_zrr$date == prev_month],
@@ -772,6 +773,7 @@ function(input, output, session) {
       ifelse(sum(smoothed_api$date == prev_year) == 0, NA, smoothed_api$total[smoothed_api$date == prev_year]),
       ifelse(sum(smoothed_engagement$date == prev_year) == 0, NA, smoothed_engagement$user_engagement[smoothed_engagement$date == prev_year])
     )
+    temp$Anchors <- c("kpi_load_time", "kpi_zero_results", "kpi_api_usage", "kpi_augmented_clickthroughs")
 
     # Compute month-over-month changes:
     temp$MoM <- c(
@@ -790,19 +792,32 @@ function(input, output, session) {
     # API Usage units (K/M/B/T):
     temp[3, c("Current", "Previous_month", "Previous_year")] <- polloi::compress(as.numeric(temp[3, c("Current", "Previous_month", "Previous_year")]))
     # Rename columns to use month & year:
-    names(temp) <- c("KPI", "Units", as.character(prev_month, "%B %Y"), as.character(prev_prev_month, "%B %Y"), as.character(prev_year, "%B %Y"), "MoM", "YoY")
+    names(temp) <- c("KPI", "Units", as.character(prev_month, "%B %Y"), as.character(prev_prev_month, "%B %Y"), as.character(prev_year, "%B %Y"), "Anchors", "MoM", "YoY")
     # Sanitize:
     temp[temp == "NA%" | temp == "NANA%" | temp == "NANA"] <- "--"
-    rownames(temp) <- temp$KPI
-    cols_to_keep <- c(5, 4, 3, 6, 7)
+    temp$KPI <- paste0('<a id="mm_', temp$Anchors, '">', temp$KPI, '</a>')
+    cols_to_keep <- c(1, 5, 4, 3, 7, 8)
     if (!input$monthly_metrics_prev_month) {
       cols_to_keep <- base::setdiff(cols_to_keep, 4)
     }
     if (!input$monthly_metrics_prev_year) {
       cols_to_keep <- base::setdiff(cols_to_keep, 5)
     }
-    temp[, cols_to_keep]
-  }, rownames = TRUE, striped = TRUE)
+    return(HTML(
+      knitr::kable(temp[, cols_to_keep], format = "html", table.attr = "class=\"table table-striped spacing-s\"", escape = FALSE),
+      "<!-- JS for clicking on the KPIs in the table -->
+      <script type = 'text/javascript'>
+      // Enables clicking on a kpi in the monthly metrics table:
+      $('a[id^=mm_kpi_]').click(function(){
+        var target = $(this).attr('id').replace('mm_', '');
+        $('a[data-value=\"'+target+'\"]').click();
+      });
+      // Visual feedback that the kpi in the monthly metrics table is clickable:
+      $('a[id^=mm_kpi_]').hover(function() {
+        $(this).css('cursor','pointer');
+      });</script>"
+    ))
+  })
 
   # Check datasets for missing data and notify user which datasets are missing data (if any)
   output$message_menu <- renderMenu({

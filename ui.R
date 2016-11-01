@@ -1,6 +1,7 @@
 library(shiny)
 library(shinydashboard)
 library(dygraphs)
+library(lubridate)
 
 with_wikimedia_mathjax <- function() {
   # Modified version of withMathJax() Keeping this
@@ -11,6 +12,10 @@ with_wikimedia_mathjax <- function() {
     tags$script(HTML("if (window.MathJax) MathJax.Hub.Queue([\"Typeset\", MathJax.Hub]);")),
     tags$script(HTML("MathJax.Hub.Config({ tex2jax: {inlineMath: [['$','$']]} });"), type = "text/x-mathjax-config")
   ))
+}
+
+subtract_months <- function(x, n) {
+  return(as.Date(as.POSIXct(x) - lubridate:::months.numeric(n)))
 }
 
 function(request) {
@@ -88,12 +93,16 @@ function(request) {
                   column(fluidRow(
                     column(selectInput("monthy_metrics_month", "Month",
                                        choices = month.name,
-                                       selected = month.name[lubridate::month(Sys.Date() - 1 - months(1))],
+                                       selected = month.name[lubridate::month(subtract_months(Sys.Date() - 1, 1))],
                                        selectize = FALSE),
                            width = 6),
                     column(selectInput("monthy_metrics_year", "Year",
-                                       choices = lubridate::year(seq(lubridate::floor_date(as.Date("2016-01-01"), "year"), Sys.Date() - 1 - months(1), "year")),
-                                       selected = lubridate::year(Sys.Date() - 1 - months(1)),
+                                       choices = year(seq(
+                                         floor_date(as.Date("2016-01-01"), "year"),
+                                         subtract_months(Sys.Date() - 1, 1),
+                                         "year"
+                                       )),
+                                       selected = year(subtract_months(Sys.Date() - 1, 1)),
                                        selectize = FALSE),
                            width = 6)
                   ),
@@ -102,7 +111,7 @@ function(request) {
                   checkboxInput("monthly_metrics_prev_year",
                                 "Show previous year", TRUE),
                   width = 4),
-                  column(tableOutput("monthly_metrics_tbl"), width = 8)
+                  column(htmlOutput("monthly_metrics_tbl"), width = 8)
                 ),
                 includeMarkdown("./tab_documentation/monthly_metrics.md")),
         tabItem(tabName = "kpi_load_time",

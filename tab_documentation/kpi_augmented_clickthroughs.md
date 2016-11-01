@@ -5,10 +5,9 @@ We are in the process of obtaining qualitative data from our users (their intent
 
 This metric combines the clickthrough rate and the proportion of users' session dwell times exceeding the threshold of 10s.
 
-Outages and inaccuracies
+Notes
 ------
-
-* None so far!
+* __A__: we switched to using data from [Schema:TestSearchSatisfaction2](https://meta.wikimedia.org/wiki/Schema:TestSearchSatisfaction2) instead of [Schema:Search](https://meta.wikimedia.org/wiki/Schema:Search) for Desktop event counts and load times on 12 July 2016.
 
 Questions, bug reports, and feature suggestions
 ------
