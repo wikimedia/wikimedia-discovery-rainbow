@@ -145,12 +145,10 @@ read_failures <- function(date) {
   suggestion_no_automata <<- reshape2::dcast(interim, formula = date ~ query_type, fun.aggregate = sum,
                                              fill = as.double(NA))
 
-  interim <- polloi::read_dataset("search/cirrus_langproj_breakdown_with_automata.tsv",
-                                                  na = "~", col_types = "Dccii")
+  interim <- polloi::read_dataset("search/cirrus_langproj_breakdown_with_automata.tsv", na = "~", col_types = "Dccii")
   interim$language %<>% sub("NA", "(None)", .)
   langproj_with_automata <<- interim
-  interim <- polloi::read_dataset("search/cirrus_langproj_breakdown_no_automata.tsv",
-                                                na = "~", col_types = "Dccii")
+  interim <- polloi::read_dataset("search/cirrus_langproj_breakdown_no_automata.tsv", na = "~", col_types = "Dccii")
   interim$language %<>% sub("NA", "(None)", .)
   langproj_no_automata <<- interim
   available_languages <<- langproj_with_automata %>%
@@ -167,7 +165,7 @@ read_failures <- function(date) {
     arrange(desc(volume)) %>%
     dplyr::mutate(prop = volume/sum(volume),
                   label = sprintf("%s (%.3f%%)", project, 100*prop))
-  projects_db <<- readr::read_csv(system.file("extdata/projects.csv", package = "polloi"))[, c('project', 'multilingual')]
+  projects_db <<- readr::read_csv(system.file("extdata/projects.csv", package = "polloi"), col_types = "cclc")[, c('project', 'multilingual')]
 }
 
 read_augmented_clickthrough <- function() {
@@ -189,7 +187,7 @@ read_lethal_dose <- function() {
 }
 
 read_paul_score <- function() {
-  data <- polloi::read_dataset("search/paulscore_approximations.tsv")[, c("date", "event_source", "pow_1", "pow_5", "pow_9")]
+  data <- polloi::read_dataset("search/paulscore_approximations.tsv", col_types = "Dcddddddddd")[, c("date", "event_source", "pow_1", "pow_5", "pow_9")]
   paulscore_autocomplete <<- data[data$event_source == "autocomplete", -2] %>% set_names(c("date", "F = 0.1", "F = 0.5", "F = 0.9"))
   paulscore_fulltext <<- data[data$event_source == "fulltext", -2] %>% set_names(c("date", "F = 0.1", "F = 0.5", "F = 0.9"))
 }
