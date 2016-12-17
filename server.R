@@ -1,6 +1,9 @@
 library(shiny)
 library(shinydashboard)
 library(dygraphs)
+library(sparkline)
+library(DT)
+library(data.table)
 
 source("utils.R")
 
@@ -458,9 +461,7 @@ function(input, output, session) {
 
   output$kpi_summary_box_load_time <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
-    if (date_range == "all") {
-      return(valueBox(subtitle = "Load time", value = "N/A", color = "black"))
-    }
+    if (date_range == "all") return(div("Load time"))
     x <- list(desktop_load_data, mobile_load_data, android_load_data, ios_load_data) %>%
       lapply(polloi::subset_by_date_range, from = start_date(date_range), to = Sys.Date() - 1) %>%
       lapply(function(data_tail) return(data_tail$Median))
@@ -483,9 +484,7 @@ function(input, output, session) {
   })
   output$kpi_summary_box_zero_results <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
-    if (date_range == "all") {
-      return(valueBox(subtitle = "Zero results rate", value = "N/A", color = "black"))
-    }
+    if (date_range == "all") return(div("Zero results rate"))
     x <- polloi::subset_by_date_range(failure_data_with_automata, from = start_date(date_range), to = Sys.Date() - 1)
     x <- transform(x, Rate = rate)$Rate
     if (date_range == "quarterly") {
@@ -508,9 +507,7 @@ function(input, output, session) {
   })
   output$kpi_summary_box_api_usage <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
-    if (date_range == "all") {
-      return(valueBox(subtitle = "API usage", value = "N/A", color = "black"))
-    }
+    if (date_range == "all") return(div("API usage"))
     x <- split_dataset %>%
       lapply(polloi::subset_by_date_range, from = start_date(date_range), to = Sys.Date() - 1) %>%
       lapply(function(x) return(x$events)) %>%
@@ -534,9 +531,7 @@ function(input, output, session) {
   })
   output$kpi_summary_box_augmented_clickthroughs <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
-    if (date_range == "all") {
-      return(valueBox(subtitle = "User engagement", value = "N/A", color = "black"))
-    }
+    if (date_range == "all") return(div("User engagement"))
     x <- polloi::subset_by_date_range(augmented_clickthroughs, from = start_date(date_range), to = Sys.Date() - 1)
     if (date_range == "quarterly") {
       return(valueBox(subtitle = "User engagement", color = "orange",
@@ -557,6 +552,83 @@ function(input, output, session) {
                       value = sprintf("%.1f%%", y2), color = "orange"))
     }
     return(polloi::na_box("User engagement (data problem)"))
+  })
+
+  ## KPI Sparklines
+  output$sparkline_load_time <- sparkline:::renderSparkline({
+    if(input$kpi_summary_date_range_selector == "all"){
+      output_sl <- list(desktop_load_data, mobile_load_data, android_load_data, ios_load_data)
+    } else{
+      output_sl <- list(desktop_load_data, mobile_load_data, android_load_data, ios_load_data) %>%
+        lapply(polloi::subset_by_date_range, from = Sys.Date() - 91, to = Sys.Date() - 1)
+    }
+    output_sl <- output_sl %>%
+      lapply(function(platform_load_data) {
+        platform_load_data[, c("date", "Median")]
+      }) %>%
+      dplyr::bind_rows(.id = "platform") %>%
+      dplyr::group_by(date) %>%
+      dplyr::summarize(Median = median(Median)) %>%
+      dplyr::select(Median) %>%
+      unlist(use.names = FALSE) %>%
+      round(2)
+    sparkline::sparkline(values = output_sl, type = "line",
+                         height = 50, width = '100%',
+                         lineColor = 'black', fillColor = 'transparent',
+                         highlightLineColor = 'orange', highlightSpotColor = 'orange')
+  })
+  output$sparkline_zero_results <- sparkline:::renderSparkline({
+    if(input$kpi_summary_date_range_selector == "all"){
+      output_sl <- failure_data_with_automata
+    } else{
+      output_sl <- failure_data_with_automata %>%
+        polloi::subset_by_date_range(from = Sys.Date() - 91, to = Sys.Date() - 1)
+    }
+    output_sl <- output_sl %>%
+      dplyr::select(rate) %>%
+      unlist(use.names = FALSE) %>%
+      round(2)
+    sparkline::sparkline(values = output_sl, type = "line",
+                         height = 50, width = '100%',
+                         lineColor = 'black', fillColor = 'transparent',
+                         highlightLineColor = 'orange', highlightSpotColor = 'orange')
+  })
+  output$sparkline_api_usage <- sparkline:::renderSparkline({
+    if(input$kpi_summary_date_range_selector == "all"){
+      output_sl <- split_dataset
+    } else{
+      output_sl <- split_dataset %>%
+        lapply(polloi::subset_by_date_range, from = Sys.Date() - 91, to = Sys.Date() - 1)
+    }
+    output_sl <- output_sl %>%
+      lapply(function(platform_load_data) {
+        platform_load_data[, c("date", "events")]
+      }) %>%
+      dplyr::bind_rows(.id = "api") %>%
+      dplyr::group_by(date) %>%
+      dplyr::summarize(total = sum(events)) %>%
+      dplyr::select(total) %>%
+      unlist(use.names = FALSE)
+    sparkline::sparkline(values = output_sl, type = "line",
+                         height = 50, width = '100%',
+                         lineColor = 'black', fillColor = 'transparent',
+                         highlightLineColor = 'orange', highlightSpotColor = 'orange')
+  })
+  output$sparkline_augmented_clickthroughs <- sparkline:::renderSparkline({
+    if(input$kpi_summary_date_range_selector == "all"){
+      output_sl <- augmented_clickthroughs
+    } else{
+      output_sl <- augmented_clickthroughs %>%
+        polloi::subset_by_date_range(from = Sys.Date() - 91, to = Sys.Date() - 1)
+    }
+    output_sl <- output_sl %>%
+      dplyr::select(user_engagement) %>%
+      unlist(use.names = FALSE) %>%
+      round(2)
+    sparkline::sparkline(values = output_sl, type = "line",
+                         height = 50, width = '100%',
+                         lineColor = 'black', fillColor = 'transparent',
+                         highlightLineColor = 'orange', highlightSpotColor = 'orange')
   })
 
   ## KPI Modules
@@ -722,8 +794,9 @@ function(input, output, session) {
       dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom")
   })
 
-  output$monthly_metrics_tbl <- renderUI({
-    temp <- data.frame(
+  output$monthly_metrics_tbl <- DT::renderDataTable(
+    {
+      temp <- data.frame(
       KPI = c("Load time", "Zero results rate", "API Usage", "User engagement"),
       Units = c("ms", "%", "", "%")
     )
@@ -795,28 +868,39 @@ function(input, output, session) {
     # Sanitize:
     temp[temp == "NA%" | temp == "NANA%" | temp == "NANA"] <- "--"
     temp$KPI <- paste0('<a id="mm_', temp$Anchors, '">', temp$KPI, '</a>')
-    cols_to_keep <- c(1, 5, 4, 3, 7, 8)
+    # sparkline
+    temp$`Monthly Median` <- c(
+      paste(smoothed_load_times %>% dplyr::arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
+              dplyr::select(-date) %>% dplyr::distinct() %>% {.$Median}, collapse = ","),
+      paste(smoothed_zrr %>% arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
+              dplyr::select(-date) %>% dplyr::distinct() %>% {.$rate}, collapse = ","),
+      paste(smoothed_api %>% arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
+              dplyr::select(-date) %>% dplyr::distinct() %>% {.$total}, collapse = ","),
+      paste(smoothed_engagement %>% arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
+              dplyr::select(-date) %>% dplyr::distinct() %>% {.$user_engagement}, collapse = ",")
+    )
+    cols_to_keep <- c(1, 5, 4, 3, 7, 8, 9)
     if (!input$monthly_metrics_prev_month) {
       cols_to_keep <- base::setdiff(cols_to_keep, 4)
     }
     if (!input$monthly_metrics_prev_year) {
       cols_to_keep <- base::setdiff(cols_to_keep, 5)
     }
-    return(HTML(
-      knitr::kable(temp[, cols_to_keep], format = "html", table.attr = "class=\"table table-striped spacing-s\"", escape = FALSE),
-      "<!-- JS for clicking on the KPIs in the table -->
-      <script type = 'text/javascript'>
-      // Enables clicking on a kpi in the monthly metrics table:
+    column_def <- list(list(targets = length(cols_to_keep)-1, render = JS("function(data, type, full){ return '<span class=sparkSeries>' + data + '</span>' }")))
+    line_string <- "type: 'line', lineColor: 'black', fillColor: '#ccc', highlightLineColor: 'orange', highlightSpotColor: 'orange'"
+    callback_fnc <- JS(paste0("function (oSettings, json) {
+      $('.sparkSeries:not(:has(canvas))').sparkline('html', { ", line_string, " });
       $('a[id^=mm_kpi_]').click(function(){
-        var target = $(this).attr('id').replace('mm_', '');
-        $('a[data-value=\"'+target+'\"]').click();
-      });
-      // Visual feedback that the kpi in the monthly metrics table is clickable:
-      $('a[id^=mm_kpi_]').hover(function() {
-        $(this).css('cursor','pointer');
-      });</script>"
-    ))
-  })
+      var target = $(this).attr('id').replace('mm_', '');
+      $('a[data-value=\"'+target+'\"]').click();});
+      $('a[id^=mm_kpi_]').hover(function() {$(this).css('cursor','pointer');});\n}"), collapse = "")
+    mm_dt <- datatable(data.table(temp[, cols_to_keep]), rownames = FALSE,
+      options = list(searching = F, paging = F, info = F, ordering = F,
+                     columnDefs = column_def, fnDrawCallback = callback_fnc), escape=F)
+    mm_dt$dependencies <- append(mm_dt$dependencies, htmlwidgets:::getDependency("sparkline"))
+    mm_dt
+    }
+  )
 
   # Check datasets for missing data and notify user which datasets are missing data (if any)
   output$message_menu <- renderMenu({

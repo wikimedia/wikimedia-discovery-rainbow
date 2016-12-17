@@ -5,7 +5,6 @@ library(toOrdinal)
 library(magrittr)
 library(polloi)
 library(xts)
-library(dplyr)
 library(tidyr)
 
 ## Read in desktop data and generate means for the value boxes, along with a time-series appropriate form for
@@ -52,19 +51,19 @@ read_apps <- function() {
   android_load_data <<- app_load_data[app_load_data$platform == "Android", names(app_load_data) != "platform"]
 
   position_interim <- polloi::read_dataset("search/click_position_counts.tsv", col_types = "Dci") %>%
-    group_by(date) %>%
-    mutate(prop = round(events/sum(events)*100, 2)) %>%
-    ungroup %>%
-    select(-events) %>%
+    dplyr::group_by(date) %>%
+    dplyr::mutate(prop = round(events/sum(events)*100, 2)) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(-events) %>%
     reshape2::dcast(formula = date ~ click_position, fun.aggregate = sum)
   position_interim <- position_interim[,c("date", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10-19", "20-100", "100+")]
   names(position_interim) <- c("date", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th-19th", "20th-100th", "101st+")
   position_prop <<- position_interim
   source_prop <<- polloi::read_dataset("search/invoke_source_counts.tsv", col_types = "Dci") %>%
-    group_by(date) %>%
-    mutate(prop = round(events/sum(events)*100, 2)) %>%
-    ungroup %>%
-    select(-events) %>%
+    dplyr::group_by(date) %>%
+    dplyr::mutate(prop = round(events/sum(events)*100, 2)) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(-events) %>%
     reshape2::dcast(formula = date ~ invoke_source, fun.aggregate = sum)
 }
 
@@ -152,17 +151,17 @@ read_failures <- function(date) {
   interim$language %<>% sub("NA", "(None)", .)
   langproj_no_automata <<- interim
   available_languages <<- langproj_with_automata %>%
-    group_by(language) %>%
-    summarize(volume = sum(as.numeric(total))) %>%
+    dplyr::group_by(language) %>%
+    dplyr::summarize(volume = sum(as.numeric(total))) %>%
     dplyr::filter(volume > 0) %>%
-    arrange(desc(volume)) %>%
+    dplyr::arrange(desc(volume)) %>%
     dplyr::mutate(prop = volume/sum(volume),
                   label = sprintf("%s (%.3f%%)", language, 100*prop))
   available_projects <<- langproj_with_automata %>%
-    group_by(project) %>%
-    summarize(volume = sum(as.numeric(total))) %>%
+    dplyr::group_by(project) %>%
+    dplyr::summarize(volume = sum(as.numeric(total))) %>%
     dplyr::filter(volume > 0) %>%
-    arrange(desc(volume)) %>%
+    dplyr::arrange(desc(volume)) %>%
     dplyr::mutate(prop = volume/sum(volume),
                   label = sprintf("%s (%.3f%%)", project, 100*prop))
   projects_db <<- readr::read_csv(system.file("extdata/projects.csv", package = "polloi"), col_types = "cclc")[, c('project', 'multilingual')]

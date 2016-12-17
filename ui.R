@@ -86,6 +86,17 @@ function(request) {
                          valueBoxOutput("kpi_summary_box_zero_results", width = 3),
                          valueBoxOutput("kpi_summary_box_api_usage", width = 3),
                          valueBoxOutput("kpi_summary_box_augmented_clickthroughs", width = 3)),
+                fluidRow(
+                  tags$style(HTML(".box {
+                                  background-color:	transparent;
+                                  border-style: none;
+                                  box-shadow: 0 0 0 #ccc;
+                                  }")),
+                  box(sparkline:::sparklineOutput('sparkline_load_time'), width=3),
+                  box(sparkline:::sparklineOutput('sparkline_zero_results'), width=3),
+                  box(sparkline:::sparklineOutput('sparkline_api_usage'), width=3),
+                  box(sparkline:::sparklineOutput('sparkline_augmented_clickthroughs'), width=3)
+                  ),
                 includeMarkdown("./tab_documentation/kpis_summary.md")),
         tabItem(tabName = "monthly_metrics",
                 fluidRow(
@@ -110,7 +121,7 @@ function(request) {
                   checkboxInput("monthly_metrics_prev_year",
                                 "Show previous year", TRUE),
                   width = 4),
-                  column(htmlOutput("monthly_metrics_tbl"), width = 8)
+                  column(DT::dataTableOutput("monthly_metrics_tbl"), width = 8)
                 ),
                 includeMarkdown("./tab_documentation/monthly_metrics.md")),
         tabItem(tabName = "kpi_load_time",
