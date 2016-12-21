@@ -872,11 +872,11 @@ function(input, output, session) {
     temp$`Monthly Median` <- c(
       paste(smoothed_load_times %>% dplyr::arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
               dplyr::select(-date) %>% dplyr::distinct() %>% {.$Median}, collapse = ","),
-      paste(smoothed_zrr %>% arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
+      paste(smoothed_zrr %>% dplyr::arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
               dplyr::select(-date) %>% dplyr::distinct() %>% {.$rate}, collapse = ","),
-      paste(smoothed_api %>% arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
+      paste(smoothed_api %>% dplyr::arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
               dplyr::select(-date) %>% dplyr::distinct() %>% {.$total}, collapse = ","),
-      paste(smoothed_engagement %>% arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
+      paste(smoothed_engagement %>% dplyr::arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
               dplyr::select(-date) %>% dplyr::distinct() %>% {.$user_engagement}, collapse = ",")
     )
     cols_to_keep <- c(1, 5, 4, 3, 7, 8, 9)
