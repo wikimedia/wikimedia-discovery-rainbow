@@ -572,10 +572,27 @@ function(input, output, session) {
       dplyr::select(Median) %>%
       unlist(use.names = FALSE) %>%
       round(2)
-    sparkline::sparkline(values = output_sl, type = "line",
+    sl1 <- sparkline::sparkline(values = output_sl, type = "line",
                          height = 50, width = '100%',
                          lineColor = 'black', fillColor = 'transparent',
+                         chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
                          highlightLineColor = 'orange', highlightSpotColor = 'orange')
+    # highlight selected date range
+    if (input$kpi_summary_date_range_selector == "weekly"){
+      output_highlight <- c(rep(NA, length(output_sl)-7), output_sl[(length(output_sl)-6):length(output_sl)])
+    } else if (input$kpi_summary_date_range_selector == "monthly"){
+      output_highlight <- c(rep(NA, length(output_sl)-30), output_sl[(length(output_sl)-29):length(output_sl)])
+    } else if (input$kpi_summary_date_range_selector == "quarterly"){
+      output_highlight <- output_sl
+    } else {
+      return(sl1)
+    }
+    sl2 <- sparkline::sparkline(values = output_highlight, type = "line",
+                                height = 50, width = '100%', lineWidth = 2,
+                                lineColor = 'red', chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
+                                minSpotColor = F, maxSpotColor = F, disableInteraction = T,
+                                highlightLineColor = NULL, highlightSpotColor = NULL)
+    return(sparkline::spk_composite(sl1, sl2))
   })
   output$sparkline_zero_results <- sparkline:::renderSparkline({
     if(input$kpi_summary_date_range_selector == "all"){
@@ -588,10 +605,27 @@ function(input, output, session) {
       dplyr::select(rate) %>%
       unlist(use.names = FALSE) %>%
       round(2)
-    sparkline::sparkline(values = output_sl, type = "line",
-                         height = 50, width = '100%',
-                         lineColor = 'black', fillColor = 'transparent',
-                         highlightLineColor = 'orange', highlightSpotColor = 'orange')
+    sl1 <- sparkline::sparkline(values = output_sl, type = "line",
+                                height = 50, width = '100%',
+                                lineColor = 'black', fillColor = 'transparent',
+                                chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
+                                highlightLineColor = 'orange', highlightSpotColor = 'orange')
+    # highlight selected date range
+    if (input$kpi_summary_date_range_selector == "weekly"){
+      output_highlight <- c(rep(NA, length(output_sl)-7), output_sl[(length(output_sl)-6):length(output_sl)])
+    } else if (input$kpi_summary_date_range_selector == "monthly"){
+      output_highlight <- c(rep(NA, length(output_sl)-30), output_sl[(length(output_sl)-29):length(output_sl)])
+    } else if (input$kpi_summary_date_range_selector == "quarterly"){
+      output_highlight <- output_sl
+    } else {
+      return(sl1)
+    }
+    sl2 <- sparkline::sparkline(values = output_highlight, type = "line",
+                                height = 50, width = '100%', lineWidth = 2,
+                                lineColor = 'red', chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
+                                minSpotColor = F, maxSpotColor = F, disableInteraction = T,
+                                highlightLineColor = NULL, highlightSpotColor = NULL)
+    return(sparkline::spk_composite(sl1, sl2))
   })
   output$sparkline_api_usage <- sparkline:::renderSparkline({
     if(input$kpi_summary_date_range_selector == "all"){
@@ -609,10 +643,27 @@ function(input, output, session) {
       dplyr::summarize(total = sum(events)) %>%
       dplyr::select(total) %>%
       unlist(use.names = FALSE)
-    sparkline::sparkline(values = output_sl, type = "line",
-                         height = 50, width = '100%',
-                         lineColor = 'black', fillColor = 'transparent',
-                         highlightLineColor = 'orange', highlightSpotColor = 'orange')
+    sl1 <- sparkline::sparkline(values = output_sl, type = "line",
+                                height = 50, width = '100%',
+                                lineColor = 'black', fillColor = 'transparent',
+                                chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
+                                highlightLineColor = 'orange', highlightSpotColor = 'orange')
+    # highlight selected date range
+    if (input$kpi_summary_date_range_selector == "weekly"){
+      output_highlight <- c(rep(NA, length(output_sl)-7), output_sl[(length(output_sl)-6):length(output_sl)])
+    } else if (input$kpi_summary_date_range_selector == "monthly"){
+      output_highlight <- c(rep(NA, length(output_sl)-30), output_sl[(length(output_sl)-29):length(output_sl)])
+    } else if (input$kpi_summary_date_range_selector == "quarterly"){
+      output_highlight <- output_sl
+    } else {
+      return(sl1)
+    }
+    sl2 <- sparkline::sparkline(values = output_highlight, type = "line",
+                                height = 50, width = '100%', lineWidth = 2,
+                                lineColor = 'red', chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
+                                minSpotColor = F, maxSpotColor = F, disableInteraction = T,
+                                highlightLineColor = NULL, highlightSpotColor = NULL)
+    return(sparkline::spk_composite(sl1, sl2))
   })
   output$sparkline_augmented_clickthroughs <- sparkline:::renderSparkline({
     if(input$kpi_summary_date_range_selector == "all"){
@@ -625,10 +676,27 @@ function(input, output, session) {
       dplyr::select(user_engagement) %>%
       unlist(use.names = FALSE) %>%
       round(2)
-    sparkline::sparkline(values = output_sl, type = "line",
-                         height = 50, width = '100%',
-                         lineColor = 'black', fillColor = 'transparent',
-                         highlightLineColor = 'orange', highlightSpotColor = 'orange')
+    sl1 <- sparkline::sparkline(values = output_sl, type = "line",
+                                height = 50, width = '100%',
+                                lineColor = 'black', fillColor = 'transparent',
+                                chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
+                                highlightLineColor = 'orange', highlightSpotColor = 'orange')
+    # highlight selected date range
+    if (input$kpi_summary_date_range_selector == "weekly"){
+      output_highlight <- c(rep(NA, length(output_sl)-7), output_sl[(length(output_sl)-6):length(output_sl)])
+    } else if (input$kpi_summary_date_range_selector == "monthly"){
+      output_highlight <- c(rep(NA, length(output_sl)-30), output_sl[(length(output_sl)-29):length(output_sl)])
+    } else if (input$kpi_summary_date_range_selector == "quarterly"){
+      output_highlight <- output_sl
+    } else {
+      return(sl1)
+    }
+    sl2 <- sparkline::sparkline(values = output_highlight, type = "line",
+                                height = 50, width = '100%', lineWidth = 2,
+                                lineColor = 'red', chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
+                                minSpotColor = F, maxSpotColor = F, disableInteraction = T,
+                                highlightLineColor = NULL, highlightSpotColor = NULL)
+    return(sparkline::spk_composite(sl1, sl2))
   })
 
   ## KPI Modules
