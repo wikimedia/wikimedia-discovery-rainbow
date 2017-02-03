@@ -1,155 +1,159 @@
-#Dependent libs
-library(reshape2)
-library(ggplot2)
-library(toOrdinal)
 library(magrittr)
-library(polloi)
-library(xts)
-library(tidyr)
 
 ## Read in desktop data and generate means for the value boxes, along with a time-series appropriate form for
 ## dygraphs.
 read_desktop <- function() {
-  data <- polloi::read_dataset("search/desktop_event_counts.tsv", col_types = "Dci")
-  names(data)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
-  interim <- reshape2::dcast(data, formula = date ~ action, fun.aggregate = sum)
-  interim[is.na(interim)] <- 0
-  desktop_dygraph_set <<- interim
-  desktop_dygraph_means <<- round(colMeans(desktop_dygraph_set[,2:5]))
-  interim <- polloi::read_dataset("search/desktop_load_times.tsv", col_types = "Dddd")
-  names(interim)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
-  desktop_load_data <<- interim
+  desktop_dygraph_set <<- polloi::read_dataset("discovery/search/desktop_event_counts.tsv", col_types = "Dci") %>%
+    dplyr::filter(!is.na(action), !is.na(events)) %>%
+    tidyr::spread(action, events, fill = 0)
+  desktop_dygraph_means <<- round(colMeans(desktop_dygraph_set[, 2:5]))
+  desktop_load_data <<- polloi::read_dataset("discovery/search/desktop_load_times.tsv", col_types = "Dddd") %>%
+    dplyr::filter(!is.na(Median))
 }
 
 read_web <- function() {
-  data <- polloi::read_dataset("search/mobile_event_counts.tsv", col_types = "Dci")
-  names(data)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
-  interim <- reshape2::dcast(data, formula = date ~ action, fun.aggregate = sum)
-  interim[is.na(interim)] <- 0
-  mobile_dygraph_set <<- interim
-  mobile_dygraph_means <<- round(colMeans(mobile_dygraph_set[,2:4]))
-  interim <- polloi::read_dataset("search/mobile_load_times.tsv", col_types = "Dddd")
-  names(interim)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
-  mobile_load_data <<- interim
+  mobile_dygraph_set <<- polloi::read_dataset("discovery/search/mobile_event_counts.tsv", col_types = "Dci") %>%
+    dplyr::filter(!is.na(action), !is.na(events)) %>%
+    tidyr::spread(action, events, fill = 0)
+  mobile_dygraph_means <<- round(colMeans(mobile_dygraph_set[, 2:4]))
+  mobile_load_data <<- polloi::read_dataset("discovery/search/mobile_load_times.tsv", col_types = "Dddd") %>%
+    dplyr::filter(!is.na(Median))
 }
 
 read_apps <- function() {
+  data <- polloi::read_dataset("discovery/search/app_event_counts.tsv", col_types = "Dcci") %>%
+    dplyr::filter(!is.na(action), !is.na(events)) %>%
+    dplyr::distinct(date, platform, action, .keep_all = TRUE)
+  ios <- data %>%
+    dplyr::filter(platform == "iOS") %>%
+    dplyr::select(-platform) %>%
+    tidyr::spread(action, events, fill = 0)
+  android <- data %>%
+    dplyr::filter(platform == "Android") %>%
+    dplyr::select(-platform) %>%
+    tidyr::spread(action, events, fill = 0)
 
-  data <- polloi::read_dataset("search/app_event_counts.tsv", col_types = "Dcci")
-  names(data)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
-  ios <- reshape2::dcast(data[data$platform == "iOS",], formula = date ~ action, fun.aggregate = sum)
-  android <- reshape2::dcast(data[data$platform == "Android",], formula = date ~ action, fun.aggregate = sum)
   ios_dygraph_set <<- ios
-  ios_dygraph_means <<- round(colMeans(ios[,2:4]))
+  ios_dygraph_means <<- round(colMeans(ios[, 2:4]))
 
   android_dygraph_set <<- android
-  android_dygraph_means <<- round(colMeans(android[,2:4]))
+  android_dygraph_means <<- round(colMeans(android[, 2:4]))
 
-  app_load_data <- polloi::read_dataset("search/app_load_times.tsv", col_types = "Dcddd")
-  names(app_load_data)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
+  app_load_data <- polloi::read_dataset("discovery/search/app_load_times.tsv", col_types = "Dcddd") %>%
+    dplyr::filter(!is.na(Median)) %>%
+    dplyr::distinct(date, platform, .keep_all = TRUE)
   ios_load_data <<- app_load_data[app_load_data$platform == "iOS", names(app_load_data) != "platform"]
   android_load_data <<- app_load_data[app_load_data$platform == "Android", names(app_load_data) != "platform"]
 
-  position_interim <- polloi::read_dataset("search/click_position_counts.tsv", col_types = "Dci") %>%
+  position_interim <- polloi::read_dataset("discovery/search/click_position_counts.tsv", col_types = "Dci") %>%
+    dplyr::filter(!is.na(click_position), !is.na(events)) %>%
+    dplyr::distinct(date, click_position, .keep_all = TRUE) %>%
     dplyr::group_by(date) %>%
     dplyr::mutate(prop = round(events/sum(events)*100, 2)) %>%
     dplyr::ungroup() %>%
     dplyr::select(-events) %>%
-    reshape2::dcast(formula = date ~ click_position, fun.aggregate = sum)
-  position_interim <- position_interim[,c("date", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10-19", "20-100", "100+")]
+    tidyr::spread(click_position, prop, fill = 0)
+  position_interim <- position_interim[, c("date", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10-19", "20-100", "100+")]
   names(position_interim) <- c("date", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th-19th", "20th-100th", "101st+")
   position_prop <<- position_interim
-  source_prop <<- polloi::read_dataset("search/invoke_source_counts.tsv", col_types = "Dci") %>%
+  source_prop <<- polloi::read_dataset("discovery/search/invoke_source_counts.tsv", col_types = "Dci") %>%
+    dplyr::filter(!is.na(invoke_source), !is.na(events)) %>%
+    dplyr::distinct(date, invoke_source, .keep_all = TRUE) %>%
     dplyr::group_by(date) %>%
     dplyr::mutate(prop = round(events/sum(events)*100, 2)) %>%
     dplyr::ungroup() %>%
     dplyr::select(-events) %>%
-    reshape2::dcast(formula = date ~ invoke_source, fun.aggregate = sum)
+    tidyr::spread(invoke_source, prop, fill = 0)
 }
 
 read_api <- function(){
-  data <- polloi::read_dataset("search/search_api_aggregates.tsv", col_types = "cci")
-  names(data)[1] <- 'date' # Will be unnecessary after https://gerrit.wikimedia.org/r/#/c/250856/
-  data$date <- as.Date(data$date)
-  data <- data[order(data$event_type), ]
-  split_dataset <<- split(data, f = data$event_type)
+  split_dataset <<- polloi::read_dataset("discovery/search/search_api_usage.tsv", col_types = "Dci") %>%
+    dplyr::filter(!is.na(api), !is.na(calls)) %>%
+    dplyr::distinct(date, api, .keep_all = TRUE) %>%
+    dplyr::arrange(api, date) %>%
+    { split(., f = .$api) } %>%
+    lapply(dplyr::select_, .dots = list(quote(-api)))
 }
 
 read_failures <- function(date) {
-
-  interim <- polloi::read_dataset("search/cirrus_query_aggregates_with_automata.tsv", col_types = "Dd")
-  interim$rate <- interim$rate*100
-  failure_data_with_automata <<- interim
-
-  interim <- polloi::read_dataset("search/cirrus_query_aggregates_no_automata.tsv", col_types = "Dd")
-  interim$rate <- interim$rate*100
-  failure_data_no_automata <<- interim
-
+  ## Zero results rate
+  ### With automata
+  failure_data_with_automata <<- polloi::read_dataset("discovery/search/cirrus_query_aggregates_with_automata.tsv", col_types = "Dd") %>%
+    dplyr::filter(!is.na(rate)) %>%
+    dplyr::mutate(rate = 100 * rate)
+  ### Without automata
+  failure_data_no_automata <<- polloi::read_dataset("discovery/search/cirrus_query_aggregates_no_automata.tsv", col_types = "Dd") %>%
+    dplyr::filter(!is.na(rate)) %>%
+    dplyr::mutate(rate = 100 * rate)
+  ## Day-to-day change
+  ### With automata
   interim_new <- failure_data_with_automata$rate[2:nrow(failure_data_with_automata)]
   interim_old <- failure_data_with_automata$rate[1:(nrow(failure_data_with_automata)-1)]
-  interim <- 100 * (interim_new - interim_old)/interim_old
-
-  failure_roc_with_automata <<- data.frame(date = failure_data_with_automata$date[2:nrow(failure_data_with_automata)],
-                                           daily_change = interim,
-                                           stringsAsFactors = FALSE)
-
+  failure_roc_with_automata <<- data.frame(
+    date = failure_data_with_automata$date[2:nrow(failure_data_with_automata)],
+    daily_change = 100 * (interim_new - interim_old)/interim_old,
+    stringsAsFactors = FALSE
+  )
+  ### Without automata
   interim_new <- failure_data_no_automata$rate[2:nrow(failure_data_no_automata)]
   interim_old <- failure_data_no_automata$rate[1:(nrow(failure_data_no_automata)-1)]
-  interim <- 100 * (interim_new - interim_old)/interim_old
-
-  failure_roc_no_automata <<- data.frame(date = failure_data_no_automata$date[2:nrow(failure_data_no_automata)],
-                                         daily_change = interim,
-                                         stringsAsFactors = FALSE)
-
-  interim_breakdown_with_automata <- polloi::read_dataset("search/cirrus_query_breakdowns_with_automata.tsv", col_types = "Dcd")
-  interim_breakdown_with_automata$rate <- interim_breakdown_with_automata$rate*100
-  interim_breakdown_with_automata$query_type <- as.character(factor(interim_breakdown_with_automata$query_type,
-    levels = c("Full-Text Search", "Prefix Search", "full_text", "prefix", "comp_suggest", "more_like", "regex", "GeoData_spatial_search"),
-    labels = c("Full-Text Search", "Prefix Search", "Full-Text", "Prefix", "Completion Suggester", "More Like", "Regex", "Geospatial")))
-  failure_breakdown_with_automata <<- reshape2::dcast(interim_breakdown_with_automata,
-                                                      formula = date ~ query_type, fun.aggregate = sum,
-                                                      fill = as.double(NA))
-
-  interim_breakdown_no_automata <- polloi::read_dataset("search/cirrus_query_breakdowns_no_automata.tsv", col_types = "Dcd")
-  interim_breakdown_no_automata$rate <- interim_breakdown_no_automata$rate*100
-  interim_breakdown_no_automata$query_type <- as.character(factor(interim_breakdown_no_automata$query_type,
-    levels = c("Full-Text Search", "Prefix Search", "full_text", "prefix", "comp_suggest", "more_like", "regex", "GeoData_spatial_search"),
-    labels = c("Full-Text Search", "Prefix Search", "Full-Text", "Prefix", "Completion Suggester", "More Like", "Regex", "Geospatial")))
-  failure_breakdown_no_automata <<- reshape2::dcast(interim_breakdown_no_automata,
-                                                    formula = date ~ query_type, fun.aggregate = sum,
-                                                    fill = as.double(NA))
-
-  # Fix to make the suggestion dataset compatible with ZRR data format switch:
-  interim_breakdown_with_automata$query_type[interim_breakdown_with_automata$query_type == "Full-Text"] <- "Full-Text Search"
-  interim_breakdown_no_automata$query_type[interim_breakdown_no_automata$query_type == "Full-Text"] <- "Full-Text Search"
-  # Correction for 31 January 2016 when "Full Text" appears twice (once as "Full-Text Search" and once as "Full-Text"):
-  interim_breakdown_with_automata <- interim_breakdown_with_automata[!duplicated(interim_breakdown_with_automata[, c('date', 'query_type')]), ]
-  interim_breakdown_no_automata <- interim_breakdown_no_automata[!duplicated(interim_breakdown_no_automata[, c('date', 'query_type')]), ]
-
-  interim <- polloi::read_dataset("search/cirrus_suggestion_breakdown_with_automata.tsv", col_types = "Dd")
-  interim$rate <- interim$rate*100
-  interim$query_type <- "Full-Text with Suggestions"
-  interim <- rbind(interim[,c("date", "query_type", "rate")],
-                   interim_breakdown_with_automata[interim_breakdown_with_automata$date %in% interim$date
-                                                   & interim_breakdown_with_automata$query_type == "Full-Text Search",])
-  suggestion_with_automata <<- reshape2::dcast(interim, formula = date ~ query_type, fun.aggregate = sum,
-                                               fill = as.double(NA))
-
-  interim <- polloi::read_dataset("search/cirrus_suggestion_breakdown_no_automata.tsv", col_types = "Dd")
-  interim$rate <- interim$rate*100
-  interim$query_type <- "Full-Text with Suggestions"
-  interim <- rbind(interim[,c("date", "query_type", "rate")],
-                   interim_breakdown_no_automata[interim_breakdown_no_automata$date %in% interim$date
-                                                 & interim_breakdown_no_automata$query_type == "Full-Text Search",])
-  suggestion_no_automata <<- reshape2::dcast(interim, formula = date ~ query_type, fun.aggregate = sum,
-                                             fill = as.double(NA))
-
-  interim <- polloi::read_dataset("search/cirrus_langproj_breakdown_with_automata.tsv", na = "~", col_types = "Dccii")
-  interim$language %<>% sub("NA", "(None)", .)
-  langproj_with_automata <<- interim
-  interim <- polloi::read_dataset("search/cirrus_langproj_breakdown_no_automata.tsv", na = "~", col_types = "Dccii")
-  interim$language %<>% sub("NA", "(None)", .)
-  langproj_no_automata <<- interim
+  failure_roc_no_automata <<- data.frame(
+    date = failure_data_no_automata$date[2:nrow(failure_data_no_automata)],
+    daily_change = 100 * (interim_new - interim_old)/interim_old,
+    stringsAsFactors = FALSE
+  )
+  ## ZRR by type
+  ### With automata
+  failure_breakdown_with_automata <<- polloi::read_dataset("discovery/search/cirrus_query_breakdowns_with_automata.tsv", col_types = "Dcd") %>%
+    dplyr::filter(!is.na(query_type), !is.na(rate)) %>%
+    dplyr::mutate(
+      rate = 100 * rate,
+      query_type = as.character(factor(
+        query_type,
+        levels = c("Full-Text Search", "Prefix Search", "full_text", "prefix", "comp_suggest", "more_like", "regex", "GeoData_spatial_search"),
+        labels = c("Full-Text Search", "Prefix Search", "Full-Text", "Prefix", "Completion Suggester", "More Like", "Regex", "Geospatial")
+      )),
+      query_type = dplyr::if_else(query_type == "Full-Text", "Full-Text Search", query_type)
+    ) %>%
+    dplyr::distinct(date, query_type, .keep_all = TRUE) %>%
+    tidyr::spread(query_type, rate, fill = as.double(NA))
+  ### Without automata
+  failure_breakdown_no_automata <<- polloi::read_dataset("discovery/search/cirrus_query_breakdowns_no_automata.tsv", col_types = "Dcd") %>%
+    dplyr::filter(!is.na(query_type), !is.na(rate)) %>%
+    dplyr::mutate(
+      rate = 100 * rate,
+      query_type = as.character(factor(
+        query_type,
+        levels = c("Full-Text Search", "Prefix Search", "full_text", "prefix", "comp_suggest", "more_like", "regex", "GeoData_spatial_search"),
+        labels = c("Full-Text Search", "Prefix Search", "Full-Text", "Prefix", "Completion Suggester", "More Like", "Regex", "Geospatial")
+      )),
+      query_type = dplyr::if_else(query_type == "Full-Text", "Full-Text Search", query_type)
+    ) %>%
+    dplyr::distinct(date, query_type, .keep_all = TRUE) %>%
+    tidyr::spread(query_type, rate, fill = as.double(NA))
+  ## ZRR with suggestions
+  ### With automata
+  suggestion_with_automata <<- polloi::read_dataset("discovery/search/cirrus_suggestion_breakdown_with_automata.tsv", col_types = "Dd") %>%
+    dplyr::filter(!is.na(rate)) %>%
+    dplyr::transmute(date = date, `Full-Text with Suggestions` = 100 * rate) %>%
+    dplyr::full_join(dplyr::select(failure_breakdown_with_automata, c(date, `Full-Text Search`)), by = "date") %>%
+    dplyr::arrange(date)
+  ### Without automata
+  suggestion_no_automata <<- polloi::read_dataset("discovery/search/cirrus_suggestion_breakdown_no_automata.tsv", col_types = "Dd") %>%
+    dplyr::filter(!is.na(rate)) %>%
+    dplyr::transmute(date = date, `Full-Text with Suggestions` = 100 * rate) %>%
+    dplyr::full_join(dplyr::select(failure_breakdown_no_automata, c(date, `Full-Text Search`)), by = "date") %>%
+    dplyr::arrange(date)
+  ## Broken down by language-project pair
+  ### With automata
+  langproj_with_automata <<- polloi::read_dataset("discovery/search/cirrus_langproj_breakdown_with_automata.tsv", na = "~", col_types = "Dccii") %>%
+    dplyr::filter(!is.na(zero_results), !is.na(total)) %>%
+    dplyr::mutate(language = sub("NA", "(None)", language))
+  ### Without automata
+  langproj_no_automata <<- polloi::read_dataset("discovery/search/cirrus_langproj_breakdown_no_automata.tsv", na = "~", col_types = "Dccii") %>%
+    dplyr::filter(!is.na(zero_results), !is.na(total)) %>%
+    dplyr::mutate(language = sub("NA", "(None)", language))
+  ### Summaries for sorting
   available_languages <<- langproj_with_automata %>%
     dplyr::group_by(language) %>%
     dplyr::summarize(volume = sum(as.numeric(total))) %>%
@@ -168,27 +172,39 @@ read_failures <- function(date) {
 }
 
 read_augmented_clickthrough <- function() {
-  data <- polloi::read_dataset("search/search_threshold_pass_rate.tsv", col_types = "Dd")
-  temp <- polloi::safe_tail(desktop_dygraph_set, nrow(data))[, c('clickthroughs', 'Result pages opened')] +
-    polloi::safe_tail(mobile_dygraph_set, nrow(data))[, c('clickthroughs', 'Result pages opened')] +
-    polloi::safe_tail(ios_dygraph_set, nrow(data))[, c('clickthroughs', 'Result pages opened')] +
-    polloi::safe_tail(android_dygraph_set, nrow(data))[, c('clickthroughs', 'Result pages opened')]
-  intermediary_dataset <- cbind(data, clickthrough_rate = 100 * temp$clickthroughs/temp$'Result pages opened')
-  colnames(intermediary_dataset) <- c("date", "threshold_passing_rate", "clickthrough_rate")
-  intermediary_dataset$threshold_passing_rate <- 100 * intermediary_dataset$threshold_passing_rate
-  augmented_clickthroughs <<- transform(intermediary_dataset, user_engagement = (threshold_passing_rate + clickthrough_rate)/2)
+  threshold_data <- polloi::read_dataset("discovery/search/search_threshold_pass_rate.tsv", col_types = "Dd") %>%
+    dplyr::filter(!is.na(threshold_pass)) %>%
+    dplyr::mutate(threshold_pass = 100 * threshold_pass)
+  augmented_clickthroughs <<- list(
+    desktop = dplyr::select(desktop_dygraph_set, c(date, clickthroughs, `Result pages opened`)),
+    mobile = dplyr::select(mobile_dygraph_set, c(date, clickthroughs, `Result pages opened`)),
+    ios = dplyr::select(ios_dygraph_set, c(date, clickthroughs, `Result pages opened`)),
+    android = dplyr::select(android_dygraph_set, c(date, clickthroughs, `Result pages opened`))
+  ) %>%
+    dplyr::bind_rows(.id = "platform") %>%
+    dplyr::group_by(date) %>%
+    dplyr::summarize(clickthroughs = sum(clickthroughs), serps = sum(`Result pages opened`)) %>%
+    dplyr::right_join(threshold_data, by = "date") %>%
+    dplyr::transmute(
+      date = date,
+      `Threshold-passing %` = threshold_pass,
+      `Clickthrough rate` = 100 * clickthroughs/serps,
+      `User engagement` = (threshold_pass + `Clickthrough rate`)/2
+    )
 }
 
 read_lethal_dose <- function() {
-  intermediary_dataset <- polloi::read_dataset("search/sample_page_visit_ld.tsv", col_types = "Diiiiiii")
-  colnames(intermediary_dataset) <- c("date", "10%", "25%", "50%", "75%", "90%", "95%", "99%")
-  user_page_visit_dataset <<- intermediary_dataset
+  user_page_visit_dataset <<- polloi::read_dataset("discovery/search/sample_page_visit_ld.tsv", col_types = "Dddddddd") %>%
+    dplyr::filter(!is.na(LD10)) %>%
+    set_colnames(c("date", "10%", "25%", "50%", "75%", "90%", "95%", "99%"))
 }
 
 read_paul_score <- function() {
-  data <- polloi::read_dataset("search/paulscore_approximations.tsv", col_types = "Dcddddddddd")[, c("date", "event_source", "pow_1", "pow_5", "pow_9")]
-  paulscore_autocomplete <<- data[data$event_source == "autocomplete", -2] %>% set_names(c("date", "F = 0.1", "F = 0.5", "F = 0.9"))
-  paulscore_fulltext <<- data[data$event_source == "fulltext", -2] %>% set_names(c("date", "F = 0.1", "F = 0.5", "F = 0.9"))
+  paulscore <- polloi::read_dataset("discovery/search/paulscore_approximations.tsv", col_types = "Dcddddddddd") %>%
+    dplyr::filter(!is.na(event_source)) %>%
+    dplyr::select(c(date, event_source, `F = 0.1` = pow_1, `F = 0.5` = pow_5, `F = 0.9` = pow_9))
+  paulscore_autocomplete <<- dplyr::filter(paulscore, event_source == "autocomplete") %>% dplyr::select(-event_source)
+  paulscore_fulltext <<- dplyr::filter(paulscore, event_source == "fulltext") %>% dplyr::select(-event_source)
 }
 
 aggregate_wikis <- function(data, languages, projects) {

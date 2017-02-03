@@ -1,9 +1,9 @@
-library(shiny)
-library(shinydashboard)
-library(dygraphs)
-library(sparkline)
-library(DT)
-library(data.table)
+suppressPackageStartupMessages({
+  library(shiny)
+  library(shinydashboard)
+  library(dygraphs)
+  library(sparkline)
+})
 
 source("utils.R")
 
@@ -162,7 +162,7 @@ function(input, output, session) {
   ## App value boxes
   output$app_event_searches <- renderValueBox(
     valueBox(
-      value = android_dygraph_means[3],
+      value = ios_dygraph_means["search sessions"] + android_dygraph_means["search sessions"],
       subtitle = "Search sessions per day",
       icon = icon("search"),
       color = "green"
@@ -171,7 +171,7 @@ function(input, output, session) {
 
   output$app_event_resultsets <- renderValueBox(
     valueBox(
-      value = android_dygraph_means[2],
+      value = ios_dygraph_means["Result pages opened"] + android_dygraph_means["Result pages opened"],
       subtitle = "Result sets per day",
       icon = icon("list", lib = "glyphicon"),
       color = "green"
@@ -180,7 +180,7 @@ function(input, output, session) {
 
   output$app_event_clickthroughs <- renderValueBox(
     valueBox(
-      value = android_dygraph_means[1],
+      value = ios_dygraph_means["clickthroughs"] + android_dygraph_means["clickthroughs"],
       subtitle = "Clickthroughs per day",
       icon = icon("hand-up", lib = "glyphicon"),
       color = "green"
@@ -240,36 +240,35 @@ function(input, output, session) {
 
   ## API plots
   output$cirrus_aggregate <- renderDygraph({
-    split_dataset$cirrus[, c(1, 3)] %>%
+    split_dataset$cirrus %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_fulltext_search)) %>%
-
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Full-text via API usage by day", legend_name = "Searches") %>%
       dyRangeSelector
   })
 
   output$open_aggregate <- renderDygraph({
-    split_dataset$open[, c(1, 3)] %>%
+    split_dataset$open %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_open_search)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "OpenSearch API usage by day", legend_name = "Searches") %>%
       dyRangeSelector
   })
 
   output$geo_aggregate <- renderDygraph({
-    split_dataset$geo[, c(1, 3)] %>%
+    split_dataset$geo %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_geo_search)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Geo Search API usage by day", legend_name = "Searches") %>%
       dyRangeSelector
   })
 
   output$language_aggregate <- renderDygraph({
-    split_dataset$language[, c(1, 3)] %>%
+    split_dataset$language %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_language_search)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Language Search API usage by day", legend_name = "Searches") %>%
       dyRangeSelector
   })
 
   output$prefix_aggregate <- renderDygraph({
-    split_dataset$prefix[, c(1, 3)] %>%
+    split_dataset$prefix %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_prefix_search)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Prefix Search API usage by day", legend_name = "Searches") %>%
       dyRangeSelector
@@ -277,7 +276,8 @@ function(input, output, session) {
 
   # Failure plots
   output$failure_rate_plot <- renderDygraph({
-    polloi::data_select(input$failure_rate_automata, failure_data_with_automata, failure_data_no_automata) %>%
+    input$failure_rate_automata %>%
+      polloi::data_select(failure_data_with_automata, failure_data_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_rate)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero Results Rate, by day",
                            legend_name = "ZRR") %>%
@@ -288,7 +288,8 @@ function(input, output, session) {
   })
 
   output$failure_rate_change_plot <- renderDygraph({
-    polloi::data_select(input$failure_rate_automata, failure_roc_with_automata, failure_roc_no_automata) %>%
+    input$failure_rate_automata %>%
+      polloi::data_select(failure_roc_with_automata, failure_roc_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_rate)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Change", title = "Zero Results rate change, by day", legend_name = "Change") %>%
       dyAxis("y", axisLabelFormatter = "function(x) { return x + '%'; }", valueFormatter = "function(x) { return Math.round(x, 3) + '%'; }") %>%
@@ -300,8 +301,7 @@ function(input, output, session) {
     xts_data <- input$failure_breakdown_automata %>%
       polloi::data_select(failure_breakdown_with_automata, failure_breakdown_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_breakdown)) %>%
-
-      { xts(.[, -1], order.by = .$date) }
+      { xts::xts(.[, -1], order.by = .$date) }
     xts_data %>% dygraph(xlab = "Date", ylab = "Zero Results Rate",
                          main = "Zero result rate by search type") %>%
       dyLegend(width = 600, show = "always", labelsDiv = "failure_breakdown_plot_legend") %>%
@@ -328,7 +328,8 @@ function(input, output, session) {
   })
 
   output$suggestion_dygraph_plot <- renderDygraph({
-    polloi::data_select(input$failure_suggestions_automata, suggestion_with_automata, suggestion_no_automata) %>%
+    input$failure_suggestions_automata %>%
+      polloi::data_select(suggestion_with_automata, suggestion_no_automata) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_suggestions)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate", title = "Zero Result Rates with Search Suggestions") %>%
       dyAxis("y", axisLabelFormatter = "function(x) { return x + '%'; }", valueFormatter = "function(x) { return x + '%'; }") %>%
@@ -384,7 +385,8 @@ function(input, output, session) {
   })
 
   output$failure_langproj_plot <- renderDygraph({
-    polloi::data_select(input$failure_langproj_automata, langproj_with_automata, langproj_no_automata) %>%
+    input$failure_langproj_automata %>%
+      polloi::data_select(langproj_with_automata, langproj_no_automata) %>%
       aggregate_wikis(input$language_selector, input$project_selector) %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_langproj)) %>%
       polloi::make_dygraph(xlab = "", ylab = "Zero Results Rate", title = "Zero result rate by language and project") %>%
@@ -417,7 +419,7 @@ function(input, output, session) {
              temp <- dates %>%
                as.character("%e") %>%
                as.numeric %>%
-               sapply(toOrdinal) %>%
+               sapply(toOrdinal::toOrdinal) %>%
                sub("([a-z]{2})", "<sup>\\1</sup>", .) %>%
                paste0(as.character(dates, "%A, %b "), .)
            },
@@ -426,7 +428,7 @@ function(input, output, session) {
              temp <- dates %>%
                as.character("%e") %>%
                as.numeric %>%
-               sapply(toOrdinal) %>%
+               sapply(toOrdinal::toOrdinal) %>%
                sub("([a-z]{2})", "<sup>\\1</sup>", .) %>%
                paste0(as.character(dates, "%b "), .) %>%
                {
@@ -438,7 +440,7 @@ function(input, output, session) {
              temp <- dates %>%
                as.character("%e") %>%
                as.numeric %>%
-               sapply(toOrdinal) %>%
+               sapply(toOrdinal::toOrdinal) %>%
                sub("([a-z]{2})", "<sup>\\1</sup>", .) %>%
                paste0(as.character(dates, "%b "), .) %>%
                {
@@ -450,7 +452,7 @@ function(input, output, session) {
              return(dates %>%
                       as.character("%e") %>%
                       as.numeric %>%
-                      sapply(toOrdinal) %>%
+                      sapply(toOrdinal::toOrdinal) %>%
                       sub("([a-z]{2})", "<sup>\\1</sup>", .) %>%
                       paste0(as.character(dates, "%B "), .) %>%
                       paste0(collapse = "-") %>%
@@ -485,8 +487,7 @@ function(input, output, session) {
   output$kpi_summary_box_zero_results <- renderValueBox({
     date_range <- input$kpi_summary_date_range_selector
     if (date_range == "all") return(div("Zero results rate"))
-    x <- polloi::subset_by_date_range(failure_data_with_automata, from = start_date(date_range), to = Sys.Date() - 1)
-    x <- transform(x, Rate = rate)$Rate
+    x <- polloi::subset_by_date_range(failure_data_with_automata, from = start_date(date_range), to = Sys.Date() - 1)$rate
     if (date_range == "quarterly") {
       return(valueBox(subtitle = "Zero results rate", color = "orange",
                       value = sprintf("%.1f%%", median(x))))
@@ -497,7 +498,7 @@ function(input, output, session) {
         return(valueBox(
           subtitle = sprintf("Zero results rate (%.1f%%)", z),
           value = sprintf("%.1f%%", y2),
-          icon = cond_icon(z > 0), color = polloi::cond_color(z > 0, "red")
+          icon = polloi::cond_icon(z > 0), color = polloi::cond_color(z > 0, "red")
         ))
       }
       return(valueBox(subtitle = "Zero results rate (no change)",
@@ -510,9 +511,9 @@ function(input, output, session) {
     if (date_range == "all") return(div("API usage"))
     x <- split_dataset %>%
       lapply(polloi::subset_by_date_range, from = start_date(date_range), to = Sys.Date() - 1) %>%
-      lapply(function(x) return(x$events)) %>%
-      do.call(cbind, .) %>%
-      transform(total = cirrus + geo + language + open + prefix) %>%
+      dplyr::bind_rows(.id = "api") %>%
+      dplyr::group_by(date) %>%
+      dplyr::summarize(total = sum(calls)) %>%
       { .$total }
     if (date_range == "quarterly") {
       return(valueBox(subtitle = "API usage", value = polloi::compress(median(x), 0), color = "orange"))
@@ -535,17 +536,17 @@ function(input, output, session) {
     x <- polloi::subset_by_date_range(augmented_clickthroughs, from = start_date(date_range), to = Sys.Date() - 1)
     if (date_range == "quarterly") {
       return(valueBox(subtitle = "User engagement", color = "orange",
-                      value = sprintf("%.1f%%", median(x$user_engagement))))
+                      value = sprintf("%.1f%%", median(x$`User engagement`))))
     }
-    y1 <- median(polloi::half(x$user_engagement))
-    y2 <- median(polloi::half(x$user_engagement, FALSE))
+    y1 <- median(polloi::half(x$`User engagement`))
+    y2 <- median(polloi::half(x$`User engagement`, FALSE))
     z <- 100 * (y2 - y1)/y1
     if (!is.na(z)) {
       if (abs(z) > 0) {
         return(valueBox(
           subtitle = sprintf("User engagement (%.1f%%)", z),
           value = sprintf("%.1f%%", y2),
-          icon = cond_icon(z > 0), color = polloi::cond_color(z > 0, "green")
+          icon = polloi::cond_icon(z > 0), color = polloi::cond_color(z > 0, "green")
         ))
       }
       return(valueBox(subtitle = "User engagement (no change)",
@@ -556,16 +557,13 @@ function(input, output, session) {
 
   ## KPI Sparklines
   output$sparkline_load_time <- sparkline:::renderSparkline({
-    if(input$kpi_summary_date_range_selector == "all"){
+    if (input$kpi_summary_date_range_selector == "all") {
       output_sl <- list(desktop_load_data, mobile_load_data, android_load_data, ios_load_data)
-    } else{
+    } else {
       output_sl <- list(desktop_load_data, mobile_load_data, android_load_data, ios_load_data) %>%
         lapply(polloi::subset_by_date_range, from = Sys.Date() - 91, to = Sys.Date() - 1)
     }
     output_sl <- output_sl %>%
-      lapply(function(platform_load_data) {
-        platform_load_data[, c("date", "Median")]
-      }) %>%
       dplyr::bind_rows(.id = "platform") %>%
       dplyr::group_by(date) %>%
       dplyr::summarize(Median = median(Median)) %>%
@@ -595,9 +593,9 @@ function(input, output, session) {
     return(sparkline::spk_composite(sl1, sl2))
   })
   output$sparkline_zero_results <- sparkline:::renderSparkline({
-    if(input$kpi_summary_date_range_selector == "all"){
+    if (input$kpi_summary_date_range_selector == "all") {
       output_sl <- failure_data_with_automata
-    } else{
+    } else {
       output_sl <- failure_data_with_automata %>%
         polloi::subset_by_date_range(from = Sys.Date() - 91, to = Sys.Date() - 1)
     }
@@ -611,11 +609,11 @@ function(input, output, session) {
                                 chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
                                 highlightLineColor = 'orange', highlightSpotColor = 'orange')
     # highlight selected date range
-    if (input$kpi_summary_date_range_selector == "weekly"){
+    if (input$kpi_summary_date_range_selector == "weekly") {
       output_highlight <- c(rep(NA, length(output_sl)-7), output_sl[(length(output_sl)-6):length(output_sl)])
-    } else if (input$kpi_summary_date_range_selector == "monthly"){
+    } else if (input$kpi_summary_date_range_selector == "monthly") {
       output_highlight <- c(rep(NA, length(output_sl)-30), output_sl[(length(output_sl)-29):length(output_sl)])
-    } else if (input$kpi_summary_date_range_selector == "quarterly"){
+    } else if (input$kpi_summary_date_range_selector == "quarterly") {
       output_highlight <- output_sl
     } else {
       return(sl1)
@@ -628,19 +626,16 @@ function(input, output, session) {
     return(sparkline::spk_composite(sl1, sl2))
   })
   output$sparkline_api_usage <- sparkline:::renderSparkline({
-    if(input$kpi_summary_date_range_selector == "all"){
+    if (input$kpi_summary_date_range_selector == "all") {
       output_sl <- split_dataset
-    } else{
+    } else {
       output_sl <- split_dataset %>%
         lapply(polloi::subset_by_date_range, from = Sys.Date() - 91, to = Sys.Date() - 1)
     }
     output_sl <- output_sl %>%
-      lapply(function(platform_load_data) {
-        platform_load_data[, c("date", "events")]
-      }) %>%
       dplyr::bind_rows(.id = "api") %>%
       dplyr::group_by(date) %>%
-      dplyr::summarize(total = sum(events)) %>%
+      dplyr::summarize(total = sum(calls)) %>%
       dplyr::select(total) %>%
       unlist(use.names = FALSE)
     sl1 <- sparkline::sparkline(values = output_sl, type = "line",
@@ -649,11 +644,11 @@ function(input, output, session) {
                                 chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
                                 highlightLineColor = 'orange', highlightSpotColor = 'orange')
     # highlight selected date range
-    if (input$kpi_summary_date_range_selector == "weekly"){
+    if (input$kpi_summary_date_range_selector == "weekly") {
       output_highlight <- c(rep(NA, length(output_sl)-7), output_sl[(length(output_sl)-6):length(output_sl)])
-    } else if (input$kpi_summary_date_range_selector == "monthly"){
+    } else if (input$kpi_summary_date_range_selector == "monthly") {
       output_highlight <- c(rep(NA, length(output_sl)-30), output_sl[(length(output_sl)-29):length(output_sl)])
-    } else if (input$kpi_summary_date_range_selector == "quarterly"){
+    } else if (input$kpi_summary_date_range_selector == "quarterly") {
       output_highlight <- output_sl
     } else {
       return(sl1)
@@ -666,14 +661,14 @@ function(input, output, session) {
     return(sparkline::spk_composite(sl1, sl2))
   })
   output$sparkline_augmented_clickthroughs <- sparkline:::renderSparkline({
-    if(input$kpi_summary_date_range_selector == "all"){
+    if(input$kpi_summary_date_range_selector == "all") {
       output_sl <- augmented_clickthroughs
-    } else{
+    } else {
       output_sl <- augmented_clickthroughs %>%
         polloi::subset_by_date_range(from = Sys.Date() - 91, to = Sys.Date() - 1)
     }
     output_sl <- output_sl %>%
-      dplyr::select(user_engagement) %>%
+      dplyr::select(`User engagement`) %>%
       unlist(use.names = FALSE) %>%
       round(2)
     sl1 <- sparkline::sparkline(values = output_sl, type = "line",
@@ -682,11 +677,11 @@ function(input, output, session) {
                                 chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
                                 highlightLineColor = 'orange', highlightSpotColor = 'orange')
     # highlight selected date range
-    if (input$kpi_summary_date_range_selector == "weekly"){
+    if (input$kpi_summary_date_range_selector == "weekly") {
       output_highlight <- c(rep(NA, length(output_sl)-7), output_sl[(length(output_sl)-6):length(output_sl)])
-    } else if (input$kpi_summary_date_range_selector == "monthly"){
+    } else if (input$kpi_summary_date_range_selector == "monthly") {
       output_highlight <- c(rep(NA, length(output_sl)-30), output_sl[(length(output_sl)-29):length(output_sl)])
-    } else if (input$kpi_summary_date_range_selector == "quarterly"){
+    } else if (input$kpi_summary_date_range_selector == "quarterly") {
       output_highlight <- output_sl
     } else {
       return(sl1)
@@ -707,12 +702,10 @@ function(input, output, session) {
                                       all = NA, daily = 1, weekly = 8, monthly = 31, quarterly = 91)
     load_times <- list(desktop_load_data, mobile_load_data, android_load_data, ios_load_data) %>%
       {
-        if (is.na(start_date)) {
-          lapply(., function(dataset) {
-            return(dataset[!duplicated(dataset$date, dataset$event_type, fromLast = TRUE), ])
-          })
-        } else {
+        if (!is.na(start_date)) {
           lapply(., polloi::subset_by_date_range, from = start_date, to = Sys.Date() - 1)
+        } else {
+          .
         }
       } %>%
       lapply(function(data_tail) return(data_tail[, c('date', 'Median')])) %>%
@@ -744,10 +737,10 @@ function(input, output, session) {
     start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector, all = NA, daily = 1, weekly = 8, monthly = 31, quarterly = 91)
     zrr <- failure_data_with_automata %>%
       {
-        if (is.na(start_date)) {
-          .
-        } else {
+        if (!is.na(start_date)) {
           polloi::subset_by_date_range(., from = start_date, to = Sys.Date())
+        } else {
+          .
         }
       } %>%
       transform(`Rate` = rate)
@@ -787,25 +780,23 @@ function(input, output, session) {
     start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector, all = NA, daily = 1, weekly = 8, monthly = 31, quarterly = 91)
     api_usage <- split_dataset %>%
       {
-        if (is.na(start_date)) {
-          lapply(., function(dataset) {
-            return(dataset[!duplicated(dataset$date, dataset$event_type, fromLast = TRUE), ])
-          })
-        } else {
+        if (!is.na(start_date)) {
           lapply(., polloi::subset_by_date_range, from = start_date, to = Sys.Date() - 1)
+        } else {
+          .
         }
       } %>%
-      dplyr::bind_rows() %>%
-      tidyr::spread("event_type", "events") %>%
-      as.data.frame
+      dplyr::bind_rows(.id = "api") %>%
+      tidyr::spread("api", "calls")
     if ( input$kpi_api_usage_series_include_open ) {
-      api_usage <- transform(api_usage, all = cirrus + geo + language + open + prefix)
+      api_usage <- dplyr::mutate(api_usage, all = cirrus + geo + language + open + prefix)
     } else {
-      api_usage <- transform(api_usage, all = cirrus + geo + language + prefix)
+      api_usage <- dplyr::mutate(api_usage, all = cirrus + geo + language + prefix)
     }
     if ( input$kpi_api_usage_series_data == "raw" ) {
-      api_usage %<>% polloi::smoother(ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE)
-      api_usage <- xts::xts(api_usage[, -1], api_usage[, 1])
+      api_usage %<>%
+        polloi::smoother(ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE) %>%
+        { xts::xts(.[, -1], order.by = .$date) }
       if (!input$kpi_api_usage_series_include_open) {
         colnames(api_usage)[6] <- "all except open"
       }
@@ -821,16 +812,17 @@ function(input, output, session) {
                dyCSS(css = system.file("custom.css", package = "polloi")) %>%
                dyRangeSelector)
     }
-    api_usage_change <- transform(api_usage,
-                                  cirrus = polloi::percent_change(cirrus),
-                                  geo = polloi::percent_change(geo),
-                                  language = polloi::percent_change(language),
-                                  open = polloi::percent_change(open),
-                                  prefix = polloi::percent_change(prefix),
-                                  all = polloi::percent_change(all)) %>%
-                                  { .[-1, ] }
-    api_usage_change %<>% polloi::smoother(ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE)
-    api_usage_change <- xts::xts(api_usage_change[, -1], api_usage_change[, 1])
+    api_usage_change <- dplyr::mutate(
+      api_usage,
+      cirrus = polloi::percent_change(cirrus),
+      geo = polloi::percent_change(geo),
+      language = polloi::percent_change(language),
+      open = polloi::percent_change(open),
+      prefix = polloi::percent_change(prefix),
+      all = polloi::percent_change(all)) %>%
+      { .[-1, ] } %>%
+      polloi::smoother(ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE) %>%
+      { xts::xts(.[, -1], .$date) }
     if (!input$kpi_api_usage_series_include_open) colnames(api_usage_change)[6] <- "all except open"
     return(dygraph(api_usage_change,
                    main = "Day-to-day % change over time",
@@ -846,10 +838,10 @@ function(input, output, session) {
     start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector, all = NA, daily = 1, weekly = 8, monthly = 31, quarterly = 91)
     smoothed_data <- augmented_clickthroughs %>%
       {
-        if (is.na(start_date)) {
-          .
-        } else {
+        if (!is.na(start_date)) {
           polloi::subset_by_date_range(., from = start_date, to = Sys.Date())
+        } else {
+          .
         }
       } %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_augmented_clickthroughs))
@@ -862,56 +854,53 @@ function(input, output, session) {
       dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom")
   })
 
-  output$monthly_metrics_tbl <- DT::renderDataTable(
-    {
-      temp <- data.frame(
+  output$monthly_metrics_tbl <- DT::renderDataTable({
+    temp <- data.frame(
       KPI = c("Load time", "Zero results rate", "API Usage", "User engagement"),
-      Units = c("ms", "%", "", "%")
+      Units = c("ms", "%", "", "%"),
+      stringsAsFactors = FALSE
     )
 
     prev_month <- as.Date(paste(input$monthy_metrics_year, which(month.name == input$monthy_metrics_month), "1", sep = "-"))
     prev_prev_month <- prev_month - months(1)
     prev_year <- prev_month - months(12)
 
-    smoothed_load_times <- list(Desktop = desktop_load_data,
-                                Mobile = mobile_load_data,
-                                Android = android_load_data,
-                                iOS = ios_load_data) %>%
-      lapply(function(platform_load_data) {
-        platform_load_data[, c("date", "Median")]
-      }) %>%
+    smoothed_load_times <- list(
+        Desktop = desktop_load_data,
+        Mobile = mobile_load_data,
+        Android = android_load_data,
+        iOS = ios_load_data
+      ) %>%
       dplyr::bind_rows(.id = "platform") %>%
       dplyr::group_by(date) %>%
       dplyr::summarize(Median = median(Median)) %>%
       polloi::smoother("month", rename = FALSE)
     smoothed_zrr <- polloi::smoother(failure_data_with_automata, "month", rename = FALSE)
     smoothed_api <- split_dataset %>%
-      lapply(function(platform_load_data) {
-        platform_load_data[, c("date", "events")]
-      }) %>%
       dplyr::bind_rows(.id = "api") %>%
       dplyr::group_by(date) %>%
-      dplyr::summarize(total = sum(events)) %>%
+      dplyr::summarize(total = sum(calls)) %>%
       polloi::smoother("month", rename = FALSE)
-    smoothed_engagement <- augmented_clickthroughs[, c("date", "user_engagement")] %>%
+    smoothed_engagement <- augmented_clickthroughs %>%
+      dplyr::select(c(date, `User engagement`)) %>%
       polloi::smoother("month", rename = FALSE)
     temp$Current <- c(
       smoothed_load_times$Median[smoothed_load_times$date == prev_month],
       smoothed_zrr$rate[smoothed_zrr$date == prev_month],
       smoothed_api$total[smoothed_api$date == prev_month],
-      smoothed_engagement$user_engagement[smoothed_engagement$date == prev_month]
+      smoothed_engagement$`User engagement`[smoothed_engagement$date == prev_month]
     )
     temp$Previous_month <- c(
       smoothed_load_times$Median[smoothed_load_times$date == prev_prev_month],
       smoothed_zrr$rate[smoothed_zrr$date == prev_prev_month],
       smoothed_api$total[smoothed_api$date == prev_prev_month],
-      smoothed_engagement$user_engagement[smoothed_engagement$date == prev_prev_month]
+      smoothed_engagement$`User engagement`[smoothed_engagement$date == prev_prev_month]
     )
     temp$Previous_year <- c(
       ifelse(sum(smoothed_load_times$date == prev_year) == 0, NA, smoothed_load_times$Median[smoothed_load_times$date == prev_year]),
       ifelse(sum(smoothed_zrr$date == prev_year) == 0, NA, smoothed_zrr$rate[smoothed_zrr$date == prev_year]),
       ifelse(sum(smoothed_api$date == prev_year) == 0, NA, smoothed_api$total[smoothed_api$date == prev_year]),
-      ifelse(sum(smoothed_engagement$date == prev_year) == 0, NA, smoothed_engagement$user_engagement[smoothed_engagement$date == prev_year])
+      ifelse(sum(smoothed_engagement$date == prev_year) == 0, NA, smoothed_engagement$`User engagement`[smoothed_engagement$date == prev_year])
     )
     temp$Anchors <- c("kpi_load_time", "kpi_zero_results", "kpi_api_usage", "kpi_augmented_clickthroughs")
 
@@ -945,7 +934,7 @@ function(input, output, session) {
       paste(smoothed_api %>% dplyr::arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
               dplyr::select(-date) %>% dplyr::distinct() %>% {.$total}, collapse = ","),
       paste(smoothed_engagement %>% dplyr::arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
-              dplyr::select(-date) %>% dplyr::distinct() %>% {.$user_engagement}, collapse = ",")
+              dplyr::select(-date) %>% dplyr::distinct() %>% {.$`User engagement`}, collapse = ",")
     )
     cols_to_keep <- c(1, 5, 4, 3, 7, 8, 9)
     if (!input$monthly_metrics_prev_month) {
@@ -954,21 +943,28 @@ function(input, output, session) {
     if (!input$monthly_metrics_prev_year) {
       cols_to_keep <- base::setdiff(cols_to_keep, 5)
     }
-    column_def <- list(list(targets = length(cols_to_keep)-1, render = JS("function(data, type, full){ return '<span class=sparkSeries>' + data + '</span>' }")))
+    column_def <- list(list(
+      targets = length(cols_to_keep) - 1,
+      render = DT::JS("function(data, type, full){ return '<span class=sparkSeries>' + data + '</span>' }")
+    ))
     line_string <- "type: 'line', lineColor: 'black', fillColor: '#ccc', highlightLineColor: 'orange', highlightSpotColor: 'orange'"
-    callback_fnc <- JS(paste0("function (oSettings, json) {
+    callback_fnc <- DT::JS(paste0("function (oSettings, json) {
       $('.sparkSeries:not(:has(canvas))').sparkline('html', { ", line_string, " });
       $('a[id^=mm_kpi_]').click(function(){
       var target = $(this).attr('id').replace('mm_', '');
       $('a[data-value=\"'+target+'\"]').click();});
       $('a[id^=mm_kpi_]').hover(function() {$(this).css('cursor','pointer');});\n}"), collapse = "")
-    mm_dt <- datatable(data.table(temp[, cols_to_keep]), rownames = FALSE,
-      options = list(searching = F, paging = F, info = F, ordering = F,
-                     columnDefs = column_def, fnDrawCallback = callback_fnc), escape=F)
+    mm_dt <- DT::datatable(
+      temp[, cols_to_keep], rownames = FALSE,
+      options = list(
+        searching = FALSE, paging = FALSE, info = FALSE, ordering = FALSE,
+        columnDefs = column_def, fnDrawCallback = callback_fnc
+      ),
+      escape = FALSE
+    )
     mm_dt$dependencies <- append(mm_dt$dependencies, htmlwidgets:::getDependency("sparkline"))
-    mm_dt
-    }
-  )
+    return(mm_dt)
+  })
 
   # Check datasets for missing data and notify user which datasets are missing data (if any)
   output$message_menu <- renderMenu({
