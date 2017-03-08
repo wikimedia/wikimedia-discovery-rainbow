@@ -69,7 +69,8 @@ function(input, output, session) {
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_desktop_event)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Events", title = "Desktop search events, by day") %>%
       dyRangeSelector %>%
-      dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom")
+      dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom") %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$desktop_load_plot <- renderDygraph({
@@ -77,7 +78,8 @@ function(input, output, session) {
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_desktop_load)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Load time (ms)", title = "Desktop load times, by day", use_si = FALSE) %>%
       dyRangeSelector %>%
-      dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom")
+      dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom") %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$paulscore_approx_plot_fulltext <- renderDygraph({
@@ -149,14 +151,16 @@ function(input, output, session) {
     mobile_dygraph_set %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_mobile_event)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Events", title = "Mobile search events, by day") %>%
-      dyRangeSelector
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$mobile_load_plot <- renderDygraph({
     mobile_load_data %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_mobile_load)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Load time (ms)", title = "Mobile search events, by day", use_si = FALSE) %>%
-      dyRangeSelector
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   ## App value boxes
@@ -192,28 +196,32 @@ function(input, output, session) {
     android_dygraph_set %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_event)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Events", title = "Android mobile app search events, by day") %>%
-      dyRangeSelector
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$android_load_plot <- renderDygraph({
     android_load_data %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_load)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Load time (ms)", title = "Android result load times, by day", use_si = FALSE) %>%
-      dyRangeSelector
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$ios_event_plot <- renderDygraph({
     ios_dygraph_set %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_event)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Events", title = "iOS mobile app search events, by day") %>%
-      dyRangeSelector
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$ios_load_plot <- renderDygraph({
     ios_load_data %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_load)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Load time (ms)", title = "iOS result load times, by day", use_si = FALSE) %>%
-      dyRangeSelector
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$click_position_plot <- renderDygraph({
@@ -235,7 +243,8 @@ function(input, output, session) {
       dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
              axisLabelWidth = 100, pixelsPerLabel = 80) %>%
       dyLegend(labelsDiv = "app_invoke_source_legend") %>%
-      dyRangeSelector(fillColor = "", strokeColor = "")
+      dyRangeSelector(fillColor = "", strokeColor = "") %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   ## API plots
@@ -243,35 +252,40 @@ function(input, output, session) {
     split_dataset$cirrus %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_fulltext_search)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Full-text via API usage by day", legend_name = "Searches") %>%
-      dyRangeSelector
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$open_aggregate <- renderDygraph({
     split_dataset$open %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_open_search)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "OpenSearch API usage by day", legend_name = "Searches") %>%
-      dyRangeSelector
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$geo_aggregate <- renderDygraph({
     split_dataset$geo %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_geo_search)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Geo Search API usage by day", legend_name = "Searches") %>%
-      dyRangeSelector
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$language_aggregate <- renderDygraph({
     split_dataset$language %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_language_search)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Language Search API usage by day", legend_name = "Searches") %>%
-      dyRangeSelector
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$prefix_aggregate <- renderDygraph({
     split_dataset$prefix %>%
       polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_prefix_search)) %>%
       polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Prefix Search API usage by day", legend_name = "Searches") %>%
-      dyRangeSelector
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   # Failure plots
@@ -284,7 +298,8 @@ function(input, output, session) {
       dyAxis("y", axisLabelFormatter = "function(x) { return x + '%'; }", valueFormatter = "function(x) { return x + '%'; }") %>%
       dyRangeSelector(fillColor = "") %>%
       dyEvent(as.Date("2016-02-01"), "A (format switch)", labelLoc = "bottom") %>%
-      dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom")
+      dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom") %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$failure_rate_change_plot <- renderDygraph({
@@ -294,7 +309,8 @@ function(input, output, session) {
       polloi::make_dygraph(xlab = "Date", ylab = "Change", title = "Zero Results rate change, by day", legend_name = "Change") %>%
       dyAxis("y", axisLabelFormatter = "function(x) { return x + '%'; }", valueFormatter = "function(x) { return Math.round(x, 3) + '%'; }") %>%
       dyRangeSelector(fillColor = "", strokeColor = "") %>%
-      dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom")
+      dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom") %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$failure_breakdown_plot <- renderDygraph({
@@ -324,7 +340,8 @@ function(input, output, session) {
       dyRangeSelector(fillColor = "") %>%
       # Remember to update the tab documentation with details about the annotations!
       dyEvent(as.Date("2016-02-01"), "A (format switch)", labelLoc = "bottom") %>%
-      dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom")
+      dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom") %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$suggestion_dygraph_plot <- renderDygraph({
@@ -335,7 +352,8 @@ function(input, output, session) {
       dyAxis("y", axisLabelFormatter = "function(x) { return x + '%'; }", valueFormatter = "function(x) { return x + '%'; }") %>%
       dyRangeSelector(fillColor = "") %>%
       dyEvent(as.Date("2016-02-01"), "A (format switch)", labelLoc = "bottom") %>%
-      dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom")
+      dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom") %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$language_selector_container <- renderUI({
@@ -393,7 +411,8 @@ function(input, output, session) {
       dyAxis("y", axisLabelFormatter = "function(x) { return x + '%'; }", valueFormatter = "function(x) { return x + '%'; }") %>%
       dyLegend(show = "always", width = 400, labelsDiv = "failure_langproj_legend") %>%
       dyAxis("x", axisLabelFormatter = polloi::custom_axis_formatter) %>%
-      dyRangeSelector(fillColor = "")
+      dyRangeSelector(fillColor = "") %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   # Survival
@@ -404,7 +423,8 @@ function(input, output, session) {
       dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
              axisLabelWidth = 100, pixelsPerLabel = 80) %>%
       dyLegend(labelsDiv = "lethal_dose_plot_legend") %>%
-      dyRangeSelector(fillColor = "", strokeColor = "")
+      dyRangeSelector(fillColor = "", strokeColor = "") %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   ## KPI Summary Boxes
@@ -730,7 +750,8 @@ function(input, output, session) {
                        includeZero = TRUE) %>%
              dyCSS(css = system.file("custom.css", package = "polloi")) %>%
              dyRangeSelector %>%
-             dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom"))
+             dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom") %>%
+             dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom"))
   })
   output$kpi_zero_results_series <- renderDygraph({
     smooth_level <- input$smoothing_kpi_zero_results
@@ -773,7 +794,8 @@ function(input, output, session) {
              dyCSS(css = system.file("custom.css", package = "polloi")) %>%
              dyRangeSelector(fillColor = "") %>%
              dyEvent(as.Date("2016-02-01"), "A (format switch)", labelLoc = "bottom") %>%
-             dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom"))
+             dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom") %>%
+             dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom"))
   })
   output$kpi_api_usage_series <- renderDygraph({
     smooth_level <- input$smoothing_kpi_api_usage
@@ -810,7 +832,8 @@ function(input, output, session) {
                          logscale = input$kpi_api_usage_series_log_scale
                ) %>%
                dyCSS(css = system.file("custom.css", package = "polloi")) %>%
-               dyRangeSelector)
+               dyRangeSelector %>%
+               dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom"))
     }
     api_usage_change <- dplyr::mutate(
       api_usage,
@@ -832,7 +855,8 @@ function(input, output, session) {
                        drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
                        includeZero = TRUE) %>%
              dyCSS(css = system.file("custom.css", package = "polloi")) %>%
-             dyRangeSelector)
+             dyRangeSelector %>%
+             dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom"))
   })
   output$kpi_augmented_clickthroughs_series <- renderDygraph({
     start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector, all = NA, daily = 1, weekly = 8, monthly = 31, quarterly = 91)
@@ -851,7 +875,8 @@ function(input, output, session) {
       dyLegend(labelsDiv = "kpi_augmented_clickthroughs_series_legend") %>%
       dyRangeSelector(fillColor = "", strokeColor = "") %>%
       dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom") %>%
-      dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom")
+      dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom") %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
   })
 
   output$monthly_metrics_tbl <- DT::renderDataTable({

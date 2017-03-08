@@ -14,7 +14,7 @@ the results to other types of search event that OpenSearch is the most commonly 
 Outages and inaccuracies
 ------
 
-  * None so far!
+* '__R__': on 2017-01-01 we started calculating all of Discovery's metrics using a new version of [our data retrieval and processing codebase](https://phabricator.wikimedia.org/diffusion/WDGO/) that we migrated to [Wikimedia Analytics](https://www.mediawiki.org/wiki/Analytics)' [Reportupdater infrastructure](https://wikitech.wikimedia.org/wiki/Analytics/Reportupdater). See [T150915](https://phabricator.wikimedia.org/T150915) for more details.
 
 Questions, bug reports, and feature suggestions
 ------

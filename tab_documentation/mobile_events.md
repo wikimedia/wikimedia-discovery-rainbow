@@ -11,14 +11,16 @@ These three things are tracked via the [EventLogging 'MobileWebSearch' schema](h
 
 General trends
 ------
-It's hard to tell because we have too little data and there's clearly something screwy in the data we're provided with.
 
+It's hard to tell because we have too little data and there's clearly something screwy in the data we're provided with.
 
 Outages and inaccuracies
 ------
+
 There are occasionally going to be outages that will affect the accuracy of data. To make it easier to rely on the data (or not!) they are listed here, from most- to least-recent.
 
 * Between 5 May and 6 May 2015, approximately 40% of incoming EventLogging data was lost due to a wider EventLogging outage. You can read more about the outage [here](https://wikitech.wikimedia.org/wiki/Incident_documentation/20150506-EventLogging).
+* '__R__': on 2017-01-01 we started calculating all of Discovery's metrics using a new version of [our data retrieval and processing codebase](https://phabricator.wikimedia.org/diffusion/WDGO/) that we migrated to [Wikimedia Analytics](https://www.mediawiki.org/wiki/Analytics)' [Reportupdater infrastructure](https://wikitech.wikimedia.org/wiki/Analytics/Reportupdater). See [T150915](https://phabricator.wikimedia.org/T150915) for more details.
 
 Questions, bug reports, and feature suggestions
 ------
