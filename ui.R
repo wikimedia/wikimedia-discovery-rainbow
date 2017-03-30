@@ -1,6 +1,7 @@
 library(shiny)
 library(shinydashboard)
 library(dygraphs)
+library(lubridate)
 
 with_wikimedia_mathjax <- function() {
   # Modified version of withMathJax() Keeping this
@@ -11,10 +12,6 @@ with_wikimedia_mathjax <- function() {
     tags$script(HTML("if (window.MathJax) MathJax.Hub.Queue([\"Typeset\", MathJax.Hub]);")),
     tags$script(HTML("MathJax.Hub.Config({ tex2jax: {inlineMath: [['$','$']]} });"), type = "text/x-mathjax-config")
   ))
-}
-
-subtract_months <- function(x, n = 1) {
-  return(x - lubridate:::months.numeric(n))
 }
 
 function(request) {
@@ -92,28 +89,26 @@ function(request) {
                                   border-style: none;
                                   box-shadow: 0 0 0 #ccc;
                                   }")),
-                  box(sparkline:::sparklineOutput('sparkline_load_time'), width=3),
-                  box(sparkline:::sparklineOutput('sparkline_zero_results'), width=3),
-                  box(sparkline:::sparklineOutput('sparkline_api_usage'), width=3),
-                  box(sparkline:::sparklineOutput('sparkline_augmented_clickthroughs'), width=3)
+                  box(sparkline:::sparklineOutput("sparkline_load_time"), width = 3),
+                  box(sparkline:::sparklineOutput("sparkline_zero_results"), width = 3),
+                  box(sparkline:::sparklineOutput("sparkline_api_usage"), width = 3),
+                  box(sparkline:::sparklineOutput("sparkline_augmented_clickthroughs"), width = 3)
                   ),
                 includeMarkdown("./tab_documentation/kpis_summary.md")),
         tabItem(tabName = "monthly_metrics",
                 fluidRow(
                   column(fluidRow(
                     column(selectInput("monthy_metrics_month", "Month",
-                                       choices = month.name,
-                                       selected = month.name[lubridate::month(subtract_months(Sys.Date()-1))],
-                                       selectize = FALSE),
+                                       choices = month.name, selectize = FALSE,
+                                       selected = month.name[lubridate::month((Sys.Date() - 1) %m-% period(month = 1))]),
                            width = 6),
                     column(selectInput("monthy_metrics_year", "Year",
                                        choices = lubridate::year(seq(
                                          lubridate::floor_date(as.Date("2016-01-01"), "year"),
-                                         subtract_months(Sys.Date()-1),
+                                         (Sys.Date() - 1) %m-% period(month = 1),
                                          "year"
-                                       )),
-                                       selected = lubridate::year(subtract_months(Sys.Date()-1)),
-                                       selectize = FALSE),
+                                       )), selectize = FALSE,
+                                       selected = lubridate::year((Sys.Date() - 1) %m-% period(month = 1))),
                            width = 6)
                   ),
                   checkboxInput("monthly_metrics_prev_month",

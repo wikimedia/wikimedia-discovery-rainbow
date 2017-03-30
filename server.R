@@ -608,7 +608,7 @@ function(input, output, session) {
     sl2 <- sparkline::sparkline(values = output_highlight, type = "line",
                                 height = 50, width = '100%', lineWidth = 2,
                                 lineColor = 'red', chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
-                                minSpotColor = F, maxSpotColor = F, disableInteraction = T,
+                                minSpotColor = FALSE, maxSpotColor = FALSE, disableInteraction = TRUE,
                                 highlightLineColor = NULL, highlightSpotColor = NULL)
     return(sparkline::spk_composite(sl1, sl2))
   })
@@ -641,7 +641,7 @@ function(input, output, session) {
     sl2 <- sparkline::sparkline(values = output_highlight, type = "line",
                                 height = 50, width = '100%', lineWidth = 2,
                                 lineColor = 'red', chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
-                                minSpotColor = F, maxSpotColor = F, disableInteraction = T,
+                                minSpotColor = FALSE, maxSpotColor = FALSE, disableInteraction = TRUE,
                                 highlightLineColor = NULL, highlightSpotColor = NULL)
     return(sparkline::spk_composite(sl1, sl2))
   })
@@ -676,7 +676,7 @@ function(input, output, session) {
     sl2 <- sparkline::sparkline(values = output_highlight, type = "line",
                                 height = 50, width = '100%', lineWidth = 2,
                                 lineColor = 'red', chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
-                                minSpotColor = F, maxSpotColor = F, disableInteraction = T,
+                                minSpotColor = FALSE, maxSpotColor = FALSE, disableInteraction = TRUE,
                                 highlightLineColor = NULL, highlightSpotColor = NULL)
     return(sparkline::spk_composite(sl1, sl2))
   })
@@ -709,7 +709,7 @@ function(input, output, session) {
     sl2 <- sparkline::sparkline(values = output_highlight, type = "line",
                                 height = 50, width = '100%', lineWidth = 2,
                                 lineColor = 'red', chartRangeMin = min(output_sl), chartRangeMax = max(output_sl),
-                                minSpotColor = F, maxSpotColor = F, disableInteraction = T,
+                                minSpotColor = FALSE, maxSpotColor = FALSE, disableInteraction = TRUE,
                                 highlightLineColor = NULL, highlightSpotColor = NULL)
     return(sparkline::spk_composite(sl1, sl2))
   })
@@ -835,25 +835,23 @@ function(input, output, session) {
                dyRangeSelector %>%
                dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom"))
     }
-    api_usage_change <- dplyr::mutate(
-      api_usage,
-      cirrus = polloi::percent_change(cirrus),
-      geo = polloi::percent_change(geo),
-      language = polloi::percent_change(language),
-      open = polloi::percent_change(open),
-      prefix = polloi::percent_change(prefix),
-      all = polloi::percent_change(all)) %>%
+    api_usage_change <- api_usage %>%
+      dplyr::mutate(
+        cirrus = polloi::percent_change(cirrus),
+        geo = polloi::percent_change(geo),
+        language = polloi::percent_change(language),
+        open = polloi::percent_change(open),
+        prefix = polloi::percent_change(prefix),
+        all = polloi::percent_change(all)
+      ) %>%
       { .[-1, ] } %>%
       polloi::smoother(ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE) %>%
       { xts::xts(.[, -1], .$date) }
     if (!input$kpi_api_usage_series_include_open) colnames(api_usage_change)[6] <- "all except open"
-    return(dygraph(api_usage_change,
-                   main = "Day-to-day % change over time",
-                   xlab = "Date", ylab = "% change") %>%
+    return(dygraph(api_usage_change, main = "Day-to-day % change over time", xlab = "Date", ylab = "% change") %>%
              dyLegend(width = 400, show = "always") %>%
              dyOptions(strokeWidth = 3, colors = RColorBrewer::brewer.pal(6, "Set2"),
-                       drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
-                       includeZero = TRUE) %>%
+                       drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE, includeZero = TRUE) %>%
              dyCSS(css = system.file("custom.css", package = "polloi")) %>%
              dyRangeSelector %>%
              dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom"))
@@ -950,16 +948,17 @@ function(input, output, session) {
     # Sanitize:
     temp[temp == "NA%" | temp == "NANA%" | temp == "NANA"] <- "--"
     temp$KPI <- paste0('<a id="mm_', temp$Anchors, '">', temp$KPI, '</a>')
-    # sparkline
+    # Sparklines:
+    monthly_ts <- . %>%
+      dplyr::arrange(date) %>%
+      dplyr::mutate(date = lubridate::floor_date(date, "month")) %>%
+      dplyr::distinct() %>%
+      dplyr::select(-date)
     temp$`Monthly Median` <- c(
-      paste(smoothed_load_times %>% dplyr::arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
-              dplyr::select(-date) %>% dplyr::distinct() %>% {.$Median}, collapse = ","),
-      paste(smoothed_zrr %>% dplyr::arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
-              dplyr::select(-date) %>% dplyr::distinct() %>% {.$rate}, collapse = ","),
-      paste(smoothed_api %>% dplyr::arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
-              dplyr::select(-date) %>% dplyr::distinct() %>% {.$total}, collapse = ","),
-      paste(smoothed_engagement %>% dplyr::arrange(date) %>% dplyr::mutate(month = zoo::as.yearmon(date)) %>%
-              dplyr::select(-date) %>% dplyr::distinct() %>% {.$`User engagement`}, collapse = ",")
+      paste(monthly_ts(smoothed_load_times)$Median, collapse = ","),
+      paste(monthly_ts(smoothed_zrr)$rate, collapse = ","),
+      paste(monthly_ts(smoothed_api)$total, collapse = ","),
+      paste(monthly_ts(smoothed_engagement)$`User engagement`, collapse = ",")
     )
     cols_to_keep <- c(1, 5, 4, 3, 7, 8, 9)
     if (!input$monthly_metrics_prev_month) {
@@ -970,7 +969,7 @@ function(input, output, session) {
     }
     column_def <- list(list(
       targets = length(cols_to_keep) - 1,
-      render = DT::JS("function(data, type, full){ return '<span class=sparkSeries>' + data + '</span>' }")
+      render = DT::JS("function(data, type, full) { return '<span class=\"sparkSeries\">' + data + '</span>'; }")
     ))
     line_string <- "type: 'line', lineColor: 'black', fillColor: '#ccc', highlightLineColor: 'orange', highlightSpotColor: 'orange'"
     callback_fnc <- DT::JS(paste0("function (oSettings, json) {
@@ -980,7 +979,7 @@ function(input, output, session) {
       $('a[data-value=\"'+target+'\"]').click();});
       $('a[id^=mm_kpi_]').hover(function() {$(this).css('cursor','pointer');});\n}"), collapse = "")
     mm_dt <- DT::datatable(
-      temp[, cols_to_keep], rownames = FALSE,
+      temp[c(4, 2, 3, 1), cols_to_keep], rownames = FALSE,
       options = list(
         searching = FALSE, paging = FALSE, info = FALSE, ordering = FALSE,
         columnDefs = column_def, fnDrawCallback = callback_fnc
