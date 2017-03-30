@@ -1,5 +1,10 @@
 library(magrittr)
 
+capitalize_first_letter <- function(x) {
+  s <- strsplit(x, " ")[[1]]
+  return(paste(toupper(substring(s, 1,1)), substring(s, 2), sep = "", collapse = " "))
+}
+
 ## Read in desktop data and generate means for the value boxes, along with a time-series appropriate form for
 ## dygraphs.
 read_desktop <- function() {
@@ -9,6 +14,26 @@ read_desktop <- function() {
   desktop_dygraph_means <<- round(colMeans(desktop_dygraph_set[, 2:5]))
   desktop_load_data <<- polloi::read_dataset("discovery/search/desktop_load_times.tsv", col_types = "Dddd") %>%
     dplyr::filter(!is.na(Median))
+  # Broken down by language-project pair
+  desktop_langproj_dygraph_set <<- polloi::read_dataset("discovery/search/desktop_event_counts_langproj_breakdown.tsv", col_types = "Dccci") %>%
+    dplyr::filter(!is.na(action), !is.na(events)) %>%
+    dplyr::mutate(language = ifelse(is.na(language), "(None)", language)) %>%
+    tidyr::spread(action, events, fill = 0)
+  ## Summaries for sorting (search sessions)
+  available_languages_desktop <<- desktop_langproj_dygraph_set %>%
+    dplyr::group_by(language) %>%
+    dplyr::summarize(volume = sum(as.numeric(`search sessions`), na.rm = TRUE)) %>%
+    dplyr::filter(volume > 0) %>%
+    dplyr::arrange(desc(volume)) %>%
+    dplyr::mutate(prop = volume/sum(volume),
+                  label = sprintf("%s (%.3f%%)", language, 100*prop))
+  available_projects_desktop <<- desktop_langproj_dygraph_set %>%
+    dplyr::group_by(project) %>%
+    dplyr::summarize(volume = sum(as.numeric(`search sessions`), na.rm = TRUE)) %>%
+    dplyr::filter(volume > 0) %>%
+    dplyr::arrange(desc(volume)) %>%
+    dplyr::mutate(prop = volume/sum(volume),
+                  label = sprintf("%s (%.3f%%)", project, 100*prop))
 }
 
 read_web <- function() {
@@ -75,7 +100,7 @@ read_api <- function(){
     lapply(dplyr::select_, .dots = list(quote(-api)))
 }
 
-read_failures <- function(date) {
+read_failures <- function() {
   ## Zero results rate
   ### With automata
   failure_data_with_automata <<- polloi::read_dataset("discovery/search/cirrus_query_aggregates_with_automata.tsv", col_types = "Dd") %>%
@@ -148,22 +173,22 @@ read_failures <- function(date) {
   ### With automata
   langproj_with_automata <<- polloi::read_dataset("discovery/search/cirrus_langproj_breakdown_with_automata.tsv", na = "~", col_types = "Dccii") %>%
     dplyr::filter(!is.na(zero_results), !is.na(total)) %>%
-    dplyr::mutate(language = sub("NA", "(None)", language))
+    dplyr::mutate(language = ifelse(is.na(language) | language == "NA", "(None)", language))
   ### Without automata
   langproj_no_automata <<- polloi::read_dataset("discovery/search/cirrus_langproj_breakdown_no_automata.tsv", na = "~", col_types = "Dccii") %>%
     dplyr::filter(!is.na(zero_results), !is.na(total)) %>%
-    dplyr::mutate(language = sub("NA", "(None)", language))
+    dplyr::mutate(language = ifelse(is.na(language) | language == "NA", "(None)", language))
   ### Summaries for sorting
   available_languages <<- langproj_with_automata %>%
     dplyr::group_by(language) %>%
-    dplyr::summarize(volume = sum(as.numeric(total))) %>%
+    dplyr::summarize(volume = sum(as.numeric(total), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
     dplyr::mutate(prop = volume/sum(volume),
                   label = sprintf("%s (%.3f%%)", language, 100*prop))
   available_projects <<- langproj_with_automata %>%
     dplyr::group_by(project) %>%
-    dplyr::summarize(volume = sum(as.numeric(total))) %>%
+    dplyr::summarize(volume = sum(as.numeric(total), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
     dplyr::mutate(prop = volume/sum(volume),
@@ -193,6 +218,67 @@ read_augmented_clickthrough <- function() {
     )
 }
 
+read_augmented_clickthrough_langproj <- function() {
+  # Read data
+  threshold_data <- polloi::read_dataset("discovery/search/search_threshold_pass_rate_langproj_breakdown.tsv", col_types = "Dccdi") %>%
+    dplyr::filter(!is.na(threshold_pass)) %>%
+    dplyr::mutate(threshold_pass = 100 * threshold_pass, language = ifelse(is.na(language), "(None)", language))
+  mobile_langproj <- polloi::read_dataset("discovery/search/mobile_event_counts_langproj_breakdown.tsv", col_types = "Dccci") %>%
+    dplyr::mutate(language = ifelse(is.na(language), "(None)", language)) %>%
+    dplyr::filter(!is.na(action), !is.na(events), !is.na(project)) %>%
+    tidyr::spread(action, events, fill = 0)
+  app_langproj <- polloi::read_dataset("discovery/search/app_event_counts_langproj_breakdown.tsv", col_types = "Dccci") %>%
+    dplyr::mutate(language = ifelse(is.na(language), "(None)", language)) %>%
+    dplyr::mutate(project = "Wikipedia") %>%
+    dplyr::filter(!is.na(action), !is.na(events)) %>%
+    dplyr::distinct(date, platform, language, project, action, .keep_all = TRUE)
+  ios_langproj <- app_langproj %>%
+    dplyr::filter(platform == "iOS") %>%
+    dplyr::select(-platform) %>%
+    tidyr::spread(action, events, fill = 0)
+  android_langproj <- app_langproj %>%
+    dplyr::filter(platform == "Android") %>%
+    dplyr::select(-platform) %>%
+    tidyr::spread(action, events, fill = 0)
+  # Augmented clickthroughs
+  augmented_clickthroughs_langproj <<- list(
+    desktop = dplyr::select(desktop_langproj_dygraph_set, c(date, language, project, clickthroughs, `Result pages opened`)),
+    mobile = dplyr::select(mobile_langproj, c(date, language, project, clickthroughs, `Result pages opened`)),
+    ios = dplyr::select(ios_langproj, c(date, language, project, clickthroughs, `Result pages opened`)),
+    android = dplyr::select(android_langproj, c(date, language, project, clickthroughs, `Result pages opened`))
+  ) %>%
+    dplyr::bind_rows(.id = "platform") %>%
+    dplyr::group_by(date, language, project) %>%
+    dplyr::summarize(clickthroughs = sum(clickthroughs), serps = sum(`Result pages opened`)) %>%
+    dplyr::right_join(threshold_data, by = c("date", "language", "project")) %>%
+    dplyr::ungroup() %>%
+    dplyr::transmute(
+      date = date,
+      language = language,
+      project = project,
+      `Result pages opened` = serps,
+      search_sessions_threshold = search_sessions,
+      `Threshold-passing %` = round(threshold_pass, 2),
+      `Clickthrough rate` = round(100 * clickthroughs/serps, 2),
+      `User engagement` = round((threshold_pass + `Clickthrough rate`)/2, 2)
+    )
+  # Summaries for sorting (SERP)
+  available_languages_ctr <<- augmented_clickthroughs_langproj %>%
+    dplyr::group_by(language) %>%
+    dplyr::summarize(volume = sum(as.numeric(`Result pages opened`), na.rm = TRUE)) %>%
+    dplyr::filter(volume > 0) %>%
+    dplyr::arrange(desc(volume)) %>%
+    dplyr::mutate(prop = volume/sum(volume),
+                  label = sprintf("%s (%.3f%%)", language, 100*prop))
+  available_projects_ctr <<- augmented_clickthroughs_langproj %>%
+    dplyr::group_by(project) %>%
+    dplyr::summarize(volume = sum(as.numeric(`Result pages opened`), na.rm = TRUE)) %>%
+    dplyr::filter(volume > 0) %>%
+    dplyr::arrange(desc(volume)) %>%
+    dplyr::mutate(prop = volume/sum(volume),
+                  label = sprintf("%s (%.3f%%)", project, 100*prop))
+}
+
 read_lethal_dose <- function() {
   user_page_visit_dataset <<- polloi::read_dataset("discovery/search/sample_page_visit_ld.tsv", col_types = "Dddddddd") %>%
     dplyr::filter(!is.na(LD10)) %>%
@@ -205,29 +291,73 @@ read_paul_score <- function() {
     dplyr::select(c(date, event_source, `F = 0.1` = pow_1, `F = 0.5` = pow_5, `F = 0.9` = pow_9))
   paulscore_autocomplete <<- dplyr::filter(paulscore, event_source == "autocomplete") %>% dplyr::select(-event_source)
   paulscore_fulltext <<- dplyr::filter(paulscore, event_source == "fulltext") %>% dplyr::select(-event_source)
+  # Broken down by language-project pair
+  paulscore_fulltext_langproj <<- polloi::read_dataset("discovery/search/paulscore_approximations_fulltext_langproj_breakdown.tsv", col_types = "Dcciddddddddd") %>%
+    dplyr::mutate(language = ifelse(is.na(language), "(None)", language)) %>%
+    dplyr::filter(!is.na(project)) %>%
+    dplyr::select(c(date, language, project, `search sessions` = search_sessions, `F = 0.1` = pow_1, `F = 0.5` = pow_5, `F = 0.9` = pow_9))
+  ## Summaries for sorting (search sessions)
+  available_languages_paulscore <<- paulscore_fulltext_langproj %>%
+    dplyr::group_by(language) %>%
+    dplyr::summarize(volume = sum(as.numeric(`search sessions`), na.rm = TRUE)) %>%
+    dplyr::filter(volume > 0) %>%
+    dplyr::arrange(desc(volume)) %>%
+    dplyr::mutate(prop = volume/sum(volume),
+                  label = sprintf("%s (%.3f%%)", language, 100*prop))
+  available_projects_paulscore <<- paulscore_fulltext_langproj %>%
+    dplyr::group_by(project) %>%
+    dplyr::summarize(volume = sum(as.numeric(`search sessions`), na.rm = TRUE)) %>%
+    dplyr::filter(volume > 0) %>%
+    dplyr::arrange(desc(volume)) %>%
+    dplyr::mutate(prop = volume/sum(volume),
+                  label = sprintf("%s (%.3f%%)", project, 100*prop))
 }
 
-aggregate_wikis <- function(data, languages, projects) {
+aggregate_wikis <- function(data, languages, projects, input_metric) {
   languages <- sub(" \\([0-9]{1,2}\\.[0-9]{1,3}%\\)", "", languages)
   projects <- sub(" \\([0-9]{1,2}\\.[0-9]{1,3}%\\)", "", projects)
   if (length(languages) == 1 && languages[1] == "(None)") {
     temp <- data %>%
       dplyr::filter_(~project %in% projects) %>%
       dplyr::rename(wiki = project) %>%
-      dplyr::group_by(date, wiki) %>%
-      dplyr::summarize(zero_results = sum(as.numeric(zero_results)),
-                       total = sum(as.numeric(total))) %>%
-      dplyr::ungroup()
+      dplyr::group_by(date, wiki)
+    if (input_metric %in% c("User engagement", "Threshold-passing %", "Clickthrough rate")){
+      temp %<>% dplyr::summarize(
+        `Threshold-passing %` = round(sum(`Threshold-passing %`*search_sessions_threshold)/sum(search_sessions_threshold), 2),
+        `Clickthrough rate` = round(sum(`Clickthrough rate`*`Result pages opened`)/sum(`Result pages opened`), 2),
+        `User engagement` = round((`Threshold-passing %` + `Clickthrough rate`)/2, 2))
+    } else if (input_metric %in% c("clickthroughs", "Result pages opened", "search sessions")){
+      temp %<>% dplyr::summarize(
+        clickthroughs = round(sum(as.numeric(clickthroughs)), 2),
+        `Result pages opened` = round(sum(as.numeric(`Result pages opened`)), 2),
+        `search sessions` = round(sum(as.numeric(`search sessions`)), 2))
+    } else if (input_metric %in% c("F = 0.1", "F = 0.5", "F = 0.9")){
+      temp %<>% dplyr::summarize(
+        `F = 0.1` = round(sum(`F = 0.1`*`search sessions`)/sum(`search sessions`), 2),
+        `F = 0.5` = round(sum(`F = 0.5`*`search sessions`)/sum(`search sessions`), 2),
+        `F = 0.9` = round(sum(`F = 0.9`*`search sessions`)/sum(`search sessions`), 2))
+    } else{
+      temp %<>% dplyr::summarize(
+        zero_results = sum(as.numeric(zero_results)),
+        total = sum(as.numeric(total)))
+    }
+    temp %<>% dplyr::ungroup()
   } else {
     temp <- data %>%
       dplyr::filter_(~language %in% languages & project %in% projects) %>%
       tidyr::unite(wiki, language, project, sep = " ") %>%
       dplyr::mutate(wiki = sub("(None) ", "", wiki, fixed = TRUE))
   }
-  temp %<>%
-    dplyr::mutate(zrr = round(100 * as.numeric(zero_results) / as.numeric(total), 2)) %>%
-    dplyr::select(-c(total, zero_results)) %>%
-    tidyr::spread(wiki, zrr)
+  if (input_metric == "Zero result rate"){
+    temp %<>%
+      dplyr::mutate(zrr = round(100 * as.numeric(zero_results) / as.numeric(total), 2)) %>%
+      dplyr::select(-c(total, zero_results)) %>%
+      tidyr::spread(wiki, zrr)
+  } else {
+    temp %<>%
+      dplyr::select_(.dots=c("date", "wiki", paste0("`",input_metric,"`"))) %>%
+      tidyr::spread_(., key_col="wiki", value_col=input_metric, fill=0)
+  }
   return(temp)
 }
 
