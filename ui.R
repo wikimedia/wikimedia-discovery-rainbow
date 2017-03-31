@@ -251,8 +251,16 @@ function(request) {
                 includeMarkdown("./tab_documentation/failure_rate.md")
         ),
         tabItem(tabName = "failure_breakdown",
-                polloi::smooth_select("smoothing_failure_breakdown"),
-                polloi::automata_select(input_id = "failure_breakdown_automata"),
+                fluidRow(
+                  column(
+                    shiny::checkboxGroupInput("failure_breakdown_include", "Include", choices = list(
+                      "Regex searches' ZRR" = "regex",
+                      "Searches by automata (e.g. web crawlers)" = "automata"
+                    ), selected = "automata", inline = TRUE),
+                    width = 8
+                  ),
+                  column(polloi::smooth_select("smoothing_failure_breakdown"), width = 4)
+                ),
                 dygraphOutput("failure_breakdown_plot"),
                 div(id = "failure_breakdown_plot_legend"),
                 includeMarkdown("./tab_documentation/failure_breakdown.md")
