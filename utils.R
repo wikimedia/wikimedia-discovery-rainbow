@@ -8,14 +8,14 @@ capitalize_first_letter <- function(x) {
 ## Read in desktop data and generate means for the value boxes, along with a time-series appropriate form for
 ## dygraphs.
 read_desktop <- function() {
-  desktop_dygraph_set <<- polloi::read_dataset("discovery/search/desktop_event_counts.tsv", col_types = "Dci") %>%
+  desktop_dygraph_set <<- polloi::read_dataset("discovery/metrics/search/desktop_event_counts.tsv", col_types = "Dci") %>%
     dplyr::filter(!is.na(action), !is.na(events)) %>%
     tidyr::spread(action, events, fill = 0)
   desktop_dygraph_means <<- round(colMeans(desktop_dygraph_set[, 2:5]))
-  desktop_load_data <<- polloi::read_dataset("discovery/search/desktop_load_times.tsv", col_types = "Dddd") %>%
+  desktop_load_data <<- polloi::read_dataset("discovery/metrics/search/desktop_load_times.tsv", col_types = "Dddd") %>%
     dplyr::filter(!is.na(Median))
   # Broken down by language-project pair
-  desktop_langproj_dygraph_set <<- polloi::read_dataset("discovery/search/desktop_event_counts_langproj_breakdown.tsv", col_types = "Dccci") %>%
+  desktop_langproj_dygraph_set <<- polloi::read_dataset("discovery/metrics/search/desktop_event_counts_langproj_breakdown.tsv", col_types = "Dccci") %>%
     dplyr::filter(!is.na(action), !is.na(events)) %>%
     dplyr::mutate(language = ifelse(is.na(language), "(None)", language)) %>%
     tidyr::spread(action, events, fill = 0)
@@ -37,16 +37,16 @@ read_desktop <- function() {
 }
 
 read_web <- function() {
-  mobile_dygraph_set <<- polloi::read_dataset("discovery/search/mobile_event_counts.tsv", col_types = "Dci") %>%
+  mobile_dygraph_set <<- polloi::read_dataset("discovery/metrics/search/mobile_event_counts.tsv", col_types = "Dci") %>%
     dplyr::filter(!is.na(action), !is.na(events)) %>%
     tidyr::spread(action, events, fill = 0)
   mobile_dygraph_means <<- round(colMeans(mobile_dygraph_set[, 2:4]))
-  mobile_load_data <<- polloi::read_dataset("discovery/search/mobile_load_times.tsv", col_types = "Dddd") %>%
+  mobile_load_data <<- polloi::read_dataset("discovery/metrics/search/mobile_load_times.tsv", col_types = "Dddd") %>%
     dplyr::filter(!is.na(Median))
 }
 
 read_apps <- function() {
-  data <- polloi::read_dataset("discovery/search/app_event_counts.tsv", col_types = "Dcci") %>%
+  data <- polloi::read_dataset("discovery/metrics/search/app_event_counts.tsv", col_types = "Dcci") %>%
     dplyr::filter(!is.na(action), !is.na(events)) %>%
     dplyr::distinct(date, platform, action, .keep_all = TRUE)
   ios <- data %>%
@@ -64,13 +64,13 @@ read_apps <- function() {
   android_dygraph_set <<- android
   android_dygraph_means <<- round(colMeans(android[, 2:4]))
 
-  app_load_data <- polloi::read_dataset("discovery/search/app_load_times.tsv", col_types = "Dcddd") %>%
+  app_load_data <- polloi::read_dataset("discovery/metrics/search/app_load_times.tsv", col_types = "Dcddd") %>%
     dplyr::filter(!is.na(Median)) %>%
     dplyr::distinct(date, platform, .keep_all = TRUE)
   ios_load_data <<- app_load_data[app_load_data$platform == "iOS", names(app_load_data) != "platform"]
   android_load_data <<- app_load_data[app_load_data$platform == "Android", names(app_load_data) != "platform"]
 
-  position_interim <- polloi::read_dataset("discovery/search/click_position_counts.tsv", col_types = "Dci") %>%
+  position_interim <- polloi::read_dataset("discovery/metrics/search/click_position_counts.tsv", col_types = "Dci") %>%
     dplyr::filter(!is.na(click_position), !is.na(events)) %>%
     dplyr::distinct(date, click_position, .keep_all = TRUE) %>%
     dplyr::group_by(date) %>%
@@ -81,7 +81,7 @@ read_apps <- function() {
   position_interim <- position_interim[, c("date", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10-19", "20-100", "100+")]
   names(position_interim) <- c("date", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th-19th", "20th-100th", "101st+")
   position_prop <<- position_interim
-  source_prop <<- polloi::read_dataset("discovery/search/invoke_source_counts.tsv", col_types = "Dci") %>%
+  source_prop <<- polloi::read_dataset("discovery/metrics/search/invoke_source_counts.tsv", col_types = "Dci") %>%
     dplyr::filter(!is.na(invoke_source), !is.na(events)) %>%
     dplyr::distinct(date, invoke_source, .keep_all = TRUE) %>%
     dplyr::group_by(date) %>%
@@ -92,7 +92,7 @@ read_apps <- function() {
 }
 
 read_api <- function(){
-  split_dataset <<- polloi::read_dataset("discovery/search/search_api_usage.tsv", col_types = "Dci") %>%
+  split_dataset <<- polloi::read_dataset("discovery/metrics/search/search_api_usage.tsv", col_types = "Dci") %>%
     dplyr::filter(!is.na(api), !is.na(calls)) %>%
     dplyr::distinct(date, api, .keep_all = TRUE) %>%
     dplyr::arrange(api, date) %>%
@@ -103,11 +103,11 @@ read_api <- function(){
 read_failures <- function() {
   ## Zero results rate
   ### With automata
-  failure_data_with_automata <<- polloi::read_dataset("discovery/search/cirrus_query_aggregates_with_automata.tsv", col_types = "Dd") %>%
+  failure_data_with_automata <<- polloi::read_dataset("discovery/metrics/search/cirrus_query_aggregates_with_automata.tsv", col_types = "Dd") %>%
     dplyr::filter(!is.na(rate)) %>%
     dplyr::mutate(rate = 100 * rate)
   ### Without automata
-  failure_data_no_automata <<- polloi::read_dataset("discovery/search/cirrus_query_aggregates_no_automata.tsv", col_types = "Dd") %>%
+  failure_data_no_automata <<- polloi::read_dataset("discovery/metrics/search/cirrus_query_aggregates_no_automata.tsv", col_types = "Dd") %>%
     dplyr::filter(!is.na(rate)) %>%
     dplyr::mutate(rate = 100 * rate)
   ## Day-to-day change
@@ -129,7 +129,7 @@ read_failures <- function() {
   )
   ## ZRR by type
   ### With automata
-  failure_breakdown_with_automata <<- polloi::read_dataset("discovery/search/cirrus_query_breakdowns_with_automata.tsv", col_types = "Dcd") %>%
+  failure_breakdown_with_automata <<- polloi::read_dataset("discovery/metrics/search/cirrus_query_breakdowns_with_automata.tsv", col_types = "Dcd") %>%
     dplyr::filter(!is.na(query_type), !is.na(rate)) %>%
     dplyr::mutate(
       rate = 100 * rate,
@@ -143,7 +143,7 @@ read_failures <- function() {
     dplyr::distinct(date, query_type, .keep_all = TRUE) %>%
     tidyr::spread(query_type, rate, fill = as.double(NA))
   ### Without automata
-  failure_breakdown_no_automata <<- polloi::read_dataset("discovery/search/cirrus_query_breakdowns_no_automata.tsv", col_types = "Dcd") %>%
+  failure_breakdown_no_automata <<- polloi::read_dataset("discovery/metrics/search/cirrus_query_breakdowns_no_automata.tsv", col_types = "Dcd") %>%
     dplyr::filter(!is.na(query_type), !is.na(rate)) %>%
     dplyr::mutate(
       rate = 100 * rate,
@@ -158,24 +158,24 @@ read_failures <- function() {
     tidyr::spread(query_type, rate, fill = as.double(NA))
   ## ZRR with suggestions
   ### With automata
-  suggestion_with_automata <<- polloi::read_dataset("discovery/search/cirrus_suggestion_breakdown_with_automata.tsv", col_types = "Dd") %>%
+  suggestion_with_automata <<- polloi::read_dataset("discovery/metrics/search/cirrus_suggestion_breakdown_with_automata.tsv", col_types = "Dd") %>%
     dplyr::filter(!is.na(rate)) %>%
     dplyr::transmute(date = date, `Full-Text with Suggestions` = 100 * rate) %>%
     dplyr::full_join(dplyr::select(failure_breakdown_with_automata, c(date, `Full-Text Search`)), by = "date") %>%
     dplyr::arrange(date)
   ### Without automata
-  suggestion_no_automata <<- polloi::read_dataset("discovery/search/cirrus_suggestion_breakdown_no_automata.tsv", col_types = "Dd") %>%
+  suggestion_no_automata <<- polloi::read_dataset("discovery/metrics/search/cirrus_suggestion_breakdown_no_automata.tsv", col_types = "Dd") %>%
     dplyr::filter(!is.na(rate)) %>%
     dplyr::transmute(date = date, `Full-Text with Suggestions` = 100 * rate) %>%
     dplyr::full_join(dplyr::select(failure_breakdown_no_automata, c(date, `Full-Text Search`)), by = "date") %>%
     dplyr::arrange(date)
   ## Broken down by language-project pair
   ### With automata
-  langproj_with_automata <<- polloi::read_dataset("discovery/search/cirrus_langproj_breakdown_with_automata.tsv", na = "~", col_types = "Dccii") %>%
+  langproj_with_automata <<- polloi::read_dataset("discovery/metrics/search/cirrus_langproj_breakdown_with_automata.tsv", na = "~", col_types = "Dccii") %>%
     dplyr::filter(!is.na(zero_results), !is.na(total)) %>%
     dplyr::mutate(language = ifelse(is.na(language) | language == "NA", "(None)", language))
   ### Without automata
-  langproj_no_automata <<- polloi::read_dataset("discovery/search/cirrus_langproj_breakdown_no_automata.tsv", na = "~", col_types = "Dccii") %>%
+  langproj_no_automata <<- polloi::read_dataset("discovery/metrics/search/cirrus_langproj_breakdown_no_automata.tsv", na = "~", col_types = "Dccii") %>%
     dplyr::filter(!is.na(zero_results), !is.na(total)) %>%
     dplyr::mutate(language = ifelse(is.na(language) | language == "NA", "(None)", language))
   ### Summaries for sorting
@@ -197,7 +197,7 @@ read_failures <- function() {
 }
 
 read_augmented_clickthrough <- function() {
-  threshold_data <- polloi::read_dataset("discovery/search/search_threshold_pass_rate.tsv", col_types = "Dd") %>%
+  threshold_data <- polloi::read_dataset("discovery/metrics/search/search_threshold_pass_rate.tsv", col_types = "Dd") %>%
     dplyr::filter(!is.na(threshold_pass)) %>%
     dplyr::mutate(threshold_pass = 100 * threshold_pass)
   augmented_clickthroughs <<- list(
@@ -220,14 +220,14 @@ read_augmented_clickthrough <- function() {
 
 read_augmented_clickthrough_langproj <- function() {
   # Read data
-  threshold_data <- polloi::read_dataset("discovery/search/search_threshold_pass_rate_langproj_breakdown.tsv", col_types = "Dccdi") %>%
+  threshold_data <- polloi::read_dataset("discovery/metrics/search/search_threshold_pass_rate_langproj_breakdown.tsv", col_types = "Dccdi") %>%
     dplyr::filter(!is.na(threshold_pass)) %>%
     dplyr::mutate(threshold_pass = 100 * threshold_pass, language = ifelse(is.na(language), "(None)", language))
-  mobile_langproj <- polloi::read_dataset("discovery/search/mobile_event_counts_langproj_breakdown.tsv", col_types = "Dccci") %>%
+  mobile_langproj <- polloi::read_dataset("discovery/metrics/search/mobile_event_counts_langproj_breakdown.tsv", col_types = "Dccci") %>%
     dplyr::mutate(language = ifelse(is.na(language), "(None)", language)) %>%
     dplyr::filter(!is.na(action), !is.na(events), !is.na(project)) %>%
     tidyr::spread(action, events, fill = 0)
-  app_langproj <- polloi::read_dataset("discovery/search/app_event_counts_langproj_breakdown.tsv", col_types = "Dccci") %>%
+  app_langproj <- polloi::read_dataset("discovery/metrics/search/app_event_counts_langproj_breakdown.tsv", col_types = "Dccci") %>%
     dplyr::mutate(language = ifelse(is.na(language), "(None)", language)) %>%
     dplyr::mutate(project = "Wikipedia") %>%
     dplyr::filter(!is.na(action), !is.na(events)) %>%
@@ -280,19 +280,19 @@ read_augmented_clickthrough_langproj <- function() {
 }
 
 read_lethal_dose <- function() {
-  user_page_visit_dataset <<- polloi::read_dataset("discovery/search/sample_page_visit_ld.tsv", col_types = "Dddddddd") %>%
+  user_page_visit_dataset <<- polloi::read_dataset("discovery/metrics/search/sample_page_visit_ld.tsv", col_types = "Dddddddd") %>%
     dplyr::filter(!is.na(LD10)) %>%
     set_colnames(c("date", "10%", "25%", "50%", "75%", "90%", "95%", "99%"))
 }
 
 read_paul_score <- function() {
-  paulscore <- polloi::read_dataset("discovery/search/paulscore_approximations.tsv", col_types = "Dcddddddddd") %>%
+  paulscore <- polloi::read_dataset("discovery/metrics/search/paulscore_approximations.tsv", col_types = "Dcddddddddd") %>%
     dplyr::filter(!is.na(event_source)) %>%
     dplyr::select(c(date, event_source, `F = 0.1` = pow_1, `F = 0.5` = pow_5, `F = 0.9` = pow_9))
   paulscore_autocomplete <<- dplyr::filter(paulscore, event_source == "autocomplete") %>% dplyr::select(-event_source)
   paulscore_fulltext <<- dplyr::filter(paulscore, event_source == "fulltext") %>% dplyr::select(-event_source)
   # Broken down by language-project pair
-  paulscore_fulltext_langproj <<- polloi::read_dataset("discovery/search/paulscore_approximations_fulltext_langproj_breakdown.tsv", col_types = "Dcciddddddddd") %>%
+  paulscore_fulltext_langproj <<- polloi::read_dataset("discovery/metrics/search/paulscore_approximations_fulltext_langproj_breakdown.tsv", col_types = "Dcciddddddddd") %>%
     dplyr::mutate(language = ifelse(is.na(language), "(None)", language)) %>%
     dplyr::filter(!is.na(project)) %>%
     dplyr::select(c(date, language, project, `search sessions` = search_sessions, `F = 0.1` = pow_1, `F = 0.5` = pow_5, `F = 0.9` = pow_9))
