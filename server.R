@@ -41,7 +41,7 @@ function(input, output, session) {
   output$desktop_event_searches <- renderValueBox(
     valueBox(
       value = desktop_dygraph_means["search sessions"],
-      subtitle = "Search sessions per day",
+      subtitle = "Tracked search sessions per day*",
       icon = icon("search"),
       color = "green"
     )
@@ -50,7 +50,7 @@ function(input, output, session) {
   output$desktop_event_resultsets <- renderValueBox(
     valueBox(
       value = desktop_dygraph_means["Result pages opened"],
-      subtitle = "Result sets per day",
+      subtitle = "Result pages opened per day*",
       icon = icon("list", lib = "glyphicon"),
       color = "green"
     )
@@ -59,7 +59,7 @@ function(input, output, session) {
   output$desktop_event_clickthroughs <- renderValueBox(
     valueBox(
       value = desktop_dygraph_means["clickthroughs"],
-      subtitle = "Clickthroughs per day",
+      subtitle = "Clickthroughs per day*",
       icon = icon("hand-up", lib = "glyphicon"),
       color = "green"
     )
@@ -124,7 +124,7 @@ function(input, output, session) {
   output$mobile_event_searches <- renderValueBox(
     valueBox(
       value = mobile_dygraph_means["search sessions"],
-      subtitle = "Search sessions per day",
+      subtitle = "Search sessions per day*",
       icon = icon("search"),
       color = "green"
     )
@@ -133,7 +133,7 @@ function(input, output, session) {
   output$mobile_event_resultsets <- renderValueBox(
     valueBox(
       value = mobile_dygraph_means["Result pages opened"],
-      subtitle = "Result sets per day",
+      subtitle = "Result pages opened per day*",
       icon = icon("list", lib = "glyphicon"),
       color = "green"
     )
@@ -142,7 +142,7 @@ function(input, output, session) {
   output$mobile_event_clickthroughs <- renderValueBox(
     valueBox(
       value = mobile_dygraph_means["clickthroughs"],
-      subtitle = "Clickthroughs per day",
+      subtitle = "Clickthroughs per day*",
       icon = icon("hand-up", lib = "glyphicon"),
       color = "green"
     )
@@ -169,7 +169,7 @@ function(input, output, session) {
   output$app_event_searches <- renderValueBox(
     valueBox(
       value = ios_dygraph_means["search sessions"] + android_dygraph_means["search sessions"],
-      subtitle = "Search sessions per day",
+      subtitle = "Search sessions per day*",
       icon = icon("search"),
       color = "green"
     )
@@ -178,7 +178,7 @@ function(input, output, session) {
   output$app_event_resultsets <- renderValueBox(
     valueBox(
       value = ios_dygraph_means["Result pages opened"] + android_dygraph_means["Result pages opened"],
-      subtitle = "Result sets per day",
+      subtitle = "Result pages opened per day*",
       icon = icon("list", lib = "glyphicon"),
       color = "green"
     )
@@ -187,7 +187,7 @@ function(input, output, session) {
   output$app_event_clickthroughs <- renderValueBox(
     valueBox(
       value = ios_dygraph_means["clickthroughs"] + android_dygraph_means["clickthroughs"],
-      subtitle = "Clickthroughs per day",
+      subtitle = "Clickthroughs per day*",
       icon = icon("hand-up", lib = "glyphicon"),
       color = "green"
     )

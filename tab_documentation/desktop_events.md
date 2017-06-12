@@ -8,7 +8,9 @@ User actions that we track around search on the desktop website generally fall i
 3. A user clicking through to an article in the results page.
 
 These three things are tracked via the [EventLogging 'TestSearchSatisfaction2' schema](https://meta.wikimedia.org/wiki/Schema:TestSearchSatisfaction2) (previously '[Search](https://meta.wikimedia.org/wiki/Schema:Search)', see note "A"), and stored to
-a database. The results are then aggregated and anonymised, and presented on this page. For performance/privacy reasons we randomly sample what we store, so the actual numbers are a vast understatement of how many user actions our servers receive - what's more interesting is how they change over time. In the case of desktop search, this sampling rate is **0.1%**.
+a database. The results are then aggregated and anonymised, and presented on this page. For performance/privacy reasons we randomly sample what we store, so the actual numbers are a vast understatement of how many user actions our servers receive - what's more interesting is how they change over time. In the case of desktop search, this sampling rate varies by project (see [T163273](https://phabricator.wikimedia.org/T163273) for more details), but does not change day-to-day.
+
+\* This number represents the median of the last 90 days.
 
 Outages and inaccuracies
 ------

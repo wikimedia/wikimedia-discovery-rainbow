@@ -11,6 +11,8 @@ These three things are tracked via the [EventLogging 'MobileWikiAppSearch' schem
 
 Due to a bug in the iOS EventLogging system, iOS events are currently being tracked much more frequently than Android ones and so are displayed in a different graph to avoid confusion.
 
+\* This number represents the median of the last 90 days.
+
 Notes
 ------
 * There is a spike in events on 2 June 2015 because of a release of the iOS app that added search logging. This has been [confirmed](https://phabricator.wikimedia.org/T102098) by a mobile apps software engineer.

@@ -11,7 +11,7 @@ read_desktop <- function() {
   desktop_dygraph_set <<- polloi::read_dataset("discovery/metrics/search/desktop_event_counts.tsv", col_types = "Dci") %>%
     dplyr::filter(!is.na(action), !is.na(events)) %>%
     tidyr::spread(action, events, fill = 0)
-  desktop_dygraph_means <<- round(colMeans(desktop_dygraph_set[, 2:5]))
+  desktop_dygraph_means <<- round(apply(polloi::safe_tail(desktop_dygraph_set[, 2:5], 90), 2, median))
   desktop_load_data <<- polloi::read_dataset("discovery/metrics/search/desktop_load_times.tsv", col_types = "Dddd") %>%
     dplyr::filter(!is.na(Median))
   # Broken down by language-project pair
@@ -40,7 +40,7 @@ read_web <- function() {
   mobile_dygraph_set <<- polloi::read_dataset("discovery/metrics/search/mobile_event_counts.tsv", col_types = "Dci") %>%
     dplyr::filter(!is.na(action), !is.na(events)) %>%
     tidyr::spread(action, events, fill = 0)
-  mobile_dygraph_means <<- round(colMeans(mobile_dygraph_set[, 2:4]))
+  mobile_dygraph_means <<- round(apply(mobile_dygraph_set[, 2:4], 2, median))
   mobile_load_data <<- polloi::read_dataset("discovery/metrics/search/mobile_load_times.tsv", col_types = "Dddd") %>%
     dplyr::filter(!is.na(Median))
 }
@@ -59,10 +59,10 @@ read_apps <- function() {
     tidyr::spread(action, events, fill = 0)
 
   ios_dygraph_set <<- ios
-  ios_dygraph_means <<- round(colMeans(ios[, 2:4]))
+  ios_dygraph_means <<- round(apply(ios[, 2:4], 2, median))
 
   android_dygraph_set <<- android
-  android_dygraph_means <<- round(colMeans(android[, 2:4]))
+  android_dygraph_means <<- round(apply(android[, 2:4], 2, median))
 
   app_load_data <- polloi::read_dataset("discovery/metrics/search/app_load_times.tsv", col_types = "Dcddd") %>%
     dplyr::filter(!is.na(Median)) %>%
