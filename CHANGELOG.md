@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2017/06/20
+- Added licensing info ([T167930](https://phabricator.wikimedia.org/T167930))
+
 ## 2017/05/01
 - Added a language-project breakdown of additional metrics ([T150410](https://phabricator.wikimedia.org/T150410))
 

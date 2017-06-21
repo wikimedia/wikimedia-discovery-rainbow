@@ -17,4 +17,4 @@ Run the app:
 shiny::runApp(launch.browser = 0)
 ```
 
-Please note that this project is released with a [Contributor Code of Conduct](CONDUCT.md). By participating in this project you agree to abide by its terms.
+Please note that this project is licensed under [MIT License](LICENSE.md) and released with a [Contributor Code of Conduct](CONDUCT.md). By participating in this project you agree to abide by its terms. [Wikimedia technical spaces code of conduct](https://www.mediawiki.org/wiki/Special:MyLanguage/Code_of_Conduct) also applies.

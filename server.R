@@ -383,7 +383,7 @@ function(input, output, session) {
              temp <- dates %>%
                as.character("%e") %>%
                as.numeric %>%
-               sapply(toOrdinal::toOrdinal) %>%
+               vapply(toOrdinal::toOrdinal, "") %>%
                sub("([a-z]{2})", "<sup>\\1</sup>", .) %>%
                paste0(as.character(dates, "%A, %b "), .)
            },
@@ -392,7 +392,7 @@ function(input, output, session) {
              temp <- dates %>%
                as.character("%e") %>%
                as.numeric %>%
-               sapply(toOrdinal::toOrdinal) %>%
+               vapply(toOrdinal::toOrdinal, "") %>%
                sub("([a-z]{2})", "<sup>\\1</sup>", .) %>%
                paste0(as.character(dates, "%b "), .) %>%
                {
@@ -404,7 +404,7 @@ function(input, output, session) {
              temp <- dates %>%
                as.character("%e") %>%
                as.numeric %>%
-               sapply(toOrdinal::toOrdinal) %>%
+               vapply(toOrdinal::toOrdinal, "") %>%
                sub("([a-z]{2})", "<sup>\\1</sup>", .) %>%
                paste0(as.character(dates, "%b "), .) %>%
                {
@@ -416,7 +416,7 @@ function(input, output, session) {
              return(dates %>%
                       as.character("%e") %>%
                       as.numeric %>%
-                      sapply(toOrdinal::toOrdinal) %>%
+                      vapply(toOrdinal::toOrdinal, "") %>%
                       sub("([a-z]{2})", "<sup>\\1</sup>", .) %>%
                       paste0(as.character(dates, "%B "), .) %>%
                       paste0(collapse = "-") %>%
@@ -894,6 +894,7 @@ function(input, output, session) {
   })
 
   output$langproj_breakdown_plot <- renderDygraph({
+    req(input$langproj_metrics, input$language_selector, input$project_selector)
     # Select data
     if (input$langproj_metrics %in% c("User engagement", "Threshold-passing %", "Clickthrough rate")){
       temp <- augmented_clickthroughs_langproj
@@ -1065,7 +1066,7 @@ function(input, output, session) {
       polloi::check_past_week(augmented_clickthroughs, "engagement % data"),
       polloi::check_yesterday(user_page_visit_dataset, "survival times"),
       polloi::check_past_week(user_page_visit_dataset, "survival times"))
-    notifications <- notifications[!sapply(notifications, is.null)]
+    notifications <- notifications[!vapply(notifications, is.null, FALSE)]
     return(dropdownMenu(type = "notifications", .list = notifications))
   })
 
