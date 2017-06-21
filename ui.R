@@ -306,5 +306,5 @@ function(request) {
       )
     ),
 
-    skin = "black", title = "Search Metrics Dashboard | Discovery | Engineering | Wikimedia Foundation")
+    skin = "black", title = "Search Metrics Dashboard | Search Platform | Technology | Wikimedia Foundation")
 }

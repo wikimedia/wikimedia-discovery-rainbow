@@ -2,5 +2,5 @@
 host=gerrit.wikimedia.org
 port=29418
 project=wikimedia/discovery/rainbow.git
-defaultbranch=master
+defaultbranch=develop
 defaultrebase=0
