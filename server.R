@@ -18,20 +18,22 @@ function(input, output, session) {
     read_desktop()
     progress$set(message = "Downloading apps data", value = 0.1)
     read_apps()
-    progress$set(message = "Downloading mobile web data", value = 0.3)
+    progress$set(message = "Downloading mobile web data", value = 0.2)
     read_web()
-    progress$set(message = "Downloading API usage data", value = 0.4)
+    progress$set(message = "Downloading API usage data", value = 0.3)
     read_api()
-    progress$set(message = "Downloading zero results data", value = 0.5)
+    progress$set(message = "Downloading zero results data", value = 0.4)
     read_failures()
-    progress$set(message = "Downloading engagement data", value = 0.6)
+    progress$set(message = "Downloading engagement data", value = 0.5)
     read_augmented_clickthrough()
-    progress$set(message = "Downloading language-project engagement data", value = 0.7)
+    progress$set(message = "Downloading language-project engagement data", value = 0.6)
     read_augmented_clickthrough_langproj()
-    progress$set(message = "Downloading survival data", value = 0.8)
+    progress$set(message = "Downloading survival data", value = 0.7)
     read_lethal_dose()
-    progress$set(message = "Downloading PaulScore data", value = 0.9)
+    progress$set(message = "Downloading PaulScore data", value = 0.8)
     read_paul_score()
+    progress$set(message = "Downloading sister search data", value = 0.9)
+    read_sister_search()
     progress$set(message = "Finished downloading datasets", value = 1)
     existing_date <<- Sys.Date()
     progress$close()
@@ -357,6 +359,40 @@ function(input, output, session) {
       dyEvent(as.Date("2016-02-01"), "A (format switch)", labelLoc = "bottom") %>%
       dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom") %>%
       dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
+  })
+
+  # Sister Search
+  output$sister_search_traffic_plot <- renderDygraph({
+    switch(
+      input$sister_search_traffic_split,
+      "project" = {
+        sister_search_traffic %>%
+          dplyr::rename(split = project)
+      },
+      "destination" = {
+        sister_search_traffic %>%
+          dplyr::mutate(split = dplyr::if_else(is_serp, "Search results page", "Article"))
+      },
+      "language" = {
+        sister_search_traffic %>%
+          dplyr::filter(project != "wikimedia commons", !is.na(language)) %>%
+          dplyr::mutate(split = language)
+      },
+      "access_method" = {
+        sister_search_traffic %>%
+          dplyr::mutate(split = access_method)
+      }
+    ) %>%
+      dplyr::group_by(date, split) %>%
+      dplyr::summarize(pageviews = sum(pageviews)) %>%
+      tidyr::spread(split, pageviews, fill = 0) %>%
+      polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_sister_search_traffic_plot)) %>%
+      polloi::make_dygraph(xlab = "Date", ylab = "Pageviews", title = "Traffic to sister projects from Wikipedia SERPs") %>%
+      dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
+             axisLabelWidth = 100, pixelsPerLabel = 80) %>%
+      dyLegend(labelsDiv = "sister_search_traffic_plot_legend") %>%
+      dyRangeSelector(fillColor = "", strokeColor = "") %>%
+      dyEvent(as.Date("2017-06-15"), "A (deployed)", labelLoc = "bottom")
   })
 
   # Survival

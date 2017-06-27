@@ -317,6 +317,10 @@ read_paul_score <- function() {
                   label = sprintf("%s (%.3f%%)", project, 100 * prop))
 }
 
+read_sister_search <- function() {
+  sister_search_traffic <<- polloi::read_dataset("discovery/metrics/search/sister_search_traffic.tsv", col_types = "Dcccli")
+}
+
 aggregate_wikis <- function(data, languages, projects, input_metric) {
   languages <- sub(" \\([0-9]{1,2}\\.[0-9]{1,3}%\\)", "", languages)
   projects <- sub(" \\([0-9]{1,2}\\.[0-9]{1,3}%\\)", "", projects)
