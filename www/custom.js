@@ -1,4 +1,4 @@
-$(function() {
+$( document ).ready(function() {
 
     // Enables linking to specific tabs:
     if (window.location.hash){
