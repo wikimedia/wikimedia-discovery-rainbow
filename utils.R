@@ -2,7 +2,7 @@ library(magrittr)
 
 capitalize_first_letter <- function(x) {
   s <- strsplit(x, " ")[[1]]
-  return(paste(toupper(substring(s, 1,1)), substring(s, 2), sep = "", collapse = " "))
+  return(paste0(toupper(substring(s, 1, 1)), substring(s, 2), collapse = " "))
 }
 
 ## Read in desktop data and generate means for the value boxes, along with a time-series appropriate form for
@@ -25,15 +25,15 @@ read_desktop <- function() {
     dplyr::summarize(volume = sum(as.numeric(`search sessions`), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume/sum(volume),
-                  label = sprintf("%s (%.3f%%)", language, 100*prop))
+    dplyr::mutate(prop = volume / sum(volume),
+                  label = sprintf("%s (%.3f%%)", language, 100 * prop))
   available_projects_desktop <<- desktop_langproj_dygraph_set %>%
     dplyr::group_by(project) %>%
     dplyr::summarize(volume = sum(as.numeric(`search sessions`), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume/sum(volume),
-                  label = sprintf("%s (%.3f%%)", project, 100*prop))
+    dplyr::mutate(prop = volume / sum(volume),
+                  label = sprintf("%s (%.3f%%)", project, 100 * prop))
 }
 
 read_web <- function() {
@@ -74,7 +74,7 @@ read_apps <- function() {
     dplyr::filter(!is.na(click_position), !is.na(events)) %>%
     dplyr::distinct(date, click_position, .keep_all = TRUE) %>%
     dplyr::group_by(date) %>%
-    dplyr::mutate(prop = round(events/sum(events)*100, 2)) %>%
+    dplyr::mutate(prop = round(events / sum(events) * 100, 2)) %>%
     dplyr::ungroup() %>%
     dplyr::select(-events) %>%
     tidyr::spread(click_position, prop, fill = 0)
@@ -85,7 +85,7 @@ read_apps <- function() {
     dplyr::filter(!is.na(invoke_source), !is.na(events)) %>%
     dplyr::distinct(date, invoke_source, .keep_all = TRUE) %>%
     dplyr::group_by(date) %>%
-    dplyr::mutate(prop = round(events/sum(events)*100, 2)) %>%
+    dplyr::mutate(prop = round(events / sum(events) * 100, 2)) %>%
     dplyr::ungroup() %>%
     dplyr::select(-events) %>%
     tidyr::spread(invoke_source, prop, fill = 0)
@@ -184,16 +184,16 @@ read_failures <- function() {
     dplyr::summarize(volume = sum(as.numeric(total), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume/sum(volume),
-                  label = sprintf("%s (%.3f%%)", language, 100*prop))
+    dplyr::mutate(prop = volume / sum(volume),
+                  label = sprintf("%s (%.3f%%)", language, 100 * prop))
   available_projects <<- langproj_with_automata %>%
     dplyr::group_by(project) %>%
     dplyr::summarize(volume = sum(as.numeric(total), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume/sum(volume),
-                  label = sprintf("%s (%.3f%%)", project, 100*prop))
-  projects_db <<- readr::read_csv(system.file("extdata/projects.csv", package = "polloi"), col_types = "cclc")[, c('project', 'multilingual')]
+    dplyr::mutate(prop = volume / sum(volume),
+                  label = sprintf("%s (%.3f%%)", project, 100 * prop))
+  projects_db <<- readr::read_csv(system.file("extdata/projects.csv", package = "polloi"), col_types = "cclc")[, c("project", "multilingual")]
 }
 
 read_augmented_clickthrough <- function() {
@@ -213,8 +213,8 @@ read_augmented_clickthrough <- function() {
     dplyr::transmute(
       date = date,
       `Threshold-passing %` = threshold_pass,
-      `Clickthrough rate` = 100 * clickthroughs/serps,
-      `User engagement` = (threshold_pass + `Clickthrough rate`)/2
+      `Clickthrough rate` = 100 * clickthroughs / serps,
+      `User engagement` = (threshold_pass + `Clickthrough rate`) / 2
     )
 }
 
@@ -259,8 +259,8 @@ read_augmented_clickthrough_langproj <- function() {
       `Result pages opened` = serps,
       search_sessions_threshold = search_sessions,
       `Threshold-passing %` = round(threshold_pass, 2),
-      `Clickthrough rate` = round(100 * clickthroughs/serps, 2),
-      `User engagement` = round((threshold_pass + `Clickthrough rate`)/2, 2)
+      `Clickthrough rate` = round(100 * clickthroughs / serps, 2),
+      `User engagement` = round((threshold_pass + `Clickthrough rate`) / 2, 2)
     )
   # Summaries for sorting (SERP)
   available_languages_ctr <<- augmented_clickthroughs_langproj %>%
@@ -268,15 +268,15 @@ read_augmented_clickthrough_langproj <- function() {
     dplyr::summarize(volume = sum(as.numeric(`Result pages opened`), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume/sum(volume),
-                  label = sprintf("%s (%.3f%%)", language, 100*prop))
+    dplyr::mutate(prop = volume / sum(volume),
+                  label = sprintf("%s (%.3f%%)", language, 100 * prop))
   available_projects_ctr <<- augmented_clickthroughs_langproj %>%
     dplyr::group_by(project) %>%
     dplyr::summarize(volume = sum(as.numeric(`Result pages opened`), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume/sum(volume),
-                  label = sprintf("%s (%.3f%%)", project, 100*prop))
+    dplyr::mutate(prop = volume / sum(volume),
+                  label = sprintf("%s (%.3f%%)", project, 100 * prop))
 }
 
 read_lethal_dose <- function() {
@@ -289,8 +289,12 @@ read_paul_score <- function() {
   paulscore <- polloi::read_dataset("discovery/metrics/search/paulscore_approximations.tsv", col_types = "Dcddddddddd") %>%
     dplyr::filter(!is.na(event_source)) %>%
     dplyr::select(c(date, event_source, `F = 0.1` = pow_1, `F = 0.5` = pow_5, `F = 0.9` = pow_9))
-  paulscore_autocomplete <<- dplyr::filter(paulscore, event_source == "autocomplete") %>% dplyr::select(-event_source)
-  paulscore_fulltext <<- dplyr::filter(paulscore, event_source == "fulltext") %>% dplyr::select(-event_source)
+  paulscore_autocomplete <<- paulscore %>%
+    dplyr::filter(event_source == "autocomplete") %>%
+    dplyr::select(-event_source)
+  paulscore_fulltext <<- paulscore %>%
+    dplyr::filter(event_source == "fulltext") %>%
+    dplyr::select(-event_source)
   # Broken down by language-project pair
   paulscore_fulltext_langproj <<- polloi::read_dataset("discovery/metrics/search/paulscore_approximations_fulltext_langproj_breakdown.tsv", col_types = "Dcciddddddddd") %>%
     dplyr::mutate(language = ifelse(is.na(language), "(None)", language)) %>%
@@ -302,15 +306,15 @@ read_paul_score <- function() {
     dplyr::summarize(volume = sum(as.numeric(`search sessions`), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume/sum(volume),
-                  label = sprintf("%s (%.3f%%)", language, 100*prop))
+    dplyr::mutate(prop = volume / sum(volume),
+                  label = sprintf("%s (%.3f%%)", language, 100 * prop))
   available_projects_paulscore <<- paulscore_fulltext_langproj %>%
     dplyr::group_by(project) %>%
     dplyr::summarize(volume = sum(as.numeric(`search sessions`), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume/sum(volume),
-                  label = sprintf("%s (%.3f%%)", project, 100*prop))
+    dplyr::mutate(prop = volume / sum(volume),
+                  label = sprintf("%s (%.3f%%)", project, 100 * prop))
 }
 
 aggregate_wikis <- function(data, languages, projects, input_metric) {
@@ -323,9 +327,9 @@ aggregate_wikis <- function(data, languages, projects, input_metric) {
       dplyr::group_by(date, wiki)
     if (input_metric %in% c("User engagement", "Threshold-passing %", "Clickthrough rate")){
       temp %<>% dplyr::summarize(
-        `Threshold-passing %` = round(sum(`Threshold-passing %`*search_sessions_threshold)/sum(search_sessions_threshold), 2),
-        `Clickthrough rate` = round(sum(`Clickthrough rate`*`Result pages opened`)/sum(`Result pages opened`), 2),
-        `User engagement` = round((`Threshold-passing %` + `Clickthrough rate`)/2, 2))
+        `Threshold-passing %` = round(sum(`Threshold-passing %` * search_sessions_threshold) / sum(search_sessions_threshold), 2),
+        `Clickthrough rate` = round(sum(`Clickthrough rate` * `Result pages opened`) / sum(`Result pages opened`), 2),
+        `User engagement` = round((`Threshold-passing %` + `Clickthrough rate`) / 2, 2))
     } else if (input_metric %in% c("clickthroughs", "Result pages opened", "search sessions")){
       temp %<>% dplyr::summarize(
         clickthroughs = round(sum(as.numeric(clickthroughs)), 2),
@@ -333,9 +337,9 @@ aggregate_wikis <- function(data, languages, projects, input_metric) {
         `search sessions` = round(sum(as.numeric(`search sessions`)), 2))
     } else if (input_metric %in% c("F = 0.1", "F = 0.5", "F = 0.9")){
       temp %<>% dplyr::summarize(
-        `F = 0.1` = round(sum(`F = 0.1`*`search sessions`)/sum(`search sessions`), 2),
-        `F = 0.5` = round(sum(`F = 0.5`*`search sessions`)/sum(`search sessions`), 2),
-        `F = 0.9` = round(sum(`F = 0.9`*`search sessions`)/sum(`search sessions`), 2))
+        `F = 0.1` = round(sum(`F = 0.1` * `search sessions`) / sum(`search sessions`), 2),
+        `F = 0.5` = round(sum(`F = 0.5` * `search sessions`) / sum(`search sessions`), 2),
+        `F = 0.9` = round(sum(`F = 0.9` * `search sessions`) / sum(`search sessions`), 2))
     } else{
       temp %<>% dplyr::summarize(
         zero_results = sum(as.numeric(zero_results)),
@@ -355,8 +359,8 @@ aggregate_wikis <- function(data, languages, projects, input_metric) {
       tidyr::spread(wiki, zrr)
   } else {
     temp %<>%
-      dplyr::select_(.dots=c("date", "wiki", paste0("`",input_metric,"`"))) %>%
-      tidyr::spread_(., key_col="wiki", value_col=input_metric, fill=0)
+      dplyr::select_(.dots = c("date", "wiki", paste0("`", input_metric, "`"))) %>%
+      tidyr::spread_(., key_col = "wiki", value_col = input_metric, fill = 0)
   }
   return(temp)
 }
