@@ -276,7 +276,7 @@ function(request) {
         tabItem(tabName = "sister_search_traffic",
                 fluidRow(
                   column(polloi::smooth_select("smoothing_sister_search_traffic_plot"), width = 3),
-                  column(shiny::radioButtons("sister_search_traffic_split", "Split pageviews by", choices = list("Project" = "project", "Search results pages vs Articles*" = "destination", "English vs other languages†" = "language", "Desktop vs Mobile Web" = "access_method"), inline = TRUE), width = 9)
+                  column(shiny::radioButtons("sister_search_traffic_split", "Split pageviews by", choices = list("None" = "none", "Project" = "project", "Search results pages vs Articles*" = "destination", "English vs other languages†" = "language", "Desktop vs Mobile Web" = "access_method"), inline = TRUE, selected = "none"), width = 9)
                 ),
                 dygraphOutput("sister_search_traffic_plot"),
                 div(id = "sister_search_traffic_plot_legend"),

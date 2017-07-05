@@ -365,6 +365,10 @@ function(input, output, session) {
   output$sister_search_traffic_plot <- renderDygraph({
     switch(
       input$sister_search_traffic_split,
+      "none" = {
+        sister_search_traffic %>%
+          dplyr::mutate(split = "Sister search traffic")
+      },
       "project" = {
         sister_search_traffic %>%
           dplyr::rename(split = project)
