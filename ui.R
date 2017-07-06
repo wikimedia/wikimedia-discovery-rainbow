@@ -23,6 +23,7 @@ function(request) {
       tags$head(
         tags$link(rel = "stylesheet", type = "text/css", href = "stylesheet.css"),
         tags$script(src = "custom.js"),
+        tags$script(src = "js4checkbox.js"),
         with_wikimedia_mathjax()
       ),
       sidebarMenu(id = "tabs",
@@ -276,7 +277,12 @@ function(request) {
         tabItem(tabName = "sister_search_traffic",
                 fluidRow(
                   column(polloi::smooth_select("smoothing_sister_search_traffic_plot"), width = 3),
-                  column(shiny::radioButtons("sister_search_traffic_split", "Split pageviews by", choices = list("None" = "none", "Project" = "project", "Search results pages vs Articles*" = "destination", "English vs other languages†" = "language", "Desktop vs Mobile Web" = "access_method"), inline = TRUE, selected = "none"), width = 9)
+                  column(shiny::checkboxGroupInput("sister_search_traffic_split", "Split pageviews by", selected = "none", choices = list(
+                    "Project" = "project",
+                    "More Results vs Articles*" = "destination",
+                    "English vs other languages†" = "language",
+                    "Desktop vs Mobile Web" = "access_method"
+                  ), inline = TRUE), helpText("Select up to 2"), width = 9)
                 ),
                 dygraphOutput("sister_search_traffic_plot"),
                 div(id = "sister_search_traffic_plot_legend"),

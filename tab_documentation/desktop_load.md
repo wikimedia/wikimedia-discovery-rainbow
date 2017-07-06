@@ -10,7 +10,7 @@ General trends
 
 Load times for results are remarkably consistent, absent the situation, mentioned above, where a tiny number of users face a really slow service. Other than that, there's little interesting to see here unless we decide to start focusing specifically on speeding up the service.
 
-Outages and inaccuracies
+Notes, outages, and inaccuracies
 ------
 There are occasionally going to be outages that will affect the accuracy of data. To make it easier to rely on the data (or not!) they will be listed here, from most- to least-recent.
 
@@ -19,6 +19,7 @@ There are occasionally going to be outages that will affect the accuracy of data
 * Data in late September/early October 2015 is unavailable due to another bug in EventLogging as a whole, which impacted data collection.
 * '__A__': we switched to using data from [Schema:TestSearchSatisfaction2](https://meta.wikimedia.org/wiki/Schema:TestSearchSatisfaction2) instead of [Schema:Search](https://meta.wikimedia.org/wiki/Schema:Search) for Desktop event counts and load times on 12 July 2016.
 * '__R__': on 2017-01-01 we started calculating all of Discovery's metrics using a new version of [our data retrieval and processing codebase](https://phabricator.wikimedia.org/diffusion/WDGO/) that we migrated to [Wikimedia Analytics](https://www.mediawiki.org/wiki/Analytics)' [Reportupdater infrastructure](https://wikitech.wikimedia.org/wiki/Analytics/Reportupdater). See [T150915](https://phabricator.wikimedia.org/T150915) for more details.
+* '__B__': [on 2017-06-15](https://lists.wikimedia.org/pipermail/discovery/2017-June/001536.html) we deployed the sister search feature to all Wikipedia in all languages. This _technically_ has a slight impact on load time since we are performing additional searches, but we have not seen any noticeable or alarming increases since the feature's deployment.
 
 Questions, bug reports, and feature suggestions
 ------
