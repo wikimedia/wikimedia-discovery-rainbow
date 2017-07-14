@@ -44,6 +44,10 @@ function(input, output, session) {
   source("modules/key_performance_metrics/summary/boxes.R", local = TRUE)
   source("modules/key_performance_metrics/summary/sparklines.R", local = TRUE)
   source("modules/key_performance_metrics/monthly_metrics.R", local = TRUE)
+  source("modules/key_performance_metrics/load_times.R", local = TRUE)
+  source("modules/key_performance_metrics/zero_results.R", local = TRUE)
+  source("modules/key_performance_metrics/api_usage.R", local = TRUE)
+  source("modules/key_performance_metrics/augmented_clickthroughs.R", local = TRUE)
   # Desktop
   source("modules/desktop/events.R", local = TRUE)
   source("modules/desktop/load_times.R", local = TRUE)

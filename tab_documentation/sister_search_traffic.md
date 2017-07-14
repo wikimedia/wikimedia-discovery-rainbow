@@ -8,16 +8,14 @@ Sister project search results traffic
 =======
 Sister project (cross-wiki) snippets is a feature that adds search results from sister projects of Wikipedia to a sidebar on the search engine results page (SERP). If a query results in matches from the sister projects, users will be shown snippets from Wiktionary, Wikisource, Wikiquote and/or other projects. See [T162276](https://phabricator.wikimedia.org/T162276) for more details.
 
-Some communities (e.g. Italian Wikipedia) developed their own cross-wiki search results sidebars, which is why we see some sister traffic before the deployment of the sister search feature across all Wikipedias.
-
-When viewing traffic split by project, these statistics include all languages and any click into a sister project snippet (either article or more results).
-
-English Wikipedia has a different display than all the other languages due to community feedback. Specifically, it does not show results from Commons/multimedia, Wikinews, and Wikiversity. Refer to [T162276#3278689](https://phabricator.wikimedia.org/T162276#3278689) for more details.
+When viewing traffic split by project, these statistics include all languages and any click into a sister project snippet (either article or more results). Also, these are actual pageviews, not events from event logging.
 
 Notes, outages, and inaccuracies
 -----
-* '__A__': [on 2017-06-15](https://lists.wikimedia.org/pipermail/discovery/2017-June/001536.html) we deployed the sister search feature to all Wikipedia in all languages.
+* English Wikipedia has a different display than all the other languages due to community feedback. Specifically, it does not show results from Commons/multimedia, Wikinews, and Wikiversity. Refer to [T162276#3278689](https://phabricator.wikimedia.org/T162276#3278689) for more details.
+* Some projects (e.g. French and Catalan Wikipedias) use a [community-developed sister project search sidebar](https://simple.wiktionary.org/wiki/Module:Sister_project), which is why we see some sister traffic before the deployment of the sister search feature across all Wikipedias.
 * Wikisource had a unknown spike on 22 June 2017 that slightly skews that project's results and overall results for that day. Specifically, we calculated 5129 pageviews on Desktop from English Wikipedia, which is an extreme outlier that we removed and imputed.
+* '__A__': [on 2017-06-15](https://lists.wikimedia.org/pipermail/discovery/2017-June/001536.html) we deployed the sister search feature to all Wikipedia in all languages.
 
 Questions, bug reports, and feature suggestions
 ------
