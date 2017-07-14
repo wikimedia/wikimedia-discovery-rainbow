@@ -1,10 +1,5 @@
 library(magrittr)
 
-capitalize_first_letter <- function(x) {
-  s <- strsplit(x, " ")[[1]]
-  return(paste0(toupper(substring(s, 1, 1)), substring(s, 2), collapse = " "))
-}
-
 ## Read in desktop data and generate means for the value boxes, along with a time-series appropriate form for
 ## dygraphs.
 read_desktop <- function() {
@@ -315,6 +310,14 @@ read_paul_score <- function() {
     dplyr::arrange(desc(volume)) %>%
     dplyr::mutate(prop = volume / sum(volume),
                   label = sprintf("%s (%.3f%%)", project, 100 * prop))
+}
+
+read_sister_search <- function() {
+  sister_search_traffic <<- polloi::read_dataset("discovery/metrics/search/sister_search_traffic.tsv", col_types = "Dcccli") %>%
+    dplyr::mutate(
+      project = polloi::capitalize_first_letter(project),
+      access_method = polloi::capitalize_first_letter(access_method)
+    )
 }
 
 aggregate_wikis <- function(data, languages, projects, input_metric) {

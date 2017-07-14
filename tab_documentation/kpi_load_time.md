@@ -7,6 +7,7 @@ Notes
 ------
 * '__A__': we switched to using data from [Schema:TestSearchSatisfaction2](https://meta.wikimedia.org/wiki/Schema:TestSearchSatisfaction2) instead of [Schema:Search](https://meta.wikimedia.org/wiki/Schema:Search) for Desktop event counts and load times on 12 July 2016.
 * '__R__': on 2017-01-01 we started calculating all of Discovery's metrics using a new version of [our data retrieval and processing codebase](https://phabricator.wikimedia.org/diffusion/WDGO/) that we migrated to [Wikimedia Analytics](https://www.mediawiki.org/wiki/Analytics)' [Reportupdater infrastructure](https://wikitech.wikimedia.org/wiki/Analytics/Reportupdater). See [T150915](https://phabricator.wikimedia.org/T150915) for more details.
+* '__B__': [on 2017-06-15](https://lists.wikimedia.org/pipermail/discovery/2017-June/001536.html) we deployed the sister search feature to all Wikipedia in all languages. This _technically_ has a slight impact on load time since we are performing additional searches, but we have not seen any noticeable or alarming increases since the feature's deployment.
 
 Questions, bug reports, and feature suggestions
 ------

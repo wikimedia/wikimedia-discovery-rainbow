@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2017/07/07
+- Modularizes the code in server.R
+
 ## 2017/06/20
 - Added licensing info ([T167930](https://phabricator.wikimedia.org/T167930))
 

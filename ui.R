@@ -23,6 +23,7 @@ function(request) {
       tags$head(
         tags$link(rel = "stylesheet", type = "text/css", href = "stylesheet.css"),
         tags$script(src = "custom.js"),
+        tags$script(src = "js4checkbox.js"),
         with_wikimedia_mathjax()
       ),
       sidebarMenu(id = "tabs",
@@ -63,6 +64,8 @@ function(request) {
                            menuSubItem(text = "Summary", tabName = "failure_rate"),
                            menuSubItem(text = "Search Type Breakdown", tabName = "failure_breakdown"),
                            menuSubItem(text = "Search Suggestions", tabName = "failure_suggestions")),
+                  menuItem(text = "Sister Search",
+                           menuSubItem(text = "Traffic", tabName = "sister_search_traffic")),
                   menuItem(text = "Page Visit Times", tabName = "survival"),
                   menuItem(text = "Language/Project Breakdown", tabName = "langproj_breakdown"),
                   menuItem(text = "Global Settings",
@@ -271,6 +274,25 @@ function(request) {
                 dygraphOutput("suggestion_dygraph_plot"),
                 includeMarkdown("./tab_documentation/failure_suggests.md")
         ),
+        tabItem(tabName = "sister_search_traffic",
+                fluidRow(
+                  column(polloi::smooth_select("smoothing_sister_search_traffic_plot"), width = 3),
+                  column(shiny::checkboxGroupInput("sister_search_traffic_split", "Split pageviews by", selected = "none", choices = list(
+                    "Project" = "project",
+                    "More Results vs Articles*" = "destination",
+                    "English vs other languages†" = "language",
+                    "Desktop vs Mobile Web" = "access_method"
+                  ), inline = TRUE), helpText("Select up to 2"), width = 9)
+                ),
+                dygraphOutput("sister_search_traffic_plot"),
+                div(id = "sister_search_traffic_plot_legend"),
+                includeMarkdown("./tab_documentation/sister_search_traffic.md")),
+        tabItem(tabName = "survival",
+                polloi::smooth_select("smoothing_lethal_dose_plot"),
+                div(id = "lethal_dose_plot_legend"),
+                dygraphOutput("lethal_dose_plot"),
+                includeMarkdown("./tab_documentation/survival.md")
+        ),
         tabItem(tabName = "langproj_breakdown",
                 fluidRow(column(polloi::smooth_select("smoothing_langproj_breakdown"), width = 4),
                          column(selectInput("langproj_metrics", "Metrics",
@@ -296,12 +318,6 @@ function(request) {
                          column(dygraphOutput("langproj_breakdown_plot"),
                                 div(id = "langproj_breakdown_legend", style = "margin-top:30px;"), width = 8)),
                 includeMarkdown("./tab_documentation/langproj_breakdown.md")
-        ),
-        tabItem(tabName = "survival",
-                polloi::smooth_select("smoothing_lethal_dose_plot"),
-                div(id = "lethal_dose_plot_legend"),
-                dygraphOutput("lethal_dose_plot"),
-                includeMarkdown("./tab_documentation/survival.md")
         )
       )
     ),
