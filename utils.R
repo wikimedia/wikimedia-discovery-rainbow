@@ -20,14 +20,14 @@ read_desktop <- function() {
     dplyr::summarize(volume = sum(as.numeric(`search sessions`), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume / sum(volume),
+    dplyr::mutate(prop = volume / sum(volume, na.rm = TRUE),
                   label = sprintf("%s (%.3f%%)", language, 100 * prop))
   available_projects_desktop <<- desktop_langproj_dygraph_set %>%
     dplyr::group_by(project) %>%
     dplyr::summarize(volume = sum(as.numeric(`search sessions`), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume / sum(volume),
+    dplyr::mutate(prop = volume / sum(volume, na.rm = TRUE),
                   label = sprintf("%s (%.3f%%)", project, 100 * prop))
 }
 
@@ -69,7 +69,7 @@ read_apps <- function() {
     dplyr::filter(!is.na(click_position), !is.na(events)) %>%
     dplyr::distinct(date, click_position, .keep_all = TRUE) %>%
     dplyr::group_by(date) %>%
-    dplyr::mutate(prop = round(events / sum(events) * 100, 2)) %>%
+    dplyr::mutate(prop = round(events / sum(events, na.rm = TRUE) * 100, 2)) %>%
     dplyr::ungroup() %>%
     dplyr::select(-events) %>%
     tidyr::spread(click_position, prop, fill = 0)
@@ -80,7 +80,7 @@ read_apps <- function() {
     dplyr::filter(!is.na(invoke_source), !is.na(events)) %>%
     dplyr::distinct(date, invoke_source, .keep_all = TRUE) %>%
     dplyr::group_by(date) %>%
-    dplyr::mutate(prop = round(events / sum(events) * 100, 2)) %>%
+    dplyr::mutate(prop = round(events / sum(events, na.rm = TRUE) * 100, 2)) %>%
     dplyr::ungroup() %>%
     dplyr::select(-events) %>%
     tidyr::spread(invoke_source, prop, fill = 0)
@@ -179,14 +179,14 @@ read_failures <- function() {
     dplyr::summarize(volume = sum(as.numeric(total), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume / sum(volume),
+    dplyr::mutate(prop = volume / sum(volume, na.rm = TRUE),
                   label = sprintf("%s (%.3f%%)", language, 100 * prop))
   available_projects <<- langproj_with_automata %>%
     dplyr::group_by(project) %>%
     dplyr::summarize(volume = sum(as.numeric(total), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume / sum(volume),
+    dplyr::mutate(prop = volume / sum(volume, na.rm = TRUE),
                   label = sprintf("%s (%.3f%%)", project, 100 * prop))
   projects_db <<- readr::read_csv(system.file("extdata/projects.csv", package = "polloi"), col_types = "cclc")[, c("project", "multilingual")]
 }
@@ -203,7 +203,7 @@ read_augmented_clickthrough <- function() {
   ) %>%
     dplyr::bind_rows(.id = "platform") %>%
     dplyr::group_by(date) %>%
-    dplyr::summarize(clickthroughs = sum(clickthroughs), serps = sum(`Result pages opened`)) %>%
+    dplyr::summarize(clickthroughs = sum(clickthroughs, na.rm = TRUE), serps = sum(`Result pages opened`, na.rm = TRUE)) %>%
     dplyr::right_join(threshold_data, by = "date") %>%
     dplyr::transmute(
       date = date,
@@ -244,7 +244,7 @@ read_augmented_clickthrough_langproj <- function() {
   ) %>%
     dplyr::bind_rows(.id = "platform") %>%
     dplyr::group_by(date, language, project) %>%
-    dplyr::summarize(clickthroughs = sum(clickthroughs), serps = sum(`Result pages opened`)) %>%
+    dplyr::summarize(clickthroughs = sum(clickthroughs, na.rm = TRUE), serps = sum(`Result pages opened`, na.rm = TRUE)) %>%
     dplyr::right_join(threshold_data, by = c("date", "language", "project")) %>%
     dplyr::ungroup() %>%
     dplyr::transmute(
@@ -263,14 +263,14 @@ read_augmented_clickthrough_langproj <- function() {
     dplyr::summarize(volume = sum(as.numeric(`Result pages opened`), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume / sum(volume),
+    dplyr::mutate(prop = volume / sum(volume, na.rm = TRUE),
                   label = sprintf("%s (%.3f%%)", language, 100 * prop))
   available_projects_ctr <<- augmented_clickthroughs_langproj %>%
     dplyr::group_by(project) %>%
     dplyr::summarize(volume = sum(as.numeric(`Result pages opened`), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume / sum(volume),
+    dplyr::mutate(prop = volume / sum(volume, na.rm = TRUE),
                   label = sprintf("%s (%.3f%%)", project, 100 * prop))
 }
 
@@ -301,14 +301,14 @@ read_paul_score <- function() {
     dplyr::summarize(volume = sum(as.numeric(`search sessions`), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume / sum(volume),
+    dplyr::mutate(prop = volume / sum(volume, na.rm = TRUE),
                   label = sprintf("%s (%.3f%%)", language, 100 * prop))
   available_projects_paulscore <<- paulscore_fulltext_langproj %>%
     dplyr::group_by(project) %>%
     dplyr::summarize(volume = sum(as.numeric(`search sessions`), na.rm = TRUE)) %>%
     dplyr::filter(volume > 0) %>%
     dplyr::arrange(desc(volume)) %>%
-    dplyr::mutate(prop = volume / sum(volume),
+    dplyr::mutate(prop = volume / sum(volume, na.rm = TRUE),
                   label = sprintf("%s (%.3f%%)", project, 100 * prop))
 }
 
@@ -330,23 +330,23 @@ aggregate_wikis <- function(data, languages, projects, input_metric) {
       dplyr::group_by(date, wiki)
     if (input_metric %in% c("User engagement", "Threshold-passing %", "Clickthrough rate")){
       temp %<>% dplyr::summarize(
-        `Threshold-passing %` = round(sum(`Threshold-passing %` * search_sessions_threshold) / sum(search_sessions_threshold), 2),
-        `Clickthrough rate` = round(sum(`Clickthrough rate` * `Result pages opened`) / sum(`Result pages opened`), 2),
+        `Threshold-passing %` = round(sum(`Threshold-passing %` * search_sessions_threshold, na.rm = TRUE) / sum(search_sessions_threshold, na.rm = TRUE), 2),
+        `Clickthrough rate` = round(sum(`Clickthrough rate` * `Result pages opened`, na.rm = TRUE) / sum(`Result pages opened`, na.rm = TRUE), 2),
         `User engagement` = round((`Threshold-passing %` + `Clickthrough rate`) / 2, 2))
     } else if (input_metric %in% c("clickthroughs", "Result pages opened", "search sessions")){
       temp %<>% dplyr::summarize(
-        clickthroughs = round(sum(as.numeric(clickthroughs)), 2),
-        `Result pages opened` = round(sum(as.numeric(`Result pages opened`)), 2),
-        `search sessions` = round(sum(as.numeric(`search sessions`)), 2))
+        clickthroughs = round(sum(as.numeric(clickthroughs), na.rm = TRUE), 2),
+        `Result pages opened` = round(sum(as.numeric(`Result pages opened`), na.rm = TRUE), 2),
+        `search sessions` = round(sum(as.numeric(`search sessions`), na.rm = TRUE), 2))
     } else if (input_metric %in% c("F = 0.1", "F = 0.5", "F = 0.9")){
       temp %<>% dplyr::summarize(
-        `F = 0.1` = round(sum(`F = 0.1` * `search sessions`) / sum(`search sessions`), 2),
-        `F = 0.5` = round(sum(`F = 0.5` * `search sessions`) / sum(`search sessions`), 2),
-        `F = 0.9` = round(sum(`F = 0.9` * `search sessions`) / sum(`search sessions`), 2))
+        `F = 0.1` = round(sum(`F = 0.1` * `search sessions`, na.rm = TRUE) / sum(`search sessions`, na.rm = TRUE), 2),
+        `F = 0.5` = round(sum(`F = 0.5` * `search sessions`, na.rm = TRUE) / sum(`search sessions`, na.rm = TRUE), 2),
+        `F = 0.9` = round(sum(`F = 0.9` * `search sessions`, na.rm = TRUE) / sum(`search sessions`, na.rm = TRUE), 2))
     } else{
       temp %<>% dplyr::summarize(
-        zero_results = sum(as.numeric(zero_results)),
-        total = sum(as.numeric(total)))
+        zero_results = sum(as.numeric(zero_results), na.rm = TRUE),
+        total = sum(as.numeric(total), na.rm = TRUE))
     }
     temp %<>% dplyr::ungroup()
   } else {
