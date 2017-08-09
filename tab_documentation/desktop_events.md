@@ -21,6 +21,7 @@ There are occasionally going to be outages that will affect the accuracy of data
 * Data in late September/early October 2015 is unavailable due to another bug in EventLogging as a whole, which impacted data collection.
 * '__A__': we switched to using data from [Schema:TestSearchSatisfaction2](https://meta.wikimedia.org/wiki/Schema:TestSearchSatisfaction2) instead of [Schema:Search](https://meta.wikimedia.org/wiki/Schema:Search) for Desktop event counts and load times on 12 July 2016.
 * '__R__': on 2017-01-01 we started calculating all of Discovery's metrics using a new version of [our data retrieval and processing codebase](https://phabricator.wikimedia.org/diffusion/WDGO/) that we migrated to [Wikimedia Analytics](https://www.mediawiki.org/wiki/Analytics)' [Reportupdater infrastructure](https://wikitech.wikimedia.org/wiki/Analytics/Reportupdater). See [T150915](https://phabricator.wikimedia.org/T150915) for more details.
+* '__S__': on 2017-04-25 we changed the rates at which users are put into event logging (see [T163273](https://phabricator.wikimedia.org/T163273)). Specifically, we decreased the rate on English Wikipedia ("EnWiki") and increased it everywhere else.
 
 Questions, bug reports, and feature suggestions
 ------

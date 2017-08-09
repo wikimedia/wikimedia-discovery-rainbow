@@ -32,5 +32,6 @@ output$desktop_event_plot <- renderDygraph({
     polloi::make_dygraph(xlab = "Date", ylab = "Events", title = "Desktop search events, by day") %>%
     dyRangeSelector %>%
     dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom") %>%
-    dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
+    dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
+    dyEvent(as.Date("2017-04-25"), "S (rates)", labelLoc = "bottom")
 })
