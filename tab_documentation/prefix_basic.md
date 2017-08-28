@@ -12,6 +12,7 @@ Notes
 ------
 * After learning of a change to the search API call, we patched the Analytics Hive UDF refinery (see [287264](https://gerrit.wikimedia.org/r/#/c/287264/)) to check for generator=prefixsearch as well, not just list=prefixsearch. The data was backfilled from 20 March 2016 using the updated Prefix API detection.
 * '__R__': on 2017-01-01 we started calculating all of Discovery's metrics using a new version of [our data retrieval and processing codebase](https://phabricator.wikimedia.org/diffusion/WDGO/) that we migrated to [Wikimedia Analytics](https://www.mediawiki.org/wiki/Analytics)' [Reportupdater infrastructure](https://wikitech.wikimedia.org/wiki/Analytics/Reportupdater). See [T150915](https://phabricator.wikimedia.org/T150915) for more details.
+* '__U__': on 2017-08-14 we started to use a new UDF to get the type of search API (see [Gerrit change 345863](https://gerrit.wikimedia.org/r/#/c/345863/) for more details) and break down the API calls by referer class.
 
 Questions, bug reports, and feature suggestions
 ------

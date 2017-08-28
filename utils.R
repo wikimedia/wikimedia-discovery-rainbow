@@ -87,9 +87,9 @@ read_apps <- function() {
 }
 
 read_api <- function(){
-  split_dataset <<- polloi::read_dataset("discovery/metrics/search/search_api_usage.tsv", col_types = "Dci") %>%
-    dplyr::filter(!is.na(api), !is.na(calls)) %>%
-    dplyr::distinct(date, api, .keep_all = TRUE) %>%
+  split_dataset <<- polloi::read_dataset("discovery/metrics/search/search_api_usage.tsv", col_types = "Dcci") %>%
+    dplyr::filter(!is.na(api), !is.na(referer_class), !is.na(calls)) %>%
+    dplyr::distinct(date, api, referer_class, .keep_all = TRUE) %>%
     dplyr::arrange(api, date) %>%
     { split(., f = .$api) } %>%
     lapply(dplyr::select_, .dots = list(quote(-api)))
