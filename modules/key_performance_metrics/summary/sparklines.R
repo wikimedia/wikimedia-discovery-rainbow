@@ -76,6 +76,7 @@ output$sparkline_api_usage <- sparkline:::renderSparkline({
   }
   output_sl <- output_sl %>%
     dplyr::bind_rows(.id = "api") %>%
+    dplyr::filter(referrer == "All") %>%
     dplyr::group_by(date) %>%
     dplyr::summarize(total = sum(calls)) %>%
     dplyr::select(total) %>%

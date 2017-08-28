@@ -22,6 +22,7 @@ output$monthly_metrics_tbl <- DT::renderDataTable({
   smoothed_zrr <- polloi::smoother(failure_data_with_automata, "month", rename = FALSE)
   smoothed_api <- split_dataset %>%
     dplyr::bind_rows(.id = "api") %>%
+    dplyr::filter(referrer == "All") %>%
     dplyr::group_by(date) %>%
     dplyr::summarize(total = sum(calls)) %>%
     polloi::smoother("month", rename = FALSE)

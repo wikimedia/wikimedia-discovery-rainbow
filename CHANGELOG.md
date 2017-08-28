@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2017/08/29
+- Added support for breakdown of API usage by referrer ([T172452](https://phabricator.wikimedia.org/T172452))
+- Added morelike API usage (see [Gerrit change 345863](https://gerrit.wikimedia.org/r/#/c/345863/)) for more details
+
 ## 2017/07/07
 - Modularizes the code in server.R
 
