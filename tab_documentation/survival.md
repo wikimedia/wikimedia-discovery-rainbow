@@ -1,7 +1,9 @@
 Automated survival analysis: page visit times
 =======
 
-This shows the length of time that must pass before we lose N% of the test population. In general, it appears it takes 15s to lose 10%, 25-35s to lose 25%, and 55-75s to lose 50%. When the number goes up, we can infer that users are staying on the pages longer.
+When someone is randomly selected for search satisfaction tracking (using our [TSS2 schema](https://meta.wikimedia.org/wiki/Schema:TestSearchSatisfaction2)), we use a check-in system and survival analysis to estimate how long users stay on visited pages. To summarize the results on a daily basis, we record a set of statistics based on a measure formally known as "[median lethal dose](https://en.wikipedia.org/wiki/Median_lethal_dose)".
+
+This graph shows the length of time that must pass before N% of the users leave the page they visited. When the number goes up, we can infer that users are staying on the pages longer. In general, it appears it takes 15s to lose 10%, 25-35s to lose 25%, and 55-75s to lose 50%.
 
 On most days, we retain at least 20% of the test population past the 7 minute mark (the point at which the user's browser stops checking in), so on those days we cannot calculate the time it takes to lose 90/95/99% of the users.
 

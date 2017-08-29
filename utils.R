@@ -282,6 +282,9 @@ read_lethal_dose <- function() {
   user_page_visit_dataset <<- polloi::read_dataset("discovery/metrics/search/sample_page_visit_ld.tsv", col_types = "Dddddddd") %>%
     dplyr::filter(!is.na(LD10)) %>%
     set_colnames(c("date", "10%", "25%", "50%", "75%", "90%", "95%", "99%"))
+  serp_page_visit_dataset <<- polloi::read_dataset("discovery/metrics/search/srp_survtime.tsv", col_types = "Dcddddddd") %>%
+    dplyr::filter(!is.na(LD10)) %>%
+    set_colnames(c("date", "language", "10%", "25%", "50%", "75%", "90%", "95%", "99%"))
 }
 
 read_paul_score <- function() {

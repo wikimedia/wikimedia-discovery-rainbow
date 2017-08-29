@@ -1,11 +1,34 @@
 output$lethal_dose_plot <- renderDygraph({
-  user_page_visit_dataset %>%
+  req(length(input$filter_lethal_dose_plot) > 0)
+  user_page_visit_dataset[, c("date", input$filter_lethal_dose_plot)] %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_lethal_dose_plot)) %>%
-    polloi::make_dygraph(xlab = "", ylab = "Time (s)", title = "Time at which we have lost N% of the users") %>%
+    polloi::make_dygraph(xlab = "", ylab = "Time (s)", title = "Time at which N% users leave the visited page") %>%
     dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
            axisLabelWidth = 100, pixelsPerLabel = 80) %>%
+    dyRoller(rollPeriod = input$rolling_lethal_dose_plot) %>%
     dyLegend(labelsDiv = "lethal_dose_plot_legend") %>%
     dyRangeSelector(fillColor = "", strokeColor = "") %>%
     dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
     dyEvent(as.Date("2017-04-25"), "S (rates)", labelLoc = "bottom")
+})
+
+output$srp_ld_plot <- renderDygraph({
+  req(length(input$filter_srp_ld_plot) > 0 && length(input$language_srp_ld_plot) > 0)
+  serp_page_visit_dataset[, c("date", "language", input$filter_srp_ld_plot)] %>%
+    tidyr::gather(LD, time, -c(date, language)) %>%
+    dplyr::filter(language %in% input$language_srp_ld_plot) %>%
+    dplyr::transmute(
+      date = date, time = time,
+      label = paste0(LD, " (", language, ")")
+    ) %>%
+    tidyr::spread(label, time) %>%
+    polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_srp_ld_plot)) %>%
+    polloi::make_dygraph(xlab = "", ylab = "Time (s)", title = "Time at N% users leave the search results page") %>%
+    dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
+           axisLabelWidth = 100, pixelsPerLabel = 80) %>%
+    dyRoller(rollPeriod = input$rolling_srp_ld_plot) %>%
+    dyLegend(labelsDiv = "srp_ld_plot_legend") %>%
+    dyRangeSelector(fillColor = "", strokeColor = "") %>%
+    dyEvent(as.Date("2017-04-25"), "S (sampling rates)", labelLoc = "bottom") %>%
+    dyEvent(as.Date("2017-06-15"), "SS (sister search)", labelLoc = "bottom")
 })
