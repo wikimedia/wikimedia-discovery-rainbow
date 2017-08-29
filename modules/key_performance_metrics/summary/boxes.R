@@ -53,6 +53,7 @@ output$kpi_summary_box_api_usage <- renderValueBox({
   x <- split_dataset %>%
     lapply(polloi::subset_by_date_range, from = start_date(date_range), to = Sys.Date() - 1) %>%
     dplyr::bind_rows(.id = "api") %>%
+    dplyr::filter(referrer == "All") %>%
     dplyr::group_by(date) %>%
     dplyr::summarize(total = sum(calls)) %>%
     { .$total }

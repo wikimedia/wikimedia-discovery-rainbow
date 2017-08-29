@@ -6,5 +6,6 @@ output$lethal_dose_plot <- renderDygraph({
            axisLabelWidth = 100, pixelsPerLabel = 80) %>%
     dyLegend(labelsDiv = "lethal_dose_plot_legend") %>%
     dyRangeSelector(fillColor = "", strokeColor = "") %>%
-    dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
+    dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
+    dyEvent(as.Date("2017-04-25"), "S (rates)", labelLoc = "bottom")
 })

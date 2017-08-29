@@ -10,7 +10,7 @@ output$paulscore_approx_plot_fulltext <- renderDygraph({
     polloi::make_dygraph(xlab = "Date", ylab = "PaulScore", title = "PaulScore for fulltext searches, by day", use_si = FALSE, group = "paulscore_approx") %>%
     dyRangeSelector %>%
     dyLegend(labelsDiv = "paulscore_approx_legend", show = "always") %>%
-    dyEvent(as.Date("2017-04-19"), "A (rates)", labelLoc = "bottom")
+    dyEvent(as.Date("2017-04-25"), "S (rates)", labelLoc = "bottom")
   if (input$paulscore_relative) {
     dyOut <- dyAxis(dyOut, "y", axisLabelFormatter = "function(x) { return Math.round(100 * x, 3) + '%'; }", valueFormatter = "function(x) { return Math.round(100 * x, 3) + '%'; }")
   }
@@ -29,7 +29,7 @@ output$paulscore_approx_plot_autocomplete <- renderDygraph({
     polloi::make_dygraph(xlab = "Date", ylab = "PaulScore", title = "PaulScore for autocomplete searches, by day", use_si = FALSE, group = "paulscore_approx") %>%
     dyRangeSelector %>%
     dyLegend(labelsDiv = "paulscore_approx_legend", show = "always") %>%
-    dyEvent(as.Date("2017-04-19"), "A (rates)", labelLoc = "bottom")
+    dyEvent(as.Date("2017-04-25"), "S (rates)", labelLoc = "bottom")
   if (input$paulscore_relative) {
     dyOut <- dyAxis(dyOut, "y", axisLabelFormatter = "function(x) { return Math.round(100 * x, 3) + '%'; }", valueFormatter = "function(x) { return Math.round(100 * x, 3) + '%'; }")
   }
