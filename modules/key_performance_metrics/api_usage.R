@@ -26,7 +26,7 @@ output$kpi_api_usage_series <- renderDygraph({
                    ylab = ifelse(input$kpi_api_usage_series_log_scale, "Calls (log10 scale)", "Calls")) %>%
              dySeries("cirrus", label = "full-text via API") %>%
              dySeries("cirrus (more like)", label = "morelike via API") %>%
-             dyLegend(width = 400, show = "always") %>%
+             dyLegend(width = 1000, show = "always") %>%
              dyOptions(
                strokeWidth = 3, colors = RColorBrewer::brewer.pal(7, "Set2")[7:1],
                drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
@@ -37,29 +37,29 @@ output$kpi_api_usage_series <- renderDygraph({
              dyRangeSelector %>%
              dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
              dyEvent(as.Date("2017-06-29"), "U (new UDF)", labelLoc = "bottom"))
+  } else {
+    api_usage_change <- api_usage %>%
+      dplyr::mutate(
+        cirrus = polloi::percent_change(cirrus),
+        `cirrus (more like)` = polloi::percent_change(`cirrus (more like)`),
+        geo = polloi::percent_change(geo),
+        language = polloi::percent_change(language),
+        open = polloi::percent_change(open),
+        prefix = polloi::percent_change(prefix),
+        all = polloi::percent_change(all)
+      ) %>%
+      { .[-1, ] } %>%
+      polloi::smoother(ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE) %>%
+      { xts::xts(.[, -1], .$date) }
+    return(dygraph(api_usage_change, main = "Day-to-day % change over time", xlab = "Date", ylab = "% change") %>%
+             dyLegend(width = 1000, show = "always") %>%
+             dyOptions(
+               strokeWidth = 3, colors = RColorBrewer::brewer.pal(7, "Set2"),
+               drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE, includeZero = TRUE
+             ) %>%
+             dyCSS(css = system.file("custom.css", package = "polloi")) %>%
+             dyRangeSelector %>%
+             dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
+             dyEvent(as.Date("2017-06-29"), "U (new UDF)", labelLoc = "bottom"))
   }
-  api_usage_change <- api_usage %>%
-    dplyr::mutate(
-      cirrus = polloi::percent_change(cirrus),
-      `cirrus (more like)` = polloi::percent_change(`cirrus (more like)`),
-      geo = polloi::percent_change(geo),
-      language = polloi::percent_change(language),
-      open = polloi::percent_change(open),
-      prefix = polloi::percent_change(prefix),
-      all = polloi::percent_change(all)
-    ) %>%
-    { .[-1, ] } %>%
-    polloi::smoother(ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE) %>%
-    { xts::xts(.[, -1], .$date) }
-  if (!input$kpi_api_usage_series_include_open) colnames(api_usage_change)[7] <- "all except open"
-  return(dygraph(api_usage_change, main = "Day-to-day % change over time", xlab = "Date", ylab = "% change") %>%
-           dyLegend(width = 400, show = "always") %>%
-           dyOptions(
-             strokeWidth = 3, colors = RColorBrewer::brewer.pal(7, "Set2"),
-             drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE, includeZero = TRUE
-           ) %>%
-           dyCSS(css = system.file("custom.css", package = "polloi")) %>%
-           dyRangeSelector %>%
-           dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
-           dyEvent(as.Date("2017-06-29"), "U (new UDF)", labelLoc = "bottom"))
 })

@@ -91,7 +91,14 @@ read_api <- function(){
     dplyr::filter(!is.na(api), !is.na(referer_class), !is.na(calls)) %>%
     dplyr::distinct(date, api, referer_class, .keep_all = TRUE) %>%
     dplyr::arrange(api, date) %>%
-    dplyr::mutate(referer_class = polloi::capitalize_first_letter(referer_class)) %>%
+    dplyr::mutate(referer_class = forcats::fct_recode(
+      referer_class,
+      `None (direct)` = "none",
+      `Search engine` = "external (search engine)",
+      `External (but not search engine)` = "external",
+      Internal = "internal",
+      Unknown = "unknown"
+    )) %>%
     tidyr::spread(referer_class, calls) %>%
     dplyr::mutate(All = ifelse(is.na(All), rowSums(.[, -c(1, 2)], na.rm = TRUE), All)) %>%
     tidyr::gather(referrer, calls, -c(date, api)) %>%

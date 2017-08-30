@@ -60,7 +60,8 @@ function(request) {
                            menuSubItem(text = "Open Search", tabName = "open_search"),
                            menuSubItem(text = "Geo Search", tabName = "geo_search"),
                            menuSubItem(text = "Prefix Search", tabName = "prefix_search"),
-                           menuSubItem(text = "Language Search", tabName = "language_search")),
+                           menuSubItem(text = "Language Search", tabName = "language_search"),
+                           menuSubItem(text = "Referrer Breakdown", tabName = "referer_breakdown")),
                   menuItem(text = "Zero Results",
                            menuSubItem(text = "Summary", tabName = "failure_rate"),
                            menuSubItem(text = "Search Type Breakdown", tabName = "failure_breakdown"),
@@ -247,6 +248,18 @@ function(request) {
                 polloi::smooth_select("smoothing_language_search"),
                 dygraphOutput("language_aggregate"),
                 includeMarkdown("./tab_documentation/language_basic.md")
+        ),
+        tabItem(tabName = "referer_breakdown",
+                fluidRow(
+                  column(
+                    HTML("<label class = \"control-label\" style = \"margin-bottom:-30px;\">Type</label>"),
+                    shiny::checkboxInput("referer_breakdown_prop", label = "Use Proportion", value = FALSE),
+                    width = 2
+                  ),
+                  column(polloi::smooth_select("smoothing_referer_breakdown"), width = 10)
+                ),
+                dygraphOutput("referer_breakdown_plot"),
+                includeMarkdown("./tab_documentation/referer_breakdown.md")
         ),
         tabItem(tabName = "failure_rate",
                 polloi::smooth_select("smoothing_failure_rate"),
