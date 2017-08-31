@@ -1,6 +1,7 @@
 output$cirrus_aggregate <- renderDygraph({
   split_dataset$cirrus %>%
     tidyr::spread(referrer, calls) %>%
+    polloi::reorder_columns() %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_fulltext_search)) %>%
     polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Daily Full-text search API usage by referrer", legend_name = "Searches") %>%
     dyLegend(width = 1000, show = "always") %>%
@@ -12,6 +13,7 @@ output$cirrus_aggregate <- renderDygraph({
 output$morelike_aggregate <- renderDygraph({
   split_dataset$`cirrus (more like)` %>%
     tidyr::spread(referrer, calls) %>%
+    polloi::reorder_columns() %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_morelike_search)) %>%
     polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Daily Morelike search API usage by referrer", legend_name = "Searches") %>%
     dyLegend(width = 1000, show = "always") %>%
@@ -21,6 +23,7 @@ output$morelike_aggregate <- renderDygraph({
 output$open_aggregate <- renderDygraph({
   split_dataset$open %>%
     tidyr::spread(referrer, calls) %>%
+    polloi::reorder_columns() %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_open_search)) %>%
     polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Daily OpenSearch API usage by referrer", legend_name = "Searches") %>%
     dyLegend(width = 1000, show = "always") %>%
@@ -31,7 +34,9 @@ output$open_aggregate <- renderDygraph({
 
 output$geo_aggregate <- renderDygraph({
   split_dataset$geo %>%
-    tidyr::spread(referrer, calls) %>%polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_geo_search)) %>%
+    tidyr::spread(referrer, calls) %>%
+    polloi::reorder_columns() %>%
+    polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_geo_search)) %>%
     polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Daily Geo Search API usage by referrer", legend_name = "Searches") %>%
     dyLegend(width = 1000, show = "always") %>%
     dyRangeSelector %>%
@@ -41,7 +46,9 @@ output$geo_aggregate <- renderDygraph({
 
 output$language_aggregate <- renderDygraph({
   split_dataset$language %>%
-    tidyr::spread(referrer, calls) %>%polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_language_search)) %>%
+    tidyr::spread(referrer, calls) %>%
+    polloi::reorder_columns() %>%
+    polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_language_search)) %>%
     polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Daily Language search API usage by referrer", legend_name = "Searches") %>%
     dyLegend(width = 1000, show = "always") %>%
     dyRangeSelector %>%
@@ -52,6 +59,7 @@ output$language_aggregate <- renderDygraph({
 output$prefix_aggregate <- renderDygraph({
   split_dataset$prefix %>%
     tidyr::spread(referrer, calls) %>%
+    polloi::reorder_columns() %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_prefix_search)) %>%
     polloi::make_dygraph(xlab = "Date", ylab = "Searches", title = "Daily Prefix search API usage by referrer", legend_name = "Searches") %>%
     dyLegend(width = 1000, show = "always") %>%
@@ -71,6 +79,7 @@ output$referer_breakdown_plot <- renderDygraph({
     temp <- cbind(temp$date, purrr::map_df(temp[, -c(1, 2)], function(x) round(100 * x / temp$All, 2)))
   }
   temp %>%
+    polloi::reorder_columns() %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_referer_breakdown)) %>%
     polloi::make_dygraph(xlab = "Date",
                          ylab = ifelse(input$referer_breakdown_prop, "API Calls Share (%)", "API Calls"),

@@ -17,16 +17,16 @@ output$kpi_api_usage_series <- renderDygraph({
     } %>%
     dplyr::bind_rows(.id = "api") %>%
     tidyr::spread("api", "calls")
-  api_usage <- dplyr::mutate(api_usage, all = cirrus + dplyr::if_else(is.na(`cirrus (more like)`), 0, `cirrus (more like)`) + geo + language + prefix)
+  api_usage <- dplyr::mutate(api_usage, all = cirrus + dplyr::if_else(is.na(`cirrus (more like)`), 0, `cirrus (more like)`) + geo + language + prefix) %>%
+    polloi::reorder_columns() %>%
+    dplyr::rename("full-text via API" = cirrus, "morelike via API" = `cirrus (more like)`)
   if ( input$kpi_api_usage_series_data == "raw" ) {
     api_usage %<>%
       polloi::smoother(ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE) %>%
       { xts::xts(.[, -1], order.by = .$date) }
     return(dygraph(api_usage, main = "Calls over time", xlab = "Date",
                    ylab = ifelse(input$kpi_api_usage_series_log_scale, "Calls (log10 scale)", "Calls")) %>%
-             dySeries("cirrus", label = "full-text via API") %>%
-             dySeries("cirrus (more like)", label = "morelike via API") %>%
-             dyLegend(width = 1000, show = "always") %>%
+              dyLegend(width = 1000, show = "always") %>%
              dyOptions(
                strokeWidth = 3, colors = RColorBrewer::brewer.pal(7, "Set2")[7:1],
                drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
@@ -40,8 +40,8 @@ output$kpi_api_usage_series <- renderDygraph({
   } else {
     api_usage_change <- api_usage %>%
       dplyr::mutate(
-        cirrus = polloi::percent_change(cirrus),
-        `cirrus (more like)` = polloi::percent_change(`cirrus (more like)`),
+        `full-text via API` = polloi::percent_change(`full-text via API`),
+        `morelike via API` = polloi::percent_change(`morelike via API`),
         geo = polloi::percent_change(geo),
         language = polloi::percent_change(language),
         open = polloi::percent_change(open),
