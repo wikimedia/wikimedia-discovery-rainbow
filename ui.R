@@ -149,6 +149,7 @@ function(request) {
                                               value = FALSE),
                                 width = 4),
                          column(polloi::smooth_select("smoothing_kpi_api_usage"), width = 4)),
+                div(id = "kpi_api_usage_series_legend", style = "text-align: right;"),
                 dygraphOutput("kpi_api_usage_series"),
                 includeMarkdown("./tab_documentation/kpi_api_usage.md")),
         tabItem(tabName = "kpi_augmented_clickthroughs",
@@ -223,31 +224,37 @@ function(request) {
         ),
         tabItem(tabName = "fulltext_search",
                 polloi::smooth_select("smoothing_fulltext_search"),
+                div(id = "cirrus_aggregate_legend", style = "text-align: right;"),
                 dygraphOutput("cirrus_aggregate"),
                 includeMarkdown("./tab_documentation/fulltext_basic.md")
         ),
         tabItem(tabName = "morelike_search",
                 polloi::smooth_select("smoothing_morelike_search"),
+                div(id = "morelike_aggregate_legend", style = "text-align: right;"),
                 dygraphOutput("morelike_aggregate"),
                 includeMarkdown("./tab_documentation/morelike_basic.md")
         ),
         tabItem(tabName = "open_search",
                 polloi::smooth_select("smoothing_open_search"),
+                div(id = "open_aggregate_legend", style = "text-align: right;"),
                 dygraphOutput("open_aggregate"),
                 includeMarkdown("./tab_documentation/open_basic.md")
         ),
         tabItem(tabName = "geo_search",
                 polloi::smooth_select("smoothing_geo_search"),
+                div(id = "geo_aggregate_legend", style = "text-align: right;"),
                 dygraphOutput("geo_aggregate"),
                 includeMarkdown("./tab_documentation/geo_basic.md")
         ),
         tabItem(tabName = "prefix_search",
                 polloi::smooth_select("smoothing_prefix_search"),
+                div(id = "prefix_aggregate_legend", style = "text-align: right;"),
                 dygraphOutput("prefix_aggregate"),
                 includeMarkdown("./tab_documentation/prefix_basic.md")
         ),
         tabItem(tabName = "language_search",
                 polloi::smooth_select("smoothing_language_search"),
+                div(id = "language_aggregate_legend", style = "text-align: right;"),
                 dygraphOutput("language_aggregate"),
                 includeMarkdown("./tab_documentation/language_basic.md")
         ),
@@ -260,6 +267,7 @@ function(request) {
                   ),
                   column(polloi::smooth_select("smoothing_referer_breakdown"), width = 10)
                 ),
+                div(id = "referer_breakdown_plot_legend", style = "text-align: right;"),
                 dygraphOutput("referer_breakdown_plot"),
                 includeMarkdown("./tab_documentation/referer_breakdown.md")
         ),
