@@ -68,7 +68,9 @@ function(request) {
                            menuSubItem(text = "Search Suggestions", tabName = "failure_suggestions")),
                   menuItem(text = "Sister Search",
                            menuSubItem(text = "Traffic", tabName = "sister_search_traffic")),
-                  menuItem(text = "Page Visit Times", tabName = "survival"),
+                  menuItem(text = "Page Visit Times",
+                           menuSubItem(text = "Visited search results", tabName = "survival"),
+                           menuSubItem(text = "Search result pages", tabName = "spr_surv")),
                   menuItem(text = "Language/Project Breakdown", tabName = "langproj_breakdown"),
                   menuItem(text = "Global Settings",
                            selectInput(inputId = "smoothing_global", label = "Smoothing", selectize = TRUE, selected = "day",
@@ -98,7 +100,7 @@ function(request) {
                   box(sparkline:::sparklineOutput("sparkline_zero_results"), width = 3),
                   box(sparkline:::sparklineOutput("sparkline_api_usage"), width = 3),
                   box(sparkline:::sparklineOutput("sparkline_augmented_clickthroughs"), width = 3)
-                  ),
+                ),
                 includeMarkdown("./tab_documentation/kpis_summary.md")),
         tabItem(tabName = "monthly_metrics",
                 fluidRow(
@@ -303,10 +305,73 @@ function(request) {
                 div(id = "sister_search_traffic_plot_legend"),
                 includeMarkdown("./tab_documentation/sister_search_traffic.md")),
         tabItem(tabName = "survival",
-                polloi::smooth_select("smoothing_lethal_dose_plot"),
-                div(id = "lethal_dose_plot_legend"),
+                fluidRow(
+                  column(
+                    polloi::smooth_select("smoothing_lethal_dose_plot"),
+                    width = 3
+                  ),
+                  column(
+                    numericInput("rolling_lethal_dose_plot", "Roll Period", 1, min = 1, max = 30),
+                    helpText("Each point will represent an average of this many days."),
+                    width = 3
+                  ),
+                  column(
+                    checkboxGroupInput(
+                      "filter_lethal_dose_plot", "Time until",
+                      choices = c(
+                        "10% of users left SRP" = "10%",
+                        "25% of users left SRP" = "25%",
+                        "50% of users left SRP" = "50%",
+                        "75% of users left SRP" = "75%",
+                        "90% of users left SRP" = "90%",
+                        "95% of users left SRP" = "95%",
+                        "99% of users left SRP" = "99%"
+                      ),
+                      selected = c("25%", "50%"), inline = TRUE
+                    ),
+                    width = 6
+                  )
+                ),
                 dygraphOutput("lethal_dose_plot"),
+                div(id = "lethal_dose_plot_legend"),
                 includeMarkdown("./tab_documentation/survival.md")
+        ),
+        tabItem(tabName = "spr_surv",
+                fluidRow(
+                  column(
+                    fluidRow(
+                      column(polloi::smooth_select("smoothing_srp_ld_plot"), width = 8),
+                      column(numericInput("rolling_srp_ld_plot", "Roll Period", 1, min = 1, max = 30), width = 4)
+                    ),
+                    helpText("Each point will represent an average of this many days."),
+                    width = 3
+                  ),
+                  column(
+                    checkboxGroupInput(
+                      "language_srp_ld_plot", "Language",
+                      choices = c("English", "French and Catalan", "Other languages"),
+                      selected = c("English", "Other languages"), inline = TRUE
+                    ),
+                    width = 4
+                  ),
+                  column(
+                    checkboxGroupInput(
+                      "filter_srp_ld_plot", "Time until",
+                      choices = c(
+                        "10% of users left SRP" = "10%",
+                        "25% of users left SRP" = "25%",
+                        "50% of users left SRP" = "50%",
+                        "75% of users left SRP" = "75%",
+                        "90% of users left SRP" = "90%",
+                        "95% of users left SRP" = "95%"
+                      ),
+                      selected = c("25%", "50%"), inline = TRUE),
+                    width = 5
+                  )
+                ),
+                div(id = "srp_ld_plot_legend"),
+                dygraphOutput("srp_ld_plot"),
+                includeMarkdown("./tab_documentation/srp_surv.md")
         ),
         tabItem(tabName = "langproj_breakdown",
                 fluidRow(column(polloi::smooth_select("smoothing_langproj_breakdown"), width = 4),

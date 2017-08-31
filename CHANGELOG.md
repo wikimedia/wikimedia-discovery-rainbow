@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2017/08/30
+- Added SRP visit times ([T170468](https://phabricator.wikimedia.org/T170468))
+- Added [dygraph-based rolling periods](https://rstudio.github.io/dygraphs/gallery-roll-periods.html) to page visit times modules
+
 ## 2017/08/29
 - Added support for breakdown of API usage by referrer ([T172452](https://phabricator.wikimedia.org/T172452))
 - Added morelike API usage (see [Gerrit change 345863](https://gerrit.wikimedia.org/r/#/c/345863/)) for more details
