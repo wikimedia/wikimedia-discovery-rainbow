@@ -69,8 +69,8 @@ function(request) {
                   menuItem(text = "Sister Search",
                            menuSubItem(text = "Traffic", tabName = "sister_search_traffic")),
                   menuItem(text = "Page Visit Times",
-                           menuSubItem(text = "Visited search results", tabName = "survival"),
-                           menuSubItem(text = "Search result pages", tabName = "spr_surv")),
+                           menuSubItem(text = "Search result pages", tabName = "spr_surv"),
+                           menuSubItem(text = "Visited search results", tabName = "survival")),
                   menuItem(text = "Language/Project Breakdown", tabName = "langproj_breakdown"),
                   menuItem(text = "Global Settings",
                            selectInput(inputId = "smoothing_global", label = "Smoothing", selectize = TRUE, selected = "day",
@@ -319,8 +319,8 @@ function(request) {
                     width = 3
                   ),
                   column(
-                    numericInput("rolling_lethal_dose_plot", "Roll Period", 14, min = 1, max = 30),
-                    helpText("Each point is an average of this many days."),
+                    numericInput("rolling_lethal_dose_plot", "Rolling Average*", 14, min = 1, max = 30),
+                    helpText("* Each point will become an average of this many days."),
                     width = 3
                   ),
                   column(
@@ -348,10 +348,10 @@ function(request) {
                 fluidRow(
                   column(
                     fluidRow(
-                      column(polloi::smooth_select("smoothing_srp_ld_plot"), width = 8),
-                      column(numericInput("rolling_srp_ld_plot", "Roll Period", 1, min = 1, max = 30), width = 4)
+                      column(polloi::smooth_select("smoothing_srp_ld_plot"), width = 7),
+                      column(numericInput("rolling_srp_ld_plot", "Rolling Average*", 1, min = 1, max = 30), width = 5)
                     ),
-                    helpText("Each point is an average of this many days."),
+                    helpText("* Each point will become an average of this many days."),
                     width = 3
                   ),
                   column(

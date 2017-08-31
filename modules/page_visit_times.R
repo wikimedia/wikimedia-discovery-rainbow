@@ -22,7 +22,7 @@ output$srp_ld_plot <- renderDygraph({
     tidyr::spread(label, time) %>%
     polloi::reorder_columns() %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_srp_ld_plot), rename = FALSE) %>%
-    polloi::make_dygraph(xlab = "", ylab = "Time (s)", title = "Time at N% users leave the search results page") %>%
+    polloi::make_dygraph(xlab = "", ylab = "Time (s)", title = "Time at which N% users leave the search results page") %>%
     dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
            axisLabelWidth = 100, pixelsPerLabel = 80) %>%
     dyRoller(rollPeriod = input$rolling_srp_ld_plot) %>%

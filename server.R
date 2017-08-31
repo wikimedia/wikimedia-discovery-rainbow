@@ -80,18 +80,28 @@ function(input, output, session) {
       polloi::check_past_week(mobile_load_data, "Mobile Web load times"),
       polloi::check_yesterday(android_dygraph_set, "Android events"),
       polloi::check_past_week(android_load_data, "Android load times"),
+      polloi::check_yesterday(position_prop, "clicked result positions"),
+      polloi::check_past_week(position_prop, "clicked result positions"),
+      polloi::check_yesterday(source_prop, "source of search on Android"),
+      polloi::check_past_week(source_prop, "source of search on Android"),
       polloi::check_yesterday(ios_dygraph_set, "iOS events"),
       polloi::check_past_week(ios_load_data, "iOS load times"),
-      polloi::check_yesterday(dplyr::bind_rows(split_dataset), "API usage data"),
-      polloi::check_past_week(dplyr::bind_rows(split_dataset), "API usage data"),
+      polloi::check_yesterday(dplyr::bind_rows(split_dataset, .id = "api"), "API usage data"),
+      polloi::check_past_week(dplyr::bind_rows(split_dataset, .id = "api"), "API usage data"),
       polloi::check_yesterday(failure_data_with_automata, "zero results data"),
       polloi::check_past_week(failure_data_with_automata, "zero results data"),
       polloi::check_yesterday(suggestion_with_automata, "suggestions data"),
       polloi::check_past_week(suggestion_with_automata, "suggestions data"),
       polloi::check_yesterday(augmented_clickthroughs, "engagement % data"),
       polloi::check_past_week(augmented_clickthroughs, "engagement % data"),
-      polloi::check_yesterday(user_page_visit_dataset, "survival times"),
-      polloi::check_past_week(user_page_visit_dataset, "survival times"))
+      polloi::check_yesterday(paulscore_fulltext, "full-text PaulScores"),
+      polloi::check_past_week(paulscore_fulltext, "full-text PaulScores"),
+      polloi::check_yesterday(sister_search_traffic, "sister search traffic"),
+      polloi::check_past_week(sister_search_traffic, "sister search traffic"),
+      polloi::check_yesterday(user_page_visit_dataset, "page survival times"),
+      polloi::check_past_week(user_page_visit_dataset, "page survival times"),
+      polloi::check_yesterday(serp_page_visit_dataset, "serp survival times"),
+      polloi::check_past_week(serp_page_visit_dataset, "serp survival times"))
     notifications <- notifications[!vapply(notifications, is.null, FALSE)]
     return(dropdownMenu(type = "notifications", .list = notifications))
   })

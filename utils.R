@@ -346,28 +346,36 @@ aggregate_wikis <- function(data, languages, projects, input_metric) {
   projects <- sub(" \\([0-9]{1,2}\\.[0-9]{1,3}%\\)", "", projects)
   if (length(languages) == 1 && languages[1] == "(None)") {
     temp <- data %>%
-      dplyr::filter_(~project %in% projects) %>%
+      dplyr::filter_(~ project %in% projects) %>%
       dplyr::rename(wiki = project) %>%
       dplyr::group_by(date, wiki)
-    if (input_metric %in% c("User engagement", "Threshold-passing %", "Clickthrough rate")){
-      temp %<>% dplyr::summarize(
-        `Threshold-passing %` = round(sum(`Threshold-passing %` * search_sessions_threshold, na.rm = TRUE) / sum(search_sessions_threshold, na.rm = TRUE), 2),
-        `Clickthrough rate` = round(sum(`Clickthrough rate` * `Result pages opened`, na.rm = TRUE) / sum(`Result pages opened`, na.rm = TRUE), 2),
-        `User engagement` = round((`Threshold-passing %` + `Clickthrough rate`) / 2, 2))
-    } else if (input_metric %in% c("clickthroughs", "Result pages opened", "search sessions")){
-      temp %<>% dplyr::summarize(
-        clickthroughs = round(sum(as.numeric(clickthroughs), na.rm = TRUE), 2),
-        `Result pages opened` = round(sum(as.numeric(`Result pages opened`), na.rm = TRUE), 2),
-        `search sessions` = round(sum(as.numeric(`search sessions`), na.rm = TRUE), 2))
-    } else if (input_metric %in% c("F = 0.1", "F = 0.5", "F = 0.9")){
-      temp %<>% dplyr::summarize(
-        `F = 0.1` = round(sum(`F = 0.1` * `search sessions`, na.rm = TRUE) / sum(`search sessions`, na.rm = TRUE), 2),
-        `F = 0.5` = round(sum(`F = 0.5` * `search sessions`, na.rm = TRUE) / sum(`search sessions`, na.rm = TRUE), 2),
-        `F = 0.9` = round(sum(`F = 0.9` * `search sessions`, na.rm = TRUE) / sum(`search sessions`, na.rm = TRUE), 2))
-    } else{
-      temp %<>% dplyr::summarize(
-        zero_results = sum(as.numeric(zero_results), na.rm = TRUE),
-        total = sum(as.numeric(total), na.rm = TRUE))
+    if (input_metric %in% c("User engagement", "Threshold-passing %", "Clickthrough rate")) {
+      temp %<>%
+        dplyr::summarize(
+          `Threshold-passing %` = round(sum(`Threshold-passing %` * search_sessions_threshold, na.rm = TRUE) / sum(search_sessions_threshold, na.rm = TRUE), 2),
+          `Clickthrough rate` = round(sum(`Clickthrough rate` * `Result pages opened`, na.rm = TRUE) / sum(`Result pages opened`, na.rm = TRUE), 2),
+          `User engagement` = round((`Threshold-passing %` + `Clickthrough rate`) / 2, 2)
+        )
+    } else if (input_metric %in% c("clickthroughs", "Result pages opened", "search sessions")) {
+      temp %<>%
+        dplyr::summarize(
+          clickthroughs = round(sum(as.numeric(clickthroughs), na.rm = TRUE), 2),
+          `Result pages opened` = round(sum(as.numeric(`Result pages opened`), na.rm = TRUE), 2),
+          `search sessions` = round(sum(as.numeric(`search sessions`), na.rm = TRUE), 2)
+        )
+    } else if (input_metric %in% c("F = 0.1", "F = 0.5", "F = 0.9")) {
+      temp %<>%
+        dplyr::summarize(
+          `F = 0.1` = round(sum(`F = 0.1` * `search sessions`, na.rm = TRUE) / sum(`search sessions`, na.rm = TRUE), 2),
+          `F = 0.5` = round(sum(`F = 0.5` * `search sessions`, na.rm = TRUE) / sum(`search sessions`, na.rm = TRUE), 2),
+          `F = 0.9` = round(sum(`F = 0.9` * `search sessions`, na.rm = TRUE) / sum(`search sessions`, na.rm = TRUE), 2)
+        )
+    } else {
+      temp %<>%
+        dplyr::summarize(
+          zero_results = sum(as.numeric(zero_results), na.rm = TRUE),
+          total = sum(as.numeric(total), na.rm = TRUE)
+        )
     }
     temp %<>% dplyr::ungroup()
   } else {
@@ -376,15 +384,15 @@ aggregate_wikis <- function(data, languages, projects, input_metric) {
       tidyr::unite(wiki, language, project, sep = " ") %>%
       dplyr::mutate(wiki = sub("(None) ", "", wiki, fixed = TRUE))
   }
-  if (input_metric == "Zero result rate"){
+  if (input_metric == "Zero result rate") {
     temp %<>%
       dplyr::mutate(zrr = round(100 * as.numeric(zero_results) / as.numeric(total), 2)) %>%
       dplyr::select(-c(total, zero_results)) %>%
       tidyr::spread(wiki, zrr)
   } else {
     temp %<>%
-      dplyr::select_(.dots = c("date", "wiki", paste0("`", input_metric, "`"))) %>%
-      tidyr::spread_(., key_col = "wiki", value_col = input_metric, fill = 0)
+      dplyr::select_(.dots = c("date", "wiki", "val" = paste0("`", input_metric, "`"))) %>%
+      tidyr::spread(., wiki, val, fill = 0)
   }
   return(temp)
 }
