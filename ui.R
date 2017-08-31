@@ -311,8 +311,8 @@ function(request) {
                     width = 3
                   ),
                   column(
-                    numericInput("rolling_lethal_dose_plot", "Roll Period", 1, min = 1, max = 30),
-                    helpText("Each point will represent an average of this many days."),
+                    numericInput("rolling_lethal_dose_plot", "Roll Period", 14, min = 1, max = 30),
+                    helpText("Each point is an average of this many days."),
                     width = 3
                   ),
                   column(
@@ -327,13 +327,13 @@ function(request) {
                         "95% of users left SRP" = "95%",
                         "99% of users left SRP" = "99%"
                       ),
-                      selected = c("25%", "50%"), inline = TRUE
+                      selected = c("25%", "50%", "75%"), inline = TRUE
                     ),
                     width = 6
                   )
                 ),
+                div(id = "lethal_dose_plot_legend", style = "text-align: right;"),
                 dygraphOutput("lethal_dose_plot"),
-                div(id = "lethal_dose_plot_legend"),
                 includeMarkdown("./tab_documentation/survival.md")
         ),
         tabItem(tabName = "spr_surv",
@@ -343,14 +343,14 @@ function(request) {
                       column(polloi::smooth_select("smoothing_srp_ld_plot"), width = 8),
                       column(numericInput("rolling_srp_ld_plot", "Roll Period", 1, min = 1, max = 30), width = 4)
                     ),
-                    helpText("Each point will represent an average of this many days."),
+                    helpText("Each point is an average of this many days."),
                     width = 3
                   ),
                   column(
                     checkboxGroupInput(
                       "language_srp_ld_plot", "Language",
                       choices = c("English", "French and Catalan", "Other languages"),
-                      selected = c("English", "Other languages"), inline = TRUE
+                      selected = c("Other languages"), inline = TRUE
                     ),
                     width = 4
                   ),
@@ -365,11 +365,11 @@ function(request) {
                         "90% of users left SRP" = "90%",
                         "95% of users left SRP" = "95%"
                       ),
-                      selected = c("25%", "50%"), inline = TRUE),
+                      selected = c("50%", "75%", "90%"), inline = TRUE),
                     width = 5
                   )
                 ),
-                div(id = "srp_ld_plot_legend"),
+                div(id = "srp_ld_plot_legend", style = "text-align: right;"),
                 dygraphOutput("srp_ld_plot"),
                 includeMarkdown("./tab_documentation/srp_surv.md")
         ),
