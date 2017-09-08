@@ -60,14 +60,17 @@ function(request) {
                            menuSubItem(text = "Open Search", tabName = "open_search"),
                            menuSubItem(text = "Geo Search", tabName = "geo_search"),
                            menuSubItem(text = "Prefix Search", tabName = "prefix_search"),
-                           menuSubItem(text = "Language Search", tabName = "language_search")),
+                           menuSubItem(text = "Language Search", tabName = "language_search"),
+                           menuSubItem(text = "Referrer Breakdown", tabName = "referer_breakdown")),
                   menuItem(text = "Zero Results",
                            menuSubItem(text = "Summary", tabName = "failure_rate"),
                            menuSubItem(text = "Search Type Breakdown", tabName = "failure_breakdown"),
                            menuSubItem(text = "Search Suggestions", tabName = "failure_suggestions")),
                   menuItem(text = "Sister Search",
                            menuSubItem(text = "Traffic", tabName = "sister_search_traffic")),
-                  menuItem(text = "Page Visit Times", tabName = "survival"),
+                  menuItem(text = "Page Visit Times",
+                           menuSubItem(text = "Search result pages", tabName = "spr_surv"),
+                           menuSubItem(text = "Visited search results", tabName = "survival")),
                   menuItem(text = "Language/Project Breakdown", tabName = "langproj_breakdown"),
                   menuItem(text = "Global Settings",
                            selectInput(inputId = "smoothing_global", label = "Smoothing", selectize = TRUE, selected = "day",
@@ -97,7 +100,7 @@ function(request) {
                   box(sparkline:::sparklineOutput("sparkline_zero_results"), width = 3),
                   box(sparkline:::sparklineOutput("sparkline_api_usage"), width = 3),
                   box(sparkline:::sparklineOutput("sparkline_augmented_clickthroughs"), width = 3)
-                  ),
+                ),
                 includeMarkdown("./tab_documentation/kpis_summary.md")),
         tabItem(tabName = "monthly_metrics",
                 fluidRow(
@@ -146,6 +149,7 @@ function(request) {
                                               value = FALSE),
                                 width = 4),
                          column(polloi::smooth_select("smoothing_kpi_api_usage"), width = 4)),
+                div(id = "kpi_api_usage_series_legend", style = "text-align: right;"),
                 dygraphOutput("kpi_api_usage_series"),
                 includeMarkdown("./tab_documentation/kpi_api_usage.md")),
         tabItem(tabName = "kpi_augmented_clickthroughs",
@@ -220,33 +224,52 @@ function(request) {
         ),
         tabItem(tabName = "fulltext_search",
                 polloi::smooth_select("smoothing_fulltext_search"),
+                div(id = "cirrus_aggregate_legend", style = "text-align: right;"),
                 dygraphOutput("cirrus_aggregate"),
                 includeMarkdown("./tab_documentation/fulltext_basic.md")
         ),
         tabItem(tabName = "morelike_search",
                 polloi::smooth_select("smoothing_morelike_search"),
+                div(id = "morelike_aggregate_legend", style = "text-align: right;"),
                 dygraphOutput("morelike_aggregate"),
                 includeMarkdown("./tab_documentation/morelike_basic.md")
         ),
         tabItem(tabName = "open_search",
                 polloi::smooth_select("smoothing_open_search"),
+                div(id = "open_aggregate_legend", style = "text-align: right;"),
                 dygraphOutput("open_aggregate"),
                 includeMarkdown("./tab_documentation/open_basic.md")
         ),
         tabItem(tabName = "geo_search",
                 polloi::smooth_select("smoothing_geo_search"),
+                div(id = "geo_aggregate_legend", style = "text-align: right;"),
                 dygraphOutput("geo_aggregate"),
                 includeMarkdown("./tab_documentation/geo_basic.md")
         ),
         tabItem(tabName = "prefix_search",
                 polloi::smooth_select("smoothing_prefix_search"),
+                div(id = "prefix_aggregate_legend", style = "text-align: right;"),
                 dygraphOutput("prefix_aggregate"),
                 includeMarkdown("./tab_documentation/prefix_basic.md")
         ),
         tabItem(tabName = "language_search",
                 polloi::smooth_select("smoothing_language_search"),
+                div(id = "language_aggregate_legend", style = "text-align: right;"),
                 dygraphOutput("language_aggregate"),
                 includeMarkdown("./tab_documentation/language_basic.md")
+        ),
+        tabItem(tabName = "referer_breakdown",
+                fluidRow(
+                  column(
+                    HTML("<label class = \"control-label\" style = \"margin-bottom:-30px;\">Type</label>"),
+                    shiny::checkboxInput("referer_breakdown_prop", label = "Use Proportion", value = FALSE),
+                    width = 2
+                  ),
+                  column(polloi::smooth_select("smoothing_referer_breakdown"), width = 10)
+                ),
+                div(id = "referer_breakdown_plot_legend", style = "text-align: right;"),
+                dygraphOutput("referer_breakdown_plot"),
+                includeMarkdown("./tab_documentation/referer_breakdown.md")
         ),
         tabItem(tabName = "failure_rate",
                 polloi::smooth_select("smoothing_failure_rate"),
@@ -290,10 +313,73 @@ function(request) {
                 div(id = "sister_search_traffic_plot_legend"),
                 includeMarkdown("./tab_documentation/sister_search_traffic.md")),
         tabItem(tabName = "survival",
-                polloi::smooth_select("smoothing_lethal_dose_plot"),
-                div(id = "lethal_dose_plot_legend"),
+                fluidRow(
+                  column(
+                    polloi::smooth_select("smoothing_lethal_dose_plot"),
+                    width = 3
+                  ),
+                  column(
+                    numericInput("rolling_lethal_dose_plot", "Rolling Average*", 14, min = 1, max = 30),
+                    helpText("* Each point will become an average of this many days."),
+                    width = 3
+                  ),
+                  column(
+                    checkboxGroupInput(
+                      "filter_lethal_dose_plot", "Time until",
+                      choices = c(
+                        "10% of users left SRP" = "10%",
+                        "25% of users left SRP" = "25%",
+                        "50% of users left SRP" = "50%",
+                        "75% of users left SRP" = "75%",
+                        "90% of users left SRP" = "90%",
+                        "95% of users left SRP" = "95%",
+                        "99% of users left SRP" = "99%"
+                      ),
+                      selected = c("25%", "50%", "75%"), inline = TRUE
+                    ),
+                    width = 6
+                  )
+                ),
+                div(id = "lethal_dose_plot_legend", style = "text-align: right;"),
                 dygraphOutput("lethal_dose_plot"),
                 includeMarkdown("./tab_documentation/survival.md")
+        ),
+        tabItem(tabName = "spr_surv",
+                fluidRow(
+                  column(
+                    fluidRow(
+                      column(polloi::smooth_select("smoothing_srp_ld_plot"), width = 7),
+                      column(numericInput("rolling_srp_ld_plot", "Rolling Average*", 1, min = 1, max = 30), width = 5)
+                    ),
+                    helpText("* Each point will become an average of this many days."),
+                    width = 3
+                  ),
+                  column(
+                    checkboxGroupInput(
+                      "language_srp_ld_plot", "Language",
+                      choices = c("English", "French and Catalan", "Other languages"),
+                      selected = c("Other languages"), inline = TRUE
+                    ),
+                    width = 4
+                  ),
+                  column(
+                    checkboxGroupInput(
+                      "filter_srp_ld_plot", "Time until",
+                      choices = c(
+                        "10% of users left SRP" = "10%",
+                        "25% of users left SRP" = "25%",
+                        "50% of users left SRP" = "50%",
+                        "75% of users left SRP" = "75%",
+                        "90% of users left SRP" = "90%",
+                        "95% of users left SRP" = "95%"
+                      ),
+                      selected = c("50%", "75%", "90%"), inline = TRUE),
+                    width = 5
+                  )
+                ),
+                div(id = "srp_ld_plot_legend", style = "text-align: right;"),
+                dygraphOutput("srp_ld_plot"),
+                includeMarkdown("./tab_documentation/srp_surv.md")
         ),
         tabItem(tabName = "langproj_breakdown",
                 fluidRow(column(polloi::smooth_select("smoothing_langproj_breakdown"), width = 4),
