@@ -1,64 +1,49 @@
 output$kpi_api_usage_series <- renderDygraph({
-  smooth_level <- input$smoothing_kpi_api_usage
   start_date <- Sys.Date() - switch(input$kpi_summary_date_range_selector, all = NA, daily = 1, weekly = 8, monthly = 31, quarterly = 91)
   api_usage <- split_dataset %>%
-    purrr::map(function(x) {
-      dplyr::filter(x, referrer == "All") %>%
-        dplyr::group_by(date) %>%
-        dplyr::summarize(calls = sum(calls, na.rm = TRUE)) %>%
-        dplyr::ungroup()
-    }) %>%
+    dplyr::bind_rows(.id = "api") %>%
+    dplyr::filter(referrer == "All") %>%
+    dplyr::select(-referrer) %>%
     {
       if (!is.na(start_date)) {
-        lapply(., polloi::subset_by_date_range, from = start_date, to = Sys.Date() - 1)
+        polloi::subset_by_date_range(., from = start_date, to = Sys.Date() - 1)
       } else {
         .
       }
     } %>%
-    dplyr::bind_rows(.id = "api") %>%
-    tidyr::spread("api", "calls")
-  api_usage <- dplyr::mutate(api_usage, all = `full-text via API` + dplyr::if_else(is.na(`morelike via API`), 0, `morelike via API`) + geo + language + prefix) %>%
+    tidyr::spread("api", "calls") %>%
+    dplyr::mutate(all = open + `full-text via API` + dplyr::if_else(is.na(`morelike via API`), 0, `morelike via API`) + geo + language + prefix) %>%
     polloi::reorder_columns()
-  if ( input$kpi_api_usage_series_data == "raw" ) {
-    api_usage %<>%
-      polloi::smoother(ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE) %>%
-      { xts::xts(.[, -1], order.by = .$date) }
-    return(dygraph(api_usage, main = "Calls over time", xlab = "Date",
-                   ylab = ifelse(input$kpi_api_usage_series_log_scale, "Calls (log10 scale)", "Calls")) %>%
-             dyLegend(labelsDiv = "kpi_api_usage_series_legend", width = 600) %>%
-             dyOptions(
-               strokeWidth = 3, colors = RColorBrewer::brewer.pal(7, "Set2")[7:1],
-               drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE,
-               includeZero = input$kpi_api_usage_series_log_scale,
-               logscale = input$kpi_api_usage_series_log_scale
-             ) %>%
-             dyCSS(css = system.file("custom.css", package = "polloi")) %>%
-             dyRangeSelector %>%
-             dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
-             dyEvent(as.Date("2017-06-29"), "U (new UDF)", labelLoc = "bottom"))
-  } else {
-    api_usage_change <- api_usage %>%
-      dplyr::mutate(
-        `full-text via API` = polloi::percent_change(`full-text via API`),
-        `morelike via API` = polloi::percent_change(`morelike via API`),
-        geo = polloi::percent_change(geo),
-        language = polloi::percent_change(language),
-        open = polloi::percent_change(open),
-        prefix = polloi::percent_change(prefix),
-        all = polloi::percent_change(all)
-      ) %>%
-      { .[-1, ] } %>%
-      polloi::smoother(ifelse(smooth_level == "global", input$smoothing_global, smooth_level), rename = FALSE) %>%
-      { xts::xts(.[, -1], .$date) }
-    return(dygraph(api_usage_change, main = "Day-to-day % change over time", xlab = "Date", ylab = "% change") %>%
-             dyLegend(labelsDiv = "kpi_api_usage_series_legend", width = 600) %>%
-             dyOptions(
-               strokeWidth = 3, colors = RColorBrewer::brewer.pal(7, "Set2"),
-               drawPoints = FALSE, pointSize = 3, labelsKMB = TRUE, includeZero = TRUE
-             ) %>%
-             dyCSS(css = system.file("custom.css", package = "polloi")) %>%
-             dyRangeSelector %>%
-             dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
-             dyEvent(as.Date("2017-06-29"), "U (new UDF)", labelLoc = "bottom"))
+  if (input$kpi_api_usage_series_prop) {
+    api_usage <- cbind(api_usage[, "date"], purrr::map_df(api_usage[, -c(1, 2)], function(x) round(100 * x / api_usage$all, 2)))
   }
+  if ( input$kpi_api_usage_series_data == "raw" ) {
+    api_usage %>%
+      polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_kpi_api_usage)) %>%
+      polloi::make_dygraph(xlab = "Date",
+                           ylab = dplyr::case_when(
+                             input$kpi_api_usage_series_prop ~ "API Calls Share (%)",
+                             input$kpi_api_usage_series_log_scale ~ "Calls (log10 scale)",
+                             TRUE ~ "API Calls"
+                           ),
+                           title = "Calls over time",
+                           legend_name = "API Calls",
+                           logscale = input$kpi_api_usage_series_log_scale) %>%
+      dyLegend(labelsDiv = "kpi_api_usage_series_legend", width = 600) %>%
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
+      dyEvent(as.Date("2017-06-29"), "U (new UDF)", labelLoc = "bottom")
+  } else {
+    cbind(api_usage[, "date"], purrr::map_df(api_usage[, -1], polloi::percent_change)) %>%
+      { .[-1, ] } %>%
+      polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_kpi_api_usage)) %>%
+      polloi::make_dygraph(xlab = "Date",
+                           ylab = "% change",
+                           title = "Day-to-day % change over time",
+                           legend_name = "API Calls") %>%
+      dyLegend(labelsDiv = "kpi_api_usage_series_legend", width = 600) %>%
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
+      dyEvent(as.Date("2017-06-29"), "U (new UDF)", labelLoc = "bottom")
+   }
 })

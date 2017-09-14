@@ -1,9 +1,21 @@
 API Calls by Referrer Class
 =======
 
-All types of API calls are aggregated by date and referrer class.
+All types of API calls are aggregated by date and the following referrer class:
 
-**Internal** is traffic referred by Wikimedia sites, specifically: mediawiki.org, wikibooks.org, wikidata.org, wikinews.org, wikimedia.org, wikimediafoundation.org, wikipedia.org, wikiquote.org, wikisource.org, wikiversity.org, wikivoyage.org, and wiktionary.org (See [Webrequest source](https://git.wikimedia.org/blob/analytics%2Frefinery%2Fsource.git/master/refinery-core%2Fsrc%2Fmain%2Fjava%2Forg%2Fwikimedia%2Fanalytics%2Frefinery%2Fcore%2FWebrequest.java#L203) for more information.)
+* **None** is direct traffic that has empty referrer header. 
+* **Internal** is traffic referred by Wikimedia sites, specifically: mediawiki.org, wikibooks.org, wikidata.org, wikinews.org, wikimedia.org, wikimediafoundation.org, wikipedia.org, wikiquote.org, wikisource.org, wikiversity.org, wikivoyage.org, and wiktionary.org (See [Webrequest source](https://phabricator.wikimedia.org/diffusion/ANRS/browse/master/refinery-core/src/main/java/org/wikimedia/analytics/refinery/core/Webrequest.java$212-223) for more information.).
+* **Search engine** is traffic referred by Google, Bing, Yandex, Yahoo, DuckDuckGo or Baidu (See [Webrequest source](https://phabricator.wikimedia.org/diffusion/ANRS/browse/master/refinery-core/src/main/java/org/wikimedia/analytics/refinery/core/SearchEngineClassifier.java$41) for more information.).
+* **Unknown** is traffic that does not have a HTTP referrer or has unusual referrer header (See [Webrequest source](https://phabricator.wikimedia.org/diffusion/ANRS/browse/master/refinery-core/src/main/java/org/wikimedia/analytics/refinery/core/Webrequest.java$189-211) for more information.).
+* **External** is traffic referred by something other than search engine.
+
+For overall breakdown by search request type, see [http://discovery.wmflabs.org/metrics/#kpi_api_usage](http://discovery.wmflabs.org/metrics/#kpi_api_usage).
+
+General findings
+------
+
+* About 50% of API calls are internal traffic. 63% of internal traffic are from mobile web and the rest 37% are from desktop.
+* About 49% of API calls are direct traffic. 73% of direct traffic are from mobile (apps and mobile web) and the rest 27% are from desktop.
 
 Outages and inaccuracies
 ------
