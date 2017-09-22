@@ -376,7 +376,7 @@ function(request) {
                   ),
                   column(
                     dygraphOutput("sister_search_prevalence_plot"),
-                    div(id = "sister_search_prevalence_plot_legend"),
+                    div(id = "sister_search_prevalence_plot_legend", style = "text-align: right;"),
                     width = 9
                   )
                 ),
