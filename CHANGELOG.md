@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2017/09/25
+- Added sister project search result prevalence
+
 ## 2017/08/30
 - Added SRP visit times ([T170468](https://phabricator.wikimedia.org/T170468))
 - Added [dygraph-based rolling periods](https://rstudio.github.io/dygraphs/gallery-roll-periods.html) to page visit times modules
