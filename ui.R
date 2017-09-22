@@ -67,7 +67,8 @@ function(request) {
                            menuSubItem(text = "Search Type Breakdown", tabName = "failure_breakdown"),
                            menuSubItem(text = "Search Suggestions", tabName = "failure_suggestions")),
                   menuItem(text = "Sister Search",
-                           menuSubItem(text = "Traffic", tabName = "sister_search_traffic")),
+                           menuSubItem(text = "Traffic", tabName = "sister_search_traffic"),
+                           menuSubItem(text = "Prevalence", tabName = "sister_search_prevalence")),
                   menuItem(text = "Page Visit Times",
                            menuSubItem(text = "Search result pages", tabName = "spr_surv"),
                            menuSubItem(text = "Visited search results", tabName = "survival")),
@@ -353,6 +354,33 @@ function(request) {
                 dygraphOutput("sister_search_traffic_plot"),
                 div(id = "sister_search_traffic_plot_legend"),
                 includeMarkdown("./tab_documentation/sister_search_traffic.md")),
+        tabItem(tabName = "sister_search_prevalence",
+                fluidRow(
+                  column(selectInput(
+                    "sister_search_prevalence_lang_order",
+                    "Sort languages by",
+                    list(
+                      "Alphabetical order" = "alphabet",
+                      "Prevalence (high to low)" = "high2low",
+                      "Prevalence (low to high)" = "low2high"
+                    ),
+                    selected = "high2low"
+                  ), width = 3),
+                  column(polloi::smooth_select("smoothing_sister_search_prevalence_plot"), width = 9)
+                ),
+                fluidRow(
+                  column(
+                    uiOutput("sister_search_prevalence_lang_container"),
+                    helpText("The % beside each language name is the average prevalence."),
+                    width = 3
+                  ),
+                  column(
+                    dygraphOutput("sister_search_prevalence_plot"),
+                    div(id = "sister_search_prevalence_plot_legend", style = "text-align: right;"),
+                    width = 9
+                  )
+                ),
+                includeMarkdown("./tab_documentation/sister_search_prevalence.md")),
         tabItem(tabName = "survival",
                 fluidRow(
                   column(

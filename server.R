@@ -66,6 +66,7 @@ function(input, output, session) {
   source("modules/zero_results.R", local = TRUE)
   # Sister Search
   source("modules/sister_search/traffic.R", local = TRUE)
+  source("modules/sister_search/prevalence.R", local = TRUE)
   # Survival
   source("modules/page_visit_times.R", local = TRUE)
   # Language/Project Breakdown

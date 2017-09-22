@@ -339,6 +339,21 @@ read_sister_search <- function() {
       project = polloi::capitalize_first_letter(project),
       access_method = polloi::capitalize_first_letter(access_method)
     )
+  sister_search_prevalence <<- polloi::read_dataset("discovery/metrics/search/sister_search_prevalence.tsv", col_types = "Dcii") %>%
+    dplyr::group_by(wiki_id) %>%
+    dplyr::mutate(include = all((has_sister_results + no_sister_results) > 20)) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(include) %>%
+    dplyr::mutate(prevalence = round(100 * has_sister_results / (has_sister_results + no_sister_results), 2)) %>%
+    dplyr::left_join(
+      polloi::get_langproj()[, c("wikiid", "language")],
+      by = c("wiki_id" = "wikiid")
+    ) %>%
+    dplyr::select(c(date, language, prevalence))
+  sister_search_averages <<- sister_search_prevalence %>%
+    dplyr::group_by(language) %>%
+    dplyr::summarize(avg = mean(prevalence, na.rm = TRUE)) %>%
+    dplyr::arrange(language)
 }
 
 aggregate_wikis <- function(data, languages, projects, input_metric) {
