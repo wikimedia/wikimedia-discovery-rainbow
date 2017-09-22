@@ -3,10 +3,21 @@ Geographic Search API usage
 
 Geo Search, or Geographic Search, refers to the ability to search for pages that are "near" a particular set of geographic coordinates, in the sense of being about subjects that have physical locations we track. (places. Not people.)
 
-General trends
+On this dashboard, we breakdown API calls by the following class of referrer:
+
+* **None** is direct traffic that has empty referrer header. 
+* **Internal** is traffic referred by Wikimedia sites, specifically: mediawiki.org, wikibooks.org, wikidata.org, wikinews.org, wikimedia.org, wikimediafoundation.org, wikipedia.org, wikiquote.org, wikisource.org, wikiversity.org, wikivoyage.org, and wiktionary.org (See [Webrequest source](https://phabricator.wikimedia.org/diffusion/ANRS/browse/master/refinery-core/src/main/java/org/wikimedia/analytics/refinery/core/Webrequest.java$212-223) for more information.).
+* **Search engine** is traffic referred by Google, Bing, Yandex, Yahoo, DuckDuckGo or Baidu (See [Webrequest source](https://phabricator.wikimedia.org/diffusion/ANRS/browse/master/refinery-core/src/main/java/org/wikimedia/analytics/refinery/core/SearchEngineClassifier.java$41) for more information.).
+* **Unknown** is traffic that does not have a HTTP referrer or has unusual referrer header (See [Webrequest source](https://phabricator.wikimedia.org/diffusion/ANRS/browse/master/refinery-core/src/main/java/org/wikimedia/analytics/refinery/core/Webrequest.java$189-211) for more information.).
+* **External** is traffic referred by something other than search engine.
+
+For overall break down by referrer class, see [http://discovery.wmflabs.org/metrics/#referer_breakdown](http://discovery.wmflabs.org/metrics/#referer_breakdown); for overall breakdown by search request type, see [http://discovery.wmflabs.org/metrics/#kpi_api_usage](http://discovery.wmflabs.org/metrics/#kpi_api_usage).
+
+General findings
 ------
 
-It's early days, but the tiny adoption of Geographic Search, particularly compared to Cirrus or OpenSearch, suggests this isn't a tremendously useful feature to API users. We need to dig in and refine the heuristics for identifying requests as different types, however.
+* About 96% of geo search are direct API calls.
+* About 78% of geo search are from bots.
 
 Outages and inaccuracies
 ------

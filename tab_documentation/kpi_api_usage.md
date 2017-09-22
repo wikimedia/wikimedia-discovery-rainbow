@@ -1,7 +1,24 @@
 Key Performance Indicator: API usage
 =======
 
-We want people, both within our movement and outside it, to be able to easily access our information.
+We want people, both within our movement and outside it, to be able to easily access our information. This dashboard break down API usage by search request type. For more information about each type of request, see the following dashboards:
+
+* [Full-text search](http://discovery.wmflabs.org/metrics/#fulltext_search): searching for a particular term via the API and getting back packages that contain that term in either the title or the page's content (see [Help:CirrusSearch](https://www.mediawiki.org/wiki/Help:CirrusSearch#Full_text_search) for more details).
+* [Morelike search](http://discovery.wmflabs.org/metrics/#morelike_search): morelike is a feature of CirrusSearch that is used in extensions like [RelatedArticles](https://www.mediawiki.org/wiki/Extension:RelatedArticles) (see [Help:CirrusSearch](https://www.mediawiki.org/wiki/Help:CirrusSearch#Morelike) for more details).
+* [Open search](http://discovery.wmflabs.org/metrics/#open_search): [OpenSearch](https://en.wikipedia.org/wiki/OpenSearch) is a search format optimised for syndication and aggregation.
+* [Geo search](http://discovery.wmflabs.org/metrics/#geo_search): Geo Search, or Geographic Search, refers to the ability to search for pages that are “near” a particular set of geographic coordinates, in the sense of being about subjects that have physical locations we track (see [Help:CirrusSearch](https://www.mediawiki.org/wiki/Help:CirrusSearch#Geo_Search) for more details).
+* [Prefix search](http://discovery.wmflabs.org/metrics/#prefix_search): Prefix Search is simply run over page titles, and lets a user find pages that start with (“prefix”) a particular term.
+* [Language search](http://discovery.wmflabs.org/metrics/#language_search): Language search allows you to search for a particular language name in different scripts.
+
+For overall break down by referrer class, see [http://discovery.wmflabs.org/metrics/#referer_breakdown](http://discovery.wmflabs.org/metrics/#referer_breakdown).
+
+General findings
+------
+
+* About 56% of all API calls are morelike search which is used by RelatedArticles on mobile. We have more traffic during the weekends since users generally spend more time on their mobile devices on weekends.
+* About 22% of all API calls are open search on desktop. The usage is higher on weekdays like we see in other desktop usage pattern.
+* About 14% of all API calls are prefix search. And about 75% of prefix search via API are done on mobile.
+* About 8% of all API calls are full-text search. And about 80% of full-text search via API are from bots.
 
 Outages and inaccuracies
 ------

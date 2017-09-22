@@ -4,10 +4,22 @@ Full-text Search via API usage
 What we're talking about is "full text" search; searching for a particular
 term via the API and getting back packages that contain that term in either the title *or* the page's content.
 
-General trends
+On this dashboard, we breakdown API calls by the following class of referrer:
+
+* **None** is direct traffic that has empty referrer header. 
+* **Internal** is traffic referred by Wikimedia sites, specifically: mediawiki.org, wikibooks.org, wikidata.org, wikinews.org, wikimedia.org, wikimediafoundation.org, wikipedia.org, wikiquote.org, wikisource.org, wikiversity.org, wikivoyage.org, and wiktionary.org (See [Webrequest source](https://phabricator.wikimedia.org/diffusion/ANRS/browse/master/refinery-core/src/main/java/org/wikimedia/analytics/refinery/core/Webrequest.java$212-223) for more information.).
+* **Search engine** is traffic referred by Google, Bing, Yandex, Yahoo, DuckDuckGo or Baidu (See [Webrequest source](https://phabricator.wikimedia.org/diffusion/ANRS/browse/master/refinery-core/src/main/java/org/wikimedia/analytics/refinery/core/SearchEngineClassifier.java$41) for more information.).
+* **Unknown** is traffic that does not have a HTTP referrer or has unusual referrer header (See [Webrequest source](https://phabricator.wikimedia.org/diffusion/ANRS/browse/master/refinery-core/src/main/java/org/wikimedia/analytics/refinery/core/Webrequest.java$189-211) for more information.).
+* **External** is traffic referred by something other than search engine.
+
+For overall break down by referrer class, see [http://discovery.wmflabs.org/metrics/#referer_breakdown](http://discovery.wmflabs.org/metrics/#referer_breakdown); for overall breakdown by search request type, see [http://discovery.wmflabs.org/metrics/#kpi_api_usage](http://discovery.wmflabs.org/metrics/#kpi_api_usage).
+
+General findings
 ------
 
-There's not enough data to be able to say much about the patterns inherrent to Full-text Search (via API) usage right now, but it's interesting to compare the values found to how much other search API forms are used. Full-text sits near the top of the pack; Open Search is used dramatically more, but everything else somewhat (or very much) less.
+* About 80% of full-text search via API are direct API calls.
+* About 80% of full-text search via API are from bots.
+* About 90% of full-text search via API are done on desktop.
 
 Outages and inaccuracies
 ------
