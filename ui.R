@@ -189,11 +189,13 @@ function(request) {
                 includeHTML("./tab_documentation/paulscore_approx.html")),
         tabItem(tabName = "mobile_events",
                 fluidRow(
-                  valueBoxOutput("mobile_event_searches"),
-                  valueBoxOutput("mobile_event_resultsets"),
-                  valueBoxOutput("mobile_event_clickthroughs")),
+                  valueBoxOutput("mobile_event_user_session", width = 3),
+                  valueBoxOutput("mobile_event_searches", width = 3),
+                  valueBoxOutput("mobile_event_resultsets", width = 3),
+                  valueBoxOutput("mobile_event_clickthroughs", width = 3)),
                 polloi::smooth_select("smoothing_mobile_event"),
                 dygraphOutput("mobile_event_plot"),
+                dygraphOutput("mobile_session_plot"),
                 includeMarkdown("./tab_documentation/mobile_events.md")
         ),
         tabItem(tabName = "mobile_load",
