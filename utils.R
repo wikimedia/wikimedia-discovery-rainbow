@@ -34,8 +34,18 @@ read_desktop <- function() {
 read_web <- function() {
   mobile_dygraph_set <<- polloi::read_dataset("discovery/metrics/search/mobile_event_counts.tsv", col_types = "Dci") %>%
     dplyr::filter(!is.na(action), !is.na(events)) %>%
-    tidyr::spread(action, events, fill = 0)
-  mobile_dygraph_means <<- round(apply(mobile_dygraph_set[, 2:4], 2, median))
+    tidyr::spread(action, events, fill = 0) %>%
+    dplyr::rename(`search start` = `search sessions`)
+  mobile_dygraph_means <<- round(apply(mobile_dygraph_set[(nrow(mobile_dygraph_set) - 89):nrow(mobile_dygraph_set), 2:4], 2, median))
+  mobile_session <<- polloi::read_dataset("discovery/metrics/search/mobile_session_counts.tsv", col_types = "Diiiiiii") %>%
+    dplyr::select(date, user_sessions, high_volume, medium_volume, low_volume) %>%
+    dplyr::rename(
+      `Total user sessions` = user_sessions,
+      `High volume` = high_volume,
+      `Medium volume` = medium_volume,
+      `Low volume` = low_volume
+    )
+  mobile_session_mean <<- round(apply(mobile_session[(nrow(mobile_session) - 89):nrow(mobile_session), -1], 2, median))
   mobile_load_data <<- polloi::read_dataset("discovery/metrics/search/mobile_load_times.tsv", col_types = "Dddd") %>%
     dplyr::filter(!is.na(Median))
 }
