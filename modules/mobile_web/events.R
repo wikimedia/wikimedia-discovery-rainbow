@@ -40,12 +40,14 @@ output$mobile_event_plot <- renderDygraph({
     polloi::make_dygraph(xlab = "Date", ylab = "Events", title = "Mobile search events, by day") %>%
     dyRangeSelector %>%
     dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
-    dyEvent(as.Date("2017-03-29"), "H (new header)", labelLoc = "bottom")
+    dyEvent(as.Date("2017-03-29"), "H (new header)", labelLoc = "bottom") %>%
+    dyEvent(as.Date("2017-09-28"), "B (mw.track bug)", labelLoc = "bottom")
 })
 
 output$mobile_session_plot <- renderDygraph({
   mobile_session %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_mobile_event)) %>%
     polloi::make_dygraph(xlab = "Date", ylab = "Events", title = "Mobile user sessions, by volume") %>%
-    dyRangeSelector
+    dyRangeSelector %>%
+    dyEvent(as.Date("2017-09-28"), "B (mw.track bug)", labelLoc = "bottom")
 })
