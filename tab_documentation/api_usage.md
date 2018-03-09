@@ -1,4 +1,4 @@
-Key Performance Indicator: API usage
+API usage
 =======
 
 We want people, both within our movement and outside it, to be able to easily access our information. This dashboard break down API usage by search request type. For more information about each type of request, see the following dashboards:
@@ -32,7 +32,7 @@ For technical, non-bug questions, [email Mikhail](mailto:mpopov@wikimedia.org?su
 
 <hr style="border-color: gray;">
 <p style="font-size: small;">
-  <strong>Link to this dashboard:</strong> <a href="https://discovery.wmflabs.org/metrics/#kpi_api_usage">https://discovery.wmflabs.org/metrics/#kpi_api_usage</a>
+  <strong>Link to this dashboard:</strong> <a href="https://discovery.wmflabs.org/metrics/#api_usage">https://discovery.wmflabs.org/metrics/#api_usage</a>
   | Page is available under <a href="https://creativecommons.org/licenses/by-sa/3.0/" title="Creative Commons Attribution-ShareAlike License">CC-BY-SA 3.0</a>
   | <a href="https://phabricator.wikimedia.org/diffusion/WDRN/" title="Search Metrics Dashboard source code repository">Code</a> is licensed under <a href="https://phabricator.wikimedia.org/diffusion/WDRN/browse/master/LICENSE.md" title="MIT License">MIT</a>
   | Part of <a href="https://discovery.wmflabs.org/">Discovery Dashboards</a>

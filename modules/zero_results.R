@@ -2,8 +2,7 @@ output$failure_rate_plot <- renderDygraph({
   input$failure_rate_automata %>%
     polloi::data_select(failure_data_with_automata, failure_data_no_automata) %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_failure_rate)) %>%
-    polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero Results Rate, by day",
-                         legend_name = "ZRR") %>%
+    polloi::make_dygraph(xlab = "Date", ylab = "Zero Results Rate (%)", title = "Zero Results Rate, by day", legend_name = "ZRR") %>%
     dyAxis("y", axisLabelFormatter = "function(x) { return x + '%'; }", valueFormatter = "function(x) { return Math.round(x, 3) + '%'; }") %>%
     dyRangeSelector(fillColor = "") %>%
     dyEvent(as.Date("2016-02-01"), "A (format switch)", labelLoc = "bottom") %>%
