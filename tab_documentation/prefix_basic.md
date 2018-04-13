@@ -11,7 +11,7 @@ On this dashboard, we breakdown API calls by the following class of referrer:
 * **Unknown** is traffic that does not have a HTTP referrer or has unusual referrer header (See [Webrequest source](https://phabricator.wikimedia.org/diffusion/ANRS/browse/master/refinery-core/src/main/java/org/wikimedia/analytics/refinery/core/Webrequest.java$189-211) for more information.).
 * **External** is traffic referred by something other than search engine.
 
-For overall break down by referrer class, see [http://discovery.wmflabs.org/metrics/#referer_breakdown](http://discovery.wmflabs.org/metrics/#referer_breakdown); for overall breakdown by search request type, see [http://discovery.wmflabs.org/metrics/#kpi_api_usage](http://discovery.wmflabs.org/metrics/#kpi_api_usage).
+For overall break down by referrer class, see [http://discovery.wmflabs.org/metrics/#referer_breakdown](http://discovery.wmflabs.org/metrics/#referer_breakdown); for overall breakdown by search request type, see [http://discovery.wmflabs.org/metrics/#api_usage](http://discovery.wmflabs.org/metrics/#api_usage).
 
 General findings
 ------

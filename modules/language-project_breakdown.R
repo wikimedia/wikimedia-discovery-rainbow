@@ -38,8 +38,11 @@ output$language_selector_container <- renderUI({
       selected_language <- languages_to_display[[1]]
     }
   }
-  return(selectInput("language_selector", "Language", multiple = TRUE, selectize = FALSE, size = 19,
-                     choices = languages_to_display, selected = selected_language))
+  return(selectInput(
+    "language_selector", "Language",
+    multiple = TRUE, selectize = FALSE, size = 19,
+    choices = languages_to_display, selected = selected_language
+  ))
 })
 
 output$project_selector_container <- renderUI({
@@ -92,9 +95,11 @@ output$langproj_breakdown_plot <- renderDygraph({
   dyOut <- temp %>%
     aggregate_wikis(input$language_selector, input$project_selector, input$langproj_metrics) %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_langproj_breakdown)) %>%
-    polloi::make_dygraph(xlab = "Date",
-                         ylab = ifelse(grepl("^F = ", input$langproj_metrics), paste0("PaulScore, ", input$langproj_metrics), polloi::capitalize_first_letter(input$langproj_metrics)),
-                         title = ifelse(grepl("^F = ", input$langproj_metrics), paste0("PaulScore for fulltext searches, ", input$langproj_metrics), paste0(polloi::capitalize_first_letter(input$langproj_metrics), ", by language and project"))) %>%
+    polloi::make_dygraph(
+      xlab = "Date",
+      ylab = ifelse(grepl("^F = ", input$langproj_metrics), paste0("PaulScore, ", input$langproj_metrics), polloi::capitalize_first_letter(input$langproj_metrics)),
+      title = ifelse(grepl("^F = ", input$langproj_metrics), paste0("PaulScore for fulltext searches, ", input$langproj_metrics), paste0(polloi::capitalize_first_letter(input$langproj_metrics), ", by language and project"))
+    ) %>%
     dyLegend(show = "always", width = 400, labelsDiv = "langproj_breakdown_legend") %>%
     dyAxis("x", axisLabelFormatter = polloi::custom_axis_formatter) %>%
     dyRangeSelector(fillColor = "") %>%

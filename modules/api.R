@@ -1,11 +1,58 @@
 use_proportion <- function(data, use_prop) {
   if (use_prop) {
-    return(cbind(data[, "date"], purrr::map_df(data[, -c(1, 2)], function(x) round(100 * x / data$All, 2))) %>%
-             dplyr::filter(date >= "2017-06-29"))
+    output <- cbind(data[, "date"], purrr::map_df(data[, -c(1, 2)], function(x) round(100 * x / data$All, 2))) %>%
+      dplyr::filter(date >= "2017-06-29")
+    return(output)
   } else{
     return(data)
   }
 }
+
+output$api_usage <- renderDygraph({
+  api_usage <- split_dataset %>%
+    dplyr::bind_rows(.id = "api") %>%
+    dplyr::filter(referrer == "All") %>%
+    dplyr::select(-referrer) %>%
+    tidyr::spread("api", "calls") %>%
+    dplyr::mutate(all = open + `full-text via API` + dplyr::if_else(is.na(`morelike via API`), 0, `morelike via API`) + geo + language + prefix) %>%
+    polloi::reorder_columns()
+  if (input$api_usage_series_prop) {
+    api_usage <- cbind(api_usage[, "date"], purrr::map_df(api_usage[, -c(1, 2)], function(x) round(100 * x / api_usage$all, 2)))
+  }
+  if ( input$api_usage_series_data == "raw" ) {
+    api_usage %>%
+      polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_api_usage)) %>%
+      polloi::make_dygraph(
+        xlab = "Date",
+        ylab = dplyr::case_when(
+          input$api_usage_series_prop ~ "API Calls Share (%)",
+          input$api_usage_series_log_scale ~ "Calls (log10 scale)",
+          TRUE ~ "API Calls"
+        ),
+        title = "Calls over time",
+        legend_name = "API Calls",
+        logscale = input$api_usage_series_log_scale
+      ) %>%
+      dyLegend(labelsDiv = "api_usage_series_legend", width = 600) %>%
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
+      dyEvent(as.Date("2017-06-29"), "U (new UDF)", labelLoc = "bottom")
+  } else {
+    cbind(api_usage[, "date"], purrr::map_df(api_usage[, -1], polloi::percent_change)) %>%
+    { .[-1, ] } %>%
+      polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_api_usage)) %>%
+      polloi::make_dygraph(
+        xlab = "Date",
+        ylab = "% change",
+        title = "Day-to-day % change over time",
+        legend_name = "API Calls"
+      ) %>%
+      dyLegend(labelsDiv = "api_usage_series_legend", width = 600) %>%
+      dyRangeSelector %>%
+      dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
+      dyEvent(as.Date("2017-06-29"), "U (new UDF)", labelLoc = "bottom")
+  }
+})
 
 output$cirrus_aggregate <- renderDygraph({
   split_dataset$`full-text via API` %>%
@@ -13,15 +60,17 @@ output$cirrus_aggregate <- renderDygraph({
     polloi::reorder_columns() %>%
     use_proportion(input$fulltext_search_prop) %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_fulltext_search)) %>%
-    polloi::make_dygraph(xlab = "Date",
-                         ylab = dplyr::case_when(
-                           input$fulltext_search_prop ~ "API Calls Share (%)",
-                           input$fulltext_search_log_scale ~ "Calls (log10 scale)",
-                           TRUE ~ "API Calls"
-                         ),
-                         title = "Daily Full-text search via API usage by referrer",
-                         legend_name = "API Calls",
-                         logscale = input$fulltext_search_log_scale) %>%
+    polloi::make_dygraph(
+      xlab = "Date",
+      ylab = dplyr::case_when(
+        input$fulltext_search_prop ~ "API Calls Share (%)",
+        input$fulltext_search_log_scale ~ "Calls (log10 scale)",
+        TRUE ~ "API Calls"
+      ),
+      title = "Daily Full-text search via API usage by referrer",
+      legend_name = "API Calls",
+      logscale = input$fulltext_search_log_scale
+    ) %>%
     dyLegend(labelsDiv = "cirrus_aggregate_legend", width = 600) %>%
     dyRangeSelector %>%
     dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
@@ -34,15 +83,17 @@ output$morelike_aggregate <- renderDygraph({
     polloi::reorder_columns() %>%
     use_proportion(input$morelike_search_prop) %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_morelike_search)) %>%
-    polloi::make_dygraph(xlab = "Date",
-                         ylab = dplyr::case_when(
-                           input$morelike_search_prop ~ "API Calls Share (%)",
-                           input$morelike_search_log_scale ~ "Calls (log10 scale)",
-                           TRUE ~ "API Calls"
-                         ),
-                         title = "Daily Morelike search API usage by referrer",
-                         legend_name = "API Calls",
-                         logscale = input$morelike_search_log_scale) %>%
+    polloi::make_dygraph(
+      xlab = "Date",
+      ylab = dplyr::case_when(
+        input$morelike_search_prop ~ "API Calls Share (%)",
+        input$morelike_search_log_scale ~ "Calls (log10 scale)",
+        TRUE ~ "API Calls"
+      ),
+      title = "Daily Morelike search API usage by referrer",
+      legend_name = "API Calls",
+      logscale = input$morelike_search_log_scale
+    ) %>%
     dyLegend(labelsDiv = "morelike_aggregate_legend", width = 600) %>%
     dyRangeSelector
 })
@@ -53,15 +104,17 @@ output$open_aggregate <- renderDygraph({
     polloi::reorder_columns() %>%
     use_proportion(input$open_search_prop) %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_open_search)) %>%
-    polloi::make_dygraph(xlab = "Date",
-                         ylab = dplyr::case_when(
-                           input$open_search_prop ~ "API Calls Share (%)",
-                           input$open_search_log_scale ~ "Calls (log10 scale)",
-                           TRUE ~ "API Calls"
-                         ),
-                         title = "Daily OpenSearch API usage by referrer",
-                         legend_name = "API Calls",
-                         logscale = input$open_search_log_scale) %>%
+    polloi::make_dygraph(
+      xlab = "Date",
+      ylab = dplyr::case_when(
+        input$open_search_prop ~ "API Calls Share (%)",
+        input$open_search_log_scale ~ "Calls (log10 scale)",
+        TRUE ~ "API Calls"
+      ),
+      title = "Daily OpenSearch API usage by referrer",
+      legend_name = "API Calls",
+      logscale = input$open_search_log_scale
+    ) %>%
     dyLegend(labelsDiv = "open_aggregate_legend", width = 600) %>%
     dyRangeSelector %>%
     dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
@@ -74,15 +127,17 @@ output$geo_aggregate <- renderDygraph({
     polloi::reorder_columns() %>%
     use_proportion(input$geo_search_prop) %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_geo_search)) %>%
-    polloi::make_dygraph(xlab = "Date",
-                         ylab = dplyr::case_when(
-                           input$geo_search_prop ~ "API Calls Share (%)",
-                           input$geo_search_log_scale ~ "Calls (log10 scale)",
-                           TRUE ~ "API Calls"
-                         ),
-                         title = "Daily Geo Search API usage by referrer",
-                         legend_name = "API Calls",
-                         logscale = input$geo_search_log_scale) %>%
+    polloi::make_dygraph(
+      xlab = "Date",
+      ylab = dplyr::case_when(
+        input$geo_search_prop ~ "API Calls Share (%)",
+        input$geo_search_log_scale ~ "Calls (log10 scale)",
+        TRUE ~ "API Calls"
+      ),
+      title = "Daily Geo Search API usage by referrer",
+      legend_name = "API Calls",
+      logscale = input$geo_search_log_scale
+    ) %>%
     dyLegend(labelsDiv = "geo_aggregate_legend", width = 600) %>%
     dyRangeSelector %>%
     dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
@@ -95,15 +150,17 @@ output$language_aggregate <- renderDygraph({
     polloi::reorder_columns() %>%
     use_proportion(input$language_search_prop) %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_language_search)) %>%
-    polloi::make_dygraph(xlab = "Date",
-                         ylab = dplyr::case_when(
-                           input$language_search_prop ~ "API Calls Share (%)",
-                           input$language_search_log_scale ~ "Calls (log10 scale)",
-                           TRUE ~ "API Calls"
-                         ),
-                         title = "Daily Language search API usage by referrer",
-                         legend_name = "API Calls",
-                         logscale = input$language_search_log_scale) %>%
+    polloi::make_dygraph(
+      xlab = "Date",
+      ylab = dplyr::case_when(
+        input$language_search_prop ~ "API Calls Share (%)",
+        input$language_search_log_scale ~ "Calls (log10 scale)",
+        TRUE ~ "API Calls"
+      ),
+      title = "Daily Language search API usage by referrer",
+      legend_name = "API Calls",
+      logscale = input$language_search_log_scale
+    ) %>%
     dyLegend(labelsDiv = "language_aggregate_legend", width = 600) %>%
     dyRangeSelector %>%
     dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
@@ -116,15 +173,17 @@ output$prefix_aggregate <- renderDygraph({
     polloi::reorder_columns() %>%
     use_proportion(input$prefix_search_prop) %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_prefix_search)) %>%
-    polloi::make_dygraph(xlab = "Date",
-                         ylab = dplyr::case_when(
-                           input$prefix_search_prop ~ "API Calls Share (%)",
-                           input$prefix_search_log_scale ~ "Calls (log10 scale)",
-                           TRUE ~ "API Calls"
-                         ),
-                         title = "Daily Prefix search API usage by referrer",
-                         legend_name = "API Calls",
-                         logscale = input$prefix_search_log_scale) %>%
+    polloi::make_dygraph(
+      xlab = "Date",
+      ylab = dplyr::case_when(
+        input$prefix_search_prop ~ "API Calls Share (%)",
+        input$prefix_search_log_scale ~ "Calls (log10 scale)",
+        TRUE ~ "API Calls"
+      ),
+      title = "Daily Prefix search API usage by referrer",
+      legend_name = "API Calls",
+      logscale = input$prefix_search_log_scale
+    ) %>%
     dyLegend(labelsDiv = "prefix_aggregate_legend", width = 600) %>%
     dyRangeSelector %>%
     dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
@@ -141,15 +200,17 @@ output$referer_breakdown_plot <- renderDygraph({
     polloi::reorder_columns() %>%
     use_proportion(input$referer_breakdown_prop) %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_referer_breakdown)) %>%
-    polloi::make_dygraph(xlab = "Date",
-                         ylab = dplyr::case_when(
-                           input$referer_breakdown_prop ~ "API Calls Share (%)",
-                           input$referer_breakdown_log_scale ~ "Calls (log10 scale)",
-                           TRUE ~ "API Calls"
-                         ),
-                         title = "Daily API usage by referrer",
-                         legend_name = "API Calls",
-                         logscale = input$referer_breakdown_log_scale) %>%
+    polloi::make_dygraph(
+      xlab = "Date",
+      ylab = dplyr::case_when(
+        input$referer_breakdown_prop ~ "API Calls Share (%)",
+        input$referer_breakdown_log_scale ~ "Calls (log10 scale)",
+        TRUE ~ "API Calls"
+      ),
+      title = "Daily API usage by referrer",
+      legend_name = "API Calls",
+      logscale = input$referer_breakdown_log_scale
+    ) %>%
     dyLegend(labelsDiv = "referer_breakdown_plot_legend", width = 600) %>%
     dyRangeSelector
 })

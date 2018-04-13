@@ -4,8 +4,7 @@ output$lethal_dose_plot <- renderDygraph({
     polloi::reorder_columns() %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_lethal_dose_plot), rename = FALSE) %>%
     polloi::make_dygraph(xlab = "", ylab = "Time (s)", title = "Time at which N% users leave the visited page") %>%
-    dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
-           axisLabelWidth = 100, pixelsPerLabel = 80) %>%
+    dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter, axisLabelWidth = 100, pixelsPerLabel = 80) %>%
     dyRoller(rollPeriod = input$rolling_lethal_dose_plot) %>%
     dyLegend(labelsDiv = "lethal_dose_plot_legend", width = 600) %>%
     dyRangeSelector(fillColor = "", strokeColor = "") %>%
@@ -23,8 +22,7 @@ output$srp_ld_plot <- renderDygraph({
     polloi::reorder_columns() %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_srp_ld_plot), rename = FALSE) %>%
     polloi::make_dygraph(xlab = "", ylab = "Time (s)", title = "Time at which N% users leave the search results page") %>%
-    dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter,
-           axisLabelWidth = 100, pixelsPerLabel = 80) %>%
+    dyAxis("x", ticker = "Dygraph.dateTicker", axisLabelFormatter = polloi::custom_axis_formatter, axisLabelWidth = 100, pixelsPerLabel = 80) %>%
     dyRoller(rollPeriod = input$rolling_srp_ld_plot) %>%
     dyLegend(labelsDiv = "srp_ld_plot_legend", width = 600) %>%
     dyRangeSelector(fillColor = "", strokeColor = "") %>%
