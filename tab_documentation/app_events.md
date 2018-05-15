@@ -18,6 +18,7 @@ Notes
 * There is a spike in events on 2 June 2015 because of a release of the iOS app that added search logging. This has been [confirmed](https://phabricator.wikimedia.org/T102098) by a mobile apps software engineer.
 
 * '__R__': on 2017-01-01 we started calculating all of Discovery's metrics using a new version of [our data retrieval and processing codebase](https://phabricator.wikimedia.org/diffusion/WDGO/) that we migrated to [Wikimedia Analytics](https://www.mediawiki.org/wiki/Analytics)' [Reportupdater infrastructure](https://wikitech.wikimedia.org/wiki/Analytics/Reportupdater). See [T150915](https://phabricator.wikimedia.org/T150915) for more details.
+* '__B__': on 2018-05-10 the iOS app fixed a bug which prevent search events being sent to [MobileWikiAppSearch](https://meta.wikimedia.org/wiki/Schema:MobileWikiAppSearch) and adjust the sampling rate to 100%. See [T192520](https://phabricator.wikimedia.org/T192520) for more details. Please note that the iOS app only collects data from users who agree to share their usage report with us.
 
 Outages and inaccuracies
 ------

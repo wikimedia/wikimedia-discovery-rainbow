@@ -38,5 +38,6 @@ output$ios_event_plot <- renderDygraph({
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_app_event)) %>%
     polloi::make_dygraph(xlab = "Date", ylab = "Events", title = "iOS mobile app search events, by day") %>%
     dyRangeSelector %>%
-    dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
+    dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
+    dyEvent(as.Date("2018-05-10"), "B (iOS bug fix)", labelLoc = "bottom")
 })

@@ -104,7 +104,8 @@ output$langproj_breakdown_plot <- renderDygraph({
     dyAxis("x", axisLabelFormatter = polloi::custom_axis_formatter) %>%
     dyRangeSelector(fillColor = "") %>%
     dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
-    dyEvent(as.Date("2017-03-29"), "M (Eventlogging Maintenance)", labelLoc = "bottom")
+    dyEvent(as.Date("2017-03-29"), "M (Eventlogging Maintenance)", labelLoc = "bottom") %>%
+    dyEvent(as.Date("2018-05-10"), "B (iOS bug fix)", labelLoc = "bottom")
   if (input$paulscore_relative_langproj) {
     dyOut <- dyAxis(dyOut, "y", axisLabelFormatter = "function(x) { return Math.round(100*x, 2) + '%'; }", valueFormatter = "function(x) { return Math.round(100*x, 2) + '%'; }")
   }

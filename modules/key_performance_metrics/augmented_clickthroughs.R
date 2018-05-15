@@ -16,5 +16,6 @@ output$kpi_augmented_clickthroughs_series <- renderDygraph({
     dyRangeSelector(fillColor = "", strokeColor = "") %>%
     dyEvent(as.Date("2016-03-16"), "Completion Suggester Deployed", labelLoc = "bottom") %>%
     dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom") %>%
-    dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom")
+    dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
+    dyEvent(as.Date("2018-05-10"), "B (iOS bug fix)", labelLoc = "bottom")
 })
