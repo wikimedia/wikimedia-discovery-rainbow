@@ -3,7 +3,9 @@ Key Performance Indicator: User Engagement (Augmented Clickthroughs)
 
 We are in the process of obtaining qualitative data from our users (their intent and satisfaction), so this metric is less akin to "user satisfaction" and more akin to "user engagement" we observe.
 
-This metric combines the clickthrough rate and the proportion of users' session dwell times exceeding the threshold of 10s.
+- **Threshold-passing%**: For each desktop fulltext search session, the dwell time is the difference between its last event's timestamp and its first event's timestamp. This threshold passing rate is the proportion of users' session dwell times exceeding the threshold of 10s.
+- **Clickthrough rate**: The average clickthrough rate of desktop fulltext search, searches on mobile web, iOS and Android app, weighted by their number of search result pages. Please note that the clickthrough rate of desktop fulltext search is the proportion of SRP with at least one clickthrough, while clickthrough rate on other platforms are the total number of clicks divided by the number of SRP.
+- **User engagement**: The arithmetic mean of the clickthrough rate and the threshold passing rate.
 
 Notes
 ------

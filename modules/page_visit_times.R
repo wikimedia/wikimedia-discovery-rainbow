@@ -9,7 +9,8 @@ output$lethal_dose_plot <- renderDygraph({
     dyLegend(labelsDiv = "lethal_dose_plot_legend", width = 600) %>%
     dyRangeSelector(fillColor = "", strokeColor = "") %>%
     dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
-    dyEvent(as.Date("2017-04-25"), "S (rates)", labelLoc = "bottom")
+    dyEvent(as.Date("2017-04-25"), "S (rates)", labelLoc = "bottom") %>%
+    dyEvent(as.Date("2018-07-19"), "B (bug fixed)", labelLoc = "bottom")
 })
 
 output$srp_ld_plot <- renderDygraph({
@@ -27,5 +28,6 @@ output$srp_ld_plot <- renderDygraph({
     dyLegend(labelsDiv = "srp_ld_plot_legend", width = 600) %>%
     dyRangeSelector(fillColor = "", strokeColor = "") %>%
     dyEvent(as.Date("2017-04-25"), "S (sampling rates)", labelLoc = "bottom") %>%
-    dyEvent(as.Date("2017-06-15"), "SS (sister search)", labelLoc = "bottom")
+    dyEvent(as.Date("2017-06-15"), "SS (sister search)", labelLoc = "bottom") %>%
+    dyEvent(as.Date("2018-07-05"), "B (bug fixed)", labelLoc = "bottom")
 })

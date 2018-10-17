@@ -1,14 +1,15 @@
 Metrics
 =======
 
-- **User Engagement** (not quite **[User Satisfaction](https://meta.wikimedia.org/wiki/Research:Measuring_User_Search_Satisfaction)**) This is an augmented version of clickthrough rate. In it we are including the proportion of users' sessions exceeding a pre-specified threshold. **Note** that we deployed v2.0 of the satisfaction schema on 9/2/2015.
+- **User Engagement** (not quite **[User Satisfaction](https://meta.wikimedia.org/wiki/Research:Measuring_User_Search_Satisfaction)**) This is an augmented version of clickthrough rate. In it we are including the proportion of users' sessions exceeding a pre-specified threshold. See [Key Performance Indicator: User Engagement](https://discovery.wmflabs.org/metrics/#kpi_augmented_clickthroughs) for more information.
 - **User-perceived load time** If our search is fast and snappy, then more people will use it!
 
 **Note**: The [Search Platform team](https://www.mediawiki.org/wiki/Wikimedia_Search_Platform) is currently developing a new set of key performance indicators to better reflect their current work and focus. Former KPIs (zero results rate and API usage) have been downgraded to service health monitoring metrics.
 
-Additional information
+Notes
 ------
-In the case of a data outage, the medians will be computed from non-missing data. When this is the case, the value displayed will be approximate and will have a '~'.
+- In the case of a data outage, the medians will be computed from non-missing data. When this is the case, the value displayed will be approximate and will have a '~'.
+- We deployed v2.0 of the satisfaction schema on 9/2/2015.
 
 Questions, bug reports, and feature suggestions
 ------

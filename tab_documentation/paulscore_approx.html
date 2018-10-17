@@ -26,6 +26,7 @@
 <ul>
   <li>'<strong>R</strong>': on 2017-01-01 we started calculating all of Discovery's metrics using a new version of <a href="https://phabricator.wikimedia.org/diffusion/WDGO/">our data retrieval and processing codebase</a> that we migrated to <a href="https://www.mediawiki.org/wiki/Analytics">Wikimedia Analytics</a>' <a href="https://wikitech.wikimedia.org/wiki/Analytics/Reportupdater">Reportupdater infrastructure</a>. See <a href="https://phabricator.wikimedia.org/T150915">T150915</a> for more details.</li>
   <li>'<strong>S</strong>': on 2017-04-25 we changed the rates at which users are put into event logging (see <a href="https://phabricator.wikimedia.org/T163273" title="Phabricator ticket: Adjust search satisfaction sampling rate">T163273</a>). Specifically, we decreased the rate on English Wikipedia ("EnWiki") and increased it everywhere else, and since EnWiki generally has higher PaulScore than other projects, we effectively lowered the overall PaulScore by lessening EnWiki's contribution. See <a href="https://phabricator.wikimedia.org/T168466" title="Phabricator ticket: Investigate PaulScores for late April and May for full-text searches">T168466</a> for more details.</li>
+  <li>'<strong>B</strong>': on 2018-09-26, we fixed a bug in our data retrieval script (<a href="https://gerrit.wikimedia.org/r/#/c/wikimedia/discovery/golden/+/462606/">change 462606</a>) and backfill the data since 2018-07-05. </li>
 </ul>
 
 <h2>Questions, bug reports, and feature suggestions</h2>

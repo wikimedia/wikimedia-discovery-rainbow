@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2018/10/17
+- Added desktop fulltext search clickthrough rate plot
+- Added Android and iOS search clickthrough rate plot
+- Added mobile web search clickthrough rate plot
+- Documented several changes that interrupt the metrics
+
 ## 2017/09/25
 - Added sister project search result prevalence
 
