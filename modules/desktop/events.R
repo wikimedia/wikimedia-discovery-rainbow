@@ -35,3 +35,15 @@ output$desktop_event_plot <- renderDygraph({
     dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
     dyEvent(as.Date("2017-04-25"), "S (rates)", labelLoc = "bottom")
 })
+
+output$desktop_ctr_plot <- renderDygraph({
+  desktop_dygraph_set %>%
+    dplyr::group_by(date) %>%
+    dplyr::summarize(`Clickthrough rate` = 100 * sum(clickthroughs, na.rm = TRUE) / sum(`Result pages opened`, na.rm = TRUE)) %>%
+    polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_desktop_event)) %>%
+    polloi::make_dygraph(xlab = "Date", ylab = "Clickthrough Rate (%)", title = "Desktop fulltext search clickthrough rate, by day") %>%
+    dyRangeSelector %>%
+    dyEvent(as.Date("2016-07-12"), "A (schema switch)", labelLoc = "bottom") %>%
+    dyEvent(as.Date("2017-01-01"), "R (reportupdater)", labelLoc = "bottom") %>%
+    dyEvent(as.Date("2017-04-25"), "S (rates)", labelLoc = "bottom")
+})

@@ -26,10 +26,11 @@ output$paulscore_approx_plot_autocomplete <- renderDygraph({
   }
   dyOut <- temp %>%
     polloi::smoother(smooth_level = polloi::smooth_switch(input$smoothing_global, input$smoothing_paulscore_approx)) %>%
-    polloi::make_dygraph(xlab = "Date", ylab = "PaulScore", title = "PaulScore for autocomplete searches, by day", use_si = FALSE, group = "paulscore_approx") %>%
+    polloi::make_dygraph(xlab = "Date", ylab = "PaulScore", title = "PaulScore for autocomplete searches from the header, by day", use_si = FALSE, group = "paulscore_approx") %>%
     dyRangeSelector %>%
     dyLegend(labelsDiv = "paulscore_approx_legend", show = "always") %>%
-    dyEvent(as.Date("2017-04-25"), "S (rates)", labelLoc = "bottom")
+    dyEvent(as.Date("2017-04-25"), "S (rates)", labelLoc = "bottom") %>%
+    dyEvent(as.Date("2018-07-05"), "B (bug fixed)", labelLoc = "bottom")
   if (input$paulscore_relative) {
     dyOut <- dyAxis(dyOut, "y", axisLabelFormatter = "function(x) { return Math.round(100 * x, 3) + '%'; }", valueFormatter = "function(x) { return Math.round(100 * x, 3) + '%'; }")
   }

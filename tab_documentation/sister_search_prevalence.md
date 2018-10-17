@@ -9,7 +9,7 @@ General trends
 
 Notes, outages, and inaccuracies
 -----
-* * You can select multiple languages to compare simultaneously. (Hold down Ctrl on Windows or Command on Mac.)
+* You can select multiple languages to compare simultaneously. (Hold down Ctrl on Windows or Command on Mac.)
 * English Wikipedia has a different display than all the other languages due to community feedback. Specifically, it does not show results from Commons/multimedia, Wikinews, and Wikiversity. Refer to [T162276#3278689](https://phabricator.wikimedia.org/T162276#3278689) for more details.
 * Languages without a lot of traffic also yield less (sampled) event logging data. In order to show somewhat-reliable numbers, languages with less than 20 recorded searches per day were excluded. Data on them is still available, though.
 

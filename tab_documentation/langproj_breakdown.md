@@ -16,6 +16,7 @@ Notes/Tips
 * The language picker will automatically choose "(None)" if you select a non-multilingual project such as Wikidata.
 * If you're interested in the overall metric for a multilingual project such as Wikipedia, make sure only "(None)" is selected in the languages picker.
 * Due to the high number of language-project combinations, we have restricted ourselves to only storing the last 30 days of data.
+* '__B__': on 2018-05-10 the iOS app fixed a bug which prevent search events being sent to [MobileWikiAppSearch](https://meta.wikimedia.org/wiki/Schema:MobileWikiAppSearch) and adjust the sampling rate to 100%. See [T192520](https://phabricator.wikimedia.org/T192520) for more details. Please note that the iOS app only collects data from users who agree to share their usage report with us.
 
 Questions, bug reports, and feature suggestions
 ------

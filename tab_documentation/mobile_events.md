@@ -6,6 +6,7 @@ User actions that we track around prefix search on the mobile website generally 
 1. **search start (aka search session)**: An API request is being made to retrieve search results whenever the user types enough characters to perform a search (3 or more). A search session is identified by searchSessionToken. For example, if a user types "Bara", then a new search session is started; if they then type "ck" (Barack), then a new search session is started;
 2. **Result pages opened**: The API request has finished and the results have been rendered;
 3. **clickthroughs**: A user clicking through to an article in the results page.
+4. **Clickthrough Rate**: Total number of clickthroughs divided by the number of result pages opened.
 
 When a user opens the search overlay, a **user session** start. We use a random generated userSessionToken to identify this search funnel. A user session can have multiple search sessions. We split user sessions into “low volume”, "medium volume" and “high-volume” sessions. A “high-volume” session is a user session whose search sessions are equal to or greater than the 90th percentile for the whole population on any particular day. A “low-volume” session is a user session whose search sessions are equal to or less than the 5th percentile. The rest are categorized as "medium-volume".
 

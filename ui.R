@@ -184,6 +184,7 @@ function(request) {
             valueBoxOutput("desktop_event_clickthroughs")),
           polloi::smooth_select("smoothing_desktop_event"),
           dygraphOutput("desktop_event_plot"),
+          dygraphOutput("desktop_ctr_plot"),
           includeMarkdown("./tab_documentation/desktop_events.md")
         ),
 
@@ -217,6 +218,7 @@ function(request) {
           ),
           polloi::smooth_select("smoothing_mobile_event"),
           dygraphOutput("mobile_event_plot"),
+          dygraphOutput("mobile_ctr_plot"),
           dygraphOutput("mobile_session_plot"),
           includeMarkdown("./tab_documentation/mobile_events.md")
         ),
@@ -237,7 +239,9 @@ function(request) {
           ),
           polloi::smooth_select("smoothing_app_event"),
           dygraphOutput("android_event_plot"),
+          dygraphOutput("android_ctr_plot"),
           dygraphOutput("ios_event_plot"),
+          dygraphOutput("ios_ctr_plot"),
           includeMarkdown("./tab_documentation/app_events.md")
         ),
 

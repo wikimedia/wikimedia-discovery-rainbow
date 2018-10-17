@@ -3,12 +3,15 @@ Key Performance Indicator: User Engagement (Augmented Clickthroughs)
 
 We are in the process of obtaining qualitative data from our users (their intent and satisfaction), so this metric is less akin to "user satisfaction" and more akin to "user engagement" we observe.
 
-This metric combines the clickthrough rate and the proportion of users' session dwell times exceeding the threshold of 10s.
+- **Threshold-passing%**: For each desktop fulltext search session, the dwell time is the difference between its last event's timestamp and its first event's timestamp. This threshold passing rate is the proportion of users' session dwell times exceeding the threshold of 10s.
+- **Clickthrough rate**: The average clickthrough rate of desktop fulltext search, searches on mobile web, iOS and Android app, weighted by their number of search result pages. Please note that the clickthrough rate of desktop fulltext search is the proportion of SRP with at least one clickthrough, while clickthrough rate on other platforms are the total number of clicks divided by the number of SRP.
+- **User engagement**: The arithmetic mean of the clickthrough rate and the threshold passing rate.
 
 Notes
 ------
 * '__A__': we switched to using data from [Schema:TestSearchSatisfaction2](https://meta.wikimedia.org/wiki/Schema:TestSearchSatisfaction2) instead of [Schema:Search](https://meta.wikimedia.org/wiki/Schema:Search) for Desktop event counts and load times on 12 July 2016.
 * '__R__': on 2017-01-01 we started calculating all of Discovery's metrics using a new version of [our data retrieval and processing codebase](https://phabricator.wikimedia.org/diffusion/WDGO/) that we migrated to [Wikimedia Analytics](https://www.mediawiki.org/wiki/Analytics)' [Reportupdater infrastructure](https://wikitech.wikimedia.org/wiki/Analytics/Reportupdater). See [T150915](https://phabricator.wikimedia.org/T150915) for more details.
+* '__B__': on 2018-05-10 the iOS app fixed a bug which prevent search events being sent to [MobileWikiAppSearch](https://meta.wikimedia.org/wiki/Schema:MobileWikiAppSearch) and adjust the sampling rate to 100%. See [T192520](https://phabricator.wikimedia.org/T192520) for more details. Please note that the iOS app only collects data from users who agree to share their usage report with us.
 
 Questions, bug reports, and feature suggestions
 ------

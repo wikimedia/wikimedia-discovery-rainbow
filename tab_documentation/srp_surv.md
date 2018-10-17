@@ -17,6 +17,7 @@ Annotations
 ------
 * '__S__': on 2017-04-25 we changed the rates at which users are put into event logging (see [T163273](https://phabricator.wikimedia.org/T163273)). Specifically, we decreased the rate on English Wikipedia ("EnWiki") and increased it everywhere else.
 * '__SS__': [on 2017-06-15](https://lists.wikimedia.org/pipermail/discovery/2017-June/001536.html) we deployed the sister search feature to all Wikipedia in all languages. Sister project (cross-wiki) snippets is a feature that adds search results from sister projects of Wikipedia to a sidebar on the search engine results page (SERP). If a query results in matches from the sister projects, users will be shown snippets from Wiktionary, Wikisource, Wikiquote and/or other projects. See [T162276](https://phabricator.wikimedia.org/T162276) for more details.
+* '__B__': on 2018-09-27 we fixed a bug in our data retrieval script ([change 462032](https://gerrit.wikimedia.org/r/#/c/wikimedia/discovery/golden/+/462032/)) that prevent the metrics to be created by different language groups, and we also included searches that ended within 10 seconds (no checkin event). We then backfilled the data since 2018-07-05.
 
 Questions, bug reports, and feature suggestions
 ------

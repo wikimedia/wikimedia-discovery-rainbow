@@ -212,5 +212,6 @@ output$referer_breakdown_plot <- renderDygraph({
       logscale = input$referer_breakdown_log_scale
     ) %>%
     dyLegend(labelsDiv = "referer_breakdown_plot_legend", width = 600) %>%
-    dyRangeSelector
+    dyRangeSelector %>%
+    dyEvent(as.Date("2017-06-29"), "U (new UDF)", labelLoc = "bottom")
 })

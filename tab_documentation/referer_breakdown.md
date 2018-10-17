@@ -20,7 +20,7 @@ General findings
 Outages and inaccuracies
 ------
 
-On 2017-06-29 we started to break down the API calls by referer class. 
+* '__U__': on 2017-06-29 we started to use a new UDF to get the type of search API (see [Gerrit change 345863](https://gerrit.wikimedia.org/r/#/c/345863/) for more details) and break down the API calls by referer class.
 
 Questions, bug reports, and feature suggestions
 ------
