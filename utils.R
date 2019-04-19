@@ -313,14 +313,14 @@ read_lethal_dose <- function() {
 
 read_paul_score <- function() {
   paulscore <- polloi::read_dataset("discovery/metrics/search/paulscore_approximations.tsv", col_types = "Dcddddddddd") %>%
-    dplyr::filter(!is.na(event_source)) %>%
-    dplyr::select(c(date, event_source, `F = 0.1` = pow_1, `F = 0.5` = pow_5, `F = 0.9` = pow_9))
+    dplyr::filter(!is.na(source)) %>%
+    dplyr::select(c(date, source, `F = 0.1` = pow_1, `F = 0.5` = pow_5, `F = 0.9` = pow_9))
   paulscore_autocomplete <<- paulscore %>%
-    dplyr::filter(event_source == "autocomplete") %>%
-    dplyr::select(-event_source)
+    dplyr::filter(source == "autocomplete") %>%
+    dplyr::select(-source)
   paulscore_fulltext <<- paulscore %>%
-    dplyr::filter(event_source == "fulltext") %>%
-    dplyr::select(-event_source)
+    dplyr::filter(source == "fulltext") %>%
+    dplyr::select(-source)
   # Broken down by language-project pair
   paulscore_fulltext_langproj <<- polloi::read_dataset("discovery/metrics/search/paulscore_approximations_fulltext_langproj_breakdown.tsv", col_types = "Dcciddddddddd") %>%
     dplyr::mutate(language = ifelse(is.na(language), "(None)", language)) %>%
